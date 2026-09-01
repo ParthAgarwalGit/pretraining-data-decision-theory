@@ -18,15 +18,10 @@ format:
 test:
 	uv run pytest -q
 
-# Provenance validation (src/pdt/provenance.py) lands in task P0-04. Until
-# then this target degrades gracefully instead of failing setup for anyone
-# who clones the repo between P0-03 and P0-04 landing.
+# Every JSON file under results/ must carry valid provenance (non-dirty git
+# SHA) -- see src/pdt/provenance.py and plan/00-agent-protocol.md Rule 3.
 check: lint test
-	@if [ -f src/pdt/provenance.py ]; then \
-		uv run python -m pdt.provenance --validate results/ ; \
-	else \
-		echo "pdt.provenance not yet implemented (lands in task P0-04) -- skipping provenance validation" ; \
-	fi
+	uv run python -m pdt.provenance --validate results/
 
 # Regenerates every figure in figures/ from results/*.json. The build_all
 # entry point lands in task P1-11.
