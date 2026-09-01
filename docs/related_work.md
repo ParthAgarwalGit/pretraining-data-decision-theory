@@ -192,6 +192,37 @@ P6-07's citation-verification pass too).
 
 ---
 
+## 5. Target venue deadlines — verified 2026-09-02
+
+`PLAN.md` section 4 requires verifying current deadlines rather than relying
+on the rough windows stated there, and ties that check to this task.
+
+| Venue | Status | Deadline | Confidence |
+|---|---|---|---|
+| ICML 2026 | **Already passed** | Abstract Jan 23, 2026 AoE; full paper Jan 28, 2026 AoE | High — confirmed directly from `icml.cc/Conferences/2026/CallForPapers`. |
+| NeurIPS 2026 | **Already passed** | Abstract/full paper May 4–6, 2026 AoE | High — confirmed directly from NeurIPS's own site. |
+| **ICML 2027** | Upcoming | Abstract ~Jan 16, 2027; full paper ~Jan 22, 2027 AoE | **Moderate** — reported consistently by conference-deadline aggregators; `icml.cc/Conferences/2027` is not live yet (404 as of this check), so not yet confirmable from the canonical source. Re-verify once it is. |
+| **COLM 2027** | Upcoming | Paper deadline March 31, 2027; conference Oct 6–9, 2027 | **Moderate** — reported consistently across two independent aggregator hits; `colmweb.org`'s own 2027 CFP page does not exist yet (only 2025/2026 are posted), so also not yet canonically confirmed. |
+| NeurIPS 2027 | Upcoming | **Officially TBA.** Historical pattern (2024: May 22, 2025: May 16, 2026: May 4-6) suggests ~May 2027, but this is an estimate, not a finding. | Low — no CFP posted yet. |
+
+**Recommendation:** target **COLM 2027** as the primary venue. It has the
+better-verified date of the two realistic options, and March 31, 2027 gives
+roughly 7 months from today — comfortable room after the rough 13-week
+schedule in `PLAN.md` §3, including slack for GATE-C/compute delays and
+GATE-T proof review, both of which are hard to schedule tightly. ICML 2027
+(~Jan 22, 2027, ~4.5 months out) is tight given Phases 1–6 have not started;
+treat it as a stretch target only if Phase 1 (the load-bearing empirical
+result) and Phase 2 theory land faster than planned, not as the primary
+plan. This is a recommendation for the PI to confirm, not a decision made
+here — matching the "recommended target and why" requirement in the
+GATE-0 checklist (`plan/01-phase0-setup.md`).
+
+**Before committing to either date**, re-verify against the canonical site
+directly (`icml.cc`, `colmweb.org`) once each venue's own CFP page exists —
+neither is confirmable from its own primary source yet as of this check.
+
+---
+
 ## Caveats
 
 - This sweep covered arXiv, OpenReview, and general web search as of
