@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    name: Lint, test, provenance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          cache-suffix: "check"
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      # Named as separate steps (rather than one `make check`) so a
+      # failure in the Actions UI points straight at lint vs. test vs.
+      # provenance without needing to open the log. `make check`'s
+      # prerequisites already run lint+test, so invoking it here too would
+      # silently duplicate both -- the provenance line below is exactly
+      # what `make check` adds on top of `make lint` + `make test`.
+      - name: Lint
+        run: make lint
+
+      - name: Test (coverage floor enforced via pyproject.toml)
+        run: make test
+
+      - name: Validate results/ provenance
+        run: uv run python -m pdt.provenance --validate results/
+
+  fabrication-guard:
+    name: Fabrication guard (orphan numbers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          cache-suffix: "fabrication-guard"
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      # --advisory: prints findings without failing the build. Phase 0-2
+      # has no paper yet, so this job exists to be visible and exercised,
+      # not to block anyone. Drop --advisory at task P6-01 (plan/07-phase6
+      # -paper.md) once paper/ exists and numbers are supposed to be
+      # macro-injected from results/*.json rather than hand-typed.
+      - name: Check for orphan numbers
+        run: uv run python tools/check_no_orphan_numbers.py --advisory
