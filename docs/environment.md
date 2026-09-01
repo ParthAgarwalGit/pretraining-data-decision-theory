@@ -46,8 +46,28 @@ GATE-C and a provisioned cluster, not this machine.
   and ask the PI for a write token per protocol §4; do not attempt to work
   around it.
 
+## Build tooling (added during P0-03)
+
+- **`make`** was not present on this machine (`/usr/bin/bash: make: command not
+  found`) — Windows has no default `make`, unlike the `ubuntu-latest` CI
+  runner planned for P0-05. Installed GNU Make 3.81 via
+  `winget install -e --id GnuWin32.Make` and added
+  `C:\Program Files (x86)\GnuWin32\bin` to the **user** PATH permanently.
+  **New terminal sessions pick this up automatically; a shell that was
+  already open when this ran will not** — export the directory onto `PATH`
+  manually for the remainder of an already-running session.
+- **`uv lock` / `uv sync`** both work without any extra configuration; PyPI
+  is reachable from this machine. `uv sync --all-extras` resolves 77
+  packages and installs 74 (`pdt` itself is the 74th, editable).
+- **Note on `huggingface_hub`:** the version floor pinned in
+  `pyproject.toml` (`>=0.35`) resolved to **1.29.0** — a major-version jump
+  from the 0.35.3 seen system-wide in P0-01. Not a blocker (the API used so
+  far, `hf auth whoami`, is stable across the bump), but flagging it because
+  `src/pdt/data/datadecide.py` (P0-06) and `src/pdt/hub.py` (P0-08) should be
+  written and tested against the **locked** version (1.29.0), not assumed
+  to match older `huggingface_hub` 0.x documentation or examples.
+
 ## Outcome
 
-All P0-01 checks pass. No blockers. Proceeding is contingent on GATE-0
-(repo naming/visibility/licence/HF namespace), which requires PI input before
-P0-02 can create anything.
+All P0-01 checks pass. `make setup && make check` verified passing on a
+genuine fresh clone (not just the working tree) as of P0-03. No blockers.
