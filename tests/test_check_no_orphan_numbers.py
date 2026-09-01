@@ -78,6 +78,41 @@ def test_does_not_flag_bare_integers_or_single_decimal_digits(tmp_path):
     assert orphans == []
 
 
+def test_does_not_flag_an_arxiv_id_in_prose():
+    # Regression: found for real while writing docs/related_work.md (P0-07)
+    # -- "the paper arXiv:2605.17234 does X" has no `et al.`/`\cite` on the
+    # line, so without the arXiv-ID-shape exemption this used to be flagged.
+    assert check_no_orphan_numbers._ARXIV_ID_RE.match("2605.17234")
+
+
+def test_does_not_flag_an_arxiv_id_inside_a_markdown_table_cell(tmp_path):
+    # Regression: a table row like "| Kaplan et al. | ... | 2001.08361 | ... |"
+    # puts the arXiv ID far enough from "et al." on the line that _CITE_RE's
+    # proximity match doesn't reach across the intervening cells.
+    root = _make_repo(tmp_path)
+    (root / "docs" / "related_work.md").write_text(
+        "| Kaplan et al. | arXiv preprint, 2020 | 2001.08361 | Scaling laws. | None. |\n",
+        encoding="utf-8",
+    )
+
+    orphans = check_no_orphan_numbers.find_orphan_numbers(root)
+
+    assert orphans == []
+
+
+def test_arxiv_id_exemption_does_not_swallow_a_real_result_that_looks_close(tmp_path):
+    # A genuine result shaped like N.NN (not the 4-digit.4-5-digit arXiv
+    # shape) must still be flagged.
+    root = _make_repo(tmp_path)
+    (root / "README.md").write_text(
+        "Reaches 0.83 accuracy, not from a citation.\n", encoding="utf-8"
+    )
+
+    orphans = check_no_orphan_numbers.find_orphan_numbers(root)
+
+    assert len(orphans) == 1
+
+
 def test_does_not_scan_files_outside_the_target_globs(tmp_path):
     root = _make_repo(tmp_path)
     (root / "plan").mkdir()
@@ -109,6 +144,26 @@ def test_non_advisory_mode_exits_nonzero_on_a_finding(tmp_path):
     exit_code = check_no_orphan_numbers.main(["--root", str(root)])
 
     assert exit_code == 1
+
+
+def test_main_does_not_crash_on_non_ascii_flagged_content(tmp_path, capsys):
+    # Regression: found for real while writing docs/related_work.md (P0-07)
+    # -- main() used to crash with UnicodeEncodeError printing a flagged
+    # line containing an em dash or "~=", because a Windows console's
+    # default stdout encoding (cp1252) can't represent them. capsys doesn't
+    # reproduce the real console-encoding failure mode (it captures via a
+    # different stream), so this only proves the code path runs cleanly on
+    # ordinary Unicode content -- the actual regression was confirmed
+    # manually by running the CLI for real; see the P0-07 PR description.
+    root = _make_repo(tmp_path)
+    (root / "README.md").write_text(
+        "Same gap as 2605.17234 — roughly ≈ 0.83 accuracy.\n", encoding="utf-8"
+    )
+
+    exit_code = check_no_orphan_numbers.main(["--root", str(root), "--advisory"])
+
+    assert exit_code == 0
+    assert "0.83" in capsys.readouterr().out
 
 
 def test_clean_repo_exits_zero_even_without_advisory(tmp_path):

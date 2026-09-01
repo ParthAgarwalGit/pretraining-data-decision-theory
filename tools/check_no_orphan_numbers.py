@@ -13,7 +13,15 @@ look like a reported result -- 2+ significant digits after a decimal point
       `\\cite` in .tex, or a Markdown line citing another paper by name +
       year/arXiv id), where quoting someone else's published number is
       expected and is not a fabrication risk, or
-  (c) present verbatim as a number somewhere in some file under results/.
+  (c) present verbatim as a number somewhere in some file under results/, or
+  (d) shaped exactly like a post-2007 arXiv identifier (four digits, a dot,
+      then four or five digits -- e.g. `2504.11393`). This shape essentially
+      never coincides with a real reported result in this project (decision
+      accuracies live in [0, 1]; GPU-hours and losses don't have a 4-digit
+      integer part with a 4-5-digit fraction), and citation-heavy documents
+      like docs/related_work.md cite arXiv IDs constantly, including inside
+      markdown tables where the nearby-`\\cite`/`et al.` context check in
+      (b) can't see across cell boundaries on the same line.
 
 Exit code: during Phase 0-2, this is advisory only (see the `--advisory`
 flag used by ci.yml) -- it prints findings but always exits 0. From task
@@ -34,6 +42,9 @@ from pathlib import Path
 # decimal-digit numbers (too many false positives from e.g. "1.5x compute"
 # design choices) to keep this guard focused on result-shaped numbers.
 _NUMBER_RE = re.compile(r"(?<![\w.])\d+\.\d{2,}(?![\w.])")
+
+# Post-2007 arXiv identifier shape: YYMM.NNNNN. See exemption (d) above.
+_ARXIV_ID_RE = re.compile(r"^\d{4}\.\d{4,5}$")
 
 _NUMBER_OK_MARKERS = ("NUMBER-OK",)
 
@@ -82,7 +93,10 @@ def find_orphan_numbers(root: Path) -> list[tuple[Path, int, str]]:
                 continue
 
             for match in _NUMBER_RE.finditer(line):
-                if match.group() in known_numbers:
+                token = match.group()
+                if _ARXIV_ID_RE.match(token):
+                    continue
+                if token in known_numbers:
                     continue
                 orphans.append((file_path, line_no, line.strip()))
                 break  # one flag per offending line is enough
@@ -91,6 +105,16 @@ def find_orphan_numbers(root: Path) -> list[tuple[Path, int, str]]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # A Windows console defaults to a legacy codepage (cp1252) that can't
+    # encode arbitrary Unicode (e.g. an em dash or "~2x" in a flagged line),
+    # crashing the very print statements meant to report the problem. Force
+    # UTF-8 with a safe fallback; a no-op on platforms already UTF-8 by
+    # default. `capsys`-style stream replacements may lack `.reconfigure`,
+    # hence the guard.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--root",
