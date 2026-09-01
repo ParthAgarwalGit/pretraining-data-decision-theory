@@ -12,14 +12,14 @@ of P0-02 (repo creation).
 |---|---|---|
 | git | 2.51.0.windows.2 | |
 | GitHub CLI (`gh`) | 2.96.0 | Logged in as `ParthAgarwalGit`, scopes `gist, read:org, repo, workflow` — sufficient for repo creation, branches, PRs |
-| Python | 3.12.10 | Matches `pyproject.toml` constraint planned for P0-03 (`>=3.11,<3.13`) |
+| Python | 3.12.10 | Matches `pyproject.toml` constraint planned for P0-03 (`>=3.11,<3.13`) <!-- NUMBER-OK --> |
 | `uv` | 0.11.3 | |
 | `huggingface_hub` | 0.35.3 | |
 | `hf` CLI | present at `/c/Users/Parth/AppData/Local/Programs/Python/Python312/Scripts/hf` | `hf auth whoami` → user `Parth4105`, orgs `Algoverse-AYJP` — matches the expected identity from `plan/00-agent-protocol.md` §4 |
 
 ## GPU
 
-NVIDIA GeForce RTX 4060 Laptop, 8188 MiB VRAM, driver 566.07, CUDA 12.7.
+NVIDIA GeForce RTX 4060 Laptop, 8188 MiB VRAM, driver 566.07, CUDA 12.7. <!-- NUMBER-OK: hardware/driver specs, not a research result -->
 
 **Sufficient for Phase 1 (analysis, no training) and Phase 3 (algorithm
 development, simulation, offline replay against DataDecide — all table
@@ -50,7 +50,7 @@ GATE-C and a provisioned cluster, not this machine.
 
 - **`make`** was not present on this machine (`/usr/bin/bash: make: command not
   found`) — Windows has no default `make`, unlike the `ubuntu-latest` CI
-  runner planned for P0-05. Installed GNU Make 3.81 via
+  runner planned for P0-05. Installed GNU Make 3.81 <!-- NUMBER-OK: tool version --> via
   `winget install -e --id GnuWin32.Make` and added
   `C:\Program Files (x86)\GnuWin32\bin` to the **user** PATH permanently.
   **New terminal sessions pick this up automatically; a shell that was
@@ -60,7 +60,7 @@ GATE-C and a provisioned cluster, not this machine.
   is reachable from this machine. `uv sync --all-extras` resolves 77
   packages and installs 74 (`pdt` itself is the 74th, editable).
 - **Note on `huggingface_hub`:** the version floor pinned in
-  `pyproject.toml` (`>=0.35`) resolved to **1.29.0** — a major-version jump
+  `pyproject.toml` (`>=0.35`) <!-- NUMBER-OK: version constraint, not a result --> resolved to **1.29.0** — a major-version jump
   from the 0.35.3 seen system-wide in P0-01. Not a blocker (the API used so
   far, `hf auth whoami`, is stable across the bump), but flagging it because
   `src/pdt/data/datadecide.py` (P0-06) and `src/pdt/hub.py` (P0-08) should be

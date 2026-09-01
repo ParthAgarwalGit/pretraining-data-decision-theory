@@ -62,7 +62,9 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=src/pdt --cov-report=term-missing"
+# --cov-fail-under enforced here (not just in CI) so `make test` fails the
+# same way locally as it does on ubuntu-latest -- one source of truth.
+addopts = "--cov=src/pdt --cov-report=term-missing --cov-fail-under=70"
 
 [tool.mypy]
 python_version = "3.12"

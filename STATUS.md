@@ -2,7 +2,7 @@
 
 Update this file at the end of **every** session (protocol step 11).
 
-Last updated: 2026-09-01 | Session: 3
+Last updated: 2026-09-01 | Session: 4
 
 States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
@@ -21,8 +21,8 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 | P0-01 | Verify and record the toolchain | DONE | [#1](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/1) | folded into docs/environment.md |
 | P0-02 | Propose repo names; create GitHub repo and skeleton | DONE | [#1](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/1) | branch protection unavailable on free plan — see docs/decisions.md |
 | P0-03 | Reproducible Python environment | DONE | [#2](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/2) | `make` was missing on Windows, installed GNU Make via winget; ruff scoped away from plan/ markdown; verified on a genuine fresh clone |
-| P0-04 | Provenance helper and results contract | IN REVIEW | (opening) | 21 tests; caught a real bug in the numpy encoder (array vs scalar) via the numpy-array test case; manually verified `make check` fails loudly on a hand-written result |
-| P0-05 | CI incl. fabrication guard | TODO | | |
+| P0-04 | Provenance helper and results contract | DONE | [#3](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/3) | 21 tests; caught a real bug in the numpy encoder (array vs scalar) via the numpy-array test case; manually verified `make check` fails loudly on a hand-written result |
+| P0-05 | CI incl. fabrication guard | IN REVIEW | (opening) | fabrication guard is advisory until P6-01 (paper doesn't exist yet); found and NUMBER-OK-annotated 4 real toolchain-version numbers in docs/environment.md; verified end-to-end with a deliberately fabricated README number |
 | P0-06 | Acquire and cache DataDecide | TODO | | |
 | P0-07 | Novelty sweep #1 | TODO | | |
 | P0-08 | Create the HF dataset repo shell | TODO | | |
