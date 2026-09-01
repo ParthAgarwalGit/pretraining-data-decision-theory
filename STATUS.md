@@ -2,7 +2,7 @@
 
 Update this file at the end of **every** session (protocol step 11).
 
-Last updated: 2026-09-02 | Session: 5
+Last updated: 2026-09-02 | Session: 7
 
 States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
@@ -23,9 +23,9 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 | P0-03 | Reproducible Python environment | DONE | [#2](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/2) | `make` was missing on Windows, installed GNU Make via winget; ruff scoped away from plan/ markdown; verified on a genuine fresh clone |
 | P0-04 | Provenance helper and results contract | DONE | [#3](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/3) | 21 tests; caught a real bug in the numpy encoder (array vs scalar) via the numpy-array test case; manually verified `make check` fails loudly on a hand-written result |
 | P0-05 | CI incl. fabrication guard | DONE | [#4](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/4) | fabrication guard is advisory until P6-01 (paper doesn't exist yet); found and NUMBER-OK-annotated 4 real toolchain-version numbers in docs/environment.md; verified end-to-end with a deliberately fabricated README number; also fixed a CI cache-key race and an actions/checkout deprecation |
-| P0-06 | Acquire and cache DataDecide | IN REVIEW | (opening) | data-recipes repo is 19.2TB (not a metadata table) -- deliberately not bulk-downloaded, only its README's recipe table is parsed; found 2 bonus tables (macro_avg, scaling_law_fit incl. DataDecide's own decision_acc); 25 recipes/14 sizes confirmed 3 independent ways; seeds are 3-per-size everywhere but relabeled at 1B (large aux vs small aux) -- resolves a risk P1-01 flagged; see docs/decisions.md for full findings |
-| P0-07 | Novelty sweep #1 | TODO | | |
-| P0-08 | Create the HF dataset repo shell | TODO | | |
+| P0-06 | Acquire and cache DataDecide | DONE | [#5](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/5) | data-recipes repo is 19.2TB (not a metadata table) -- deliberately not bulk-downloaded, only its README's recipe table is parsed; found 2 bonus tables (macro_avg, scaling_law_fit incl. DataDecide's own decision_acc); 25 recipes/14 sizes confirmed 3 independent ways; seeds are 3-per-size everywhere but relabeled at 1B (large aux vs small aux) -- resolves a risk P1-01 flagged; see docs/decisions.md for full findings |
+| P0-07 | Novelty sweep #1 | IN REVIEW | [#6](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/6) | verdict: no direct prior work found; 3 named near-misses + 1 found independently (arXiv:2604.22753), all characterized; 2 real citation errors fixed in the source doc's own reference list (Muennighoff year, "Hu et al." -> Lourie et al.); also fixed 2 real bugs in the fabrication guard tool itself (arXiv-ID false positives, a Windows console encoding crash) -- see docs/related_work.md |
+| P0-08 | Create the HF dataset repo shell | IN REVIEW | (opening) | code + tests + dataset card all prepared locally; **actual HF repo creation and push held for explicit PI confirmation of the exact repo name**, per plan/00-agent-protocol.md section 5 |
 | **GATE-0** | **End of Phase 0 — PI approval** | TODO | | |
 
 ## Phase 1 — DataDecide re-analysis
