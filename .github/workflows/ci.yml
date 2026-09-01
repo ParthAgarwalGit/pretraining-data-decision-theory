@@ -17,6 +17,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
+          cache-suffix: "check"
 
       - name: Install Python
         run: uv python install 3.12
@@ -50,6 +51,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
+          cache-suffix: "fabrication-guard"
 
       - name: Install Python
         run: uv python install 3.12
