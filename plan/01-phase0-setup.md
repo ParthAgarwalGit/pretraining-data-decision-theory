@@ -200,6 +200,12 @@ Steps:
    "14 sizes / 25 recipes" figures come partly from a blog post and the HF collection
    rather than the arXiv abstract, so a mismatch is plausible and is information.
 
+   **Outcome (2026-09-02):** 25 recipes and 14 sizes matched exactly. Seeds did not —
+   5 distinct labels appear in the raw union, not 3, though every individual size still
+   has exactly 3 (the extra labels are `large aux 2/3`, used only at 1B in place of
+   `small aux 2/3`). Full detail in `docs/decisions.md`; see also the P1-01 update in
+   `plan/02-phase1-datadecide.md` for what this resolves.
+
 **Definition of done:** `results/p0_06_inventory.json` exists with a pinned revision
 SHA; a second run reproduces it byte-identically except the timestamp.
 

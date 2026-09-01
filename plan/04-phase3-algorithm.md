@@ -43,7 +43,10 @@ class PullOracle(Protocol):
 2. `DataDecideOracle` — table lookup into the P1-01 frame; a repeated pull of the same
    `(recipe, scale, seed)` returns the same value (record how many distinct draws are
    available: 3 seeds, plus nearby checkpoints as pseudo-replicates if needed, and
-   document that choice).
+   document that choice). **Do not hardcode seed labels** — per P0-06's finding, the
+   auxiliary-seed names differ by scale (`small aux 2/3` below 1B, `large aux 2/3` at
+   1B); look up whatever seed values are actually present for a given `(recipe, scale)`
+   rather than assuming a fixed set of names across the whole ladder.
 3. `LiveTrainingOracle` — Phase 4 only; launches a real run. Stub it now, raising
    `NotImplementedError`, so the interface is fixed before P4 starts.
 
