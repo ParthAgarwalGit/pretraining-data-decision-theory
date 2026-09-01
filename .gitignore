@@ -1,0 +1,46 @@
+# Data and large artifacts — never committed, always fetched via src/pdt/data
+data/
+*.parquet
+*.safetensors
+*.bin
+*.pt
+*.ckpt
+wandb/
+
+# Secrets
+.env
+*.token
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.coverage
+htmlcov/
+
+# Environments
+.venv/
+venv/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# LaTeX build artifacts
+paper/**/*.aux
+paper/**/*.log
+paper/**/*.out
+paper/**/*.bbl
+paper/**/*.blg
+paper/**/*.fls
+paper/**/*.fdb_latexmk
+paper/**/*.synctex.gz
