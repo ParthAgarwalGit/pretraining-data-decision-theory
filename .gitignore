@@ -1,5 +1,9 @@
 # Data and large artifacts — never committed, always fetched via src/pdt/data
-data/
+# Leading slash matters: unanchored "data/" matches ANY directory named
+# "data" anywhere in the tree, including src/pdt/data/ (the module that
+# does the fetching) -- found the hard way when that whole package silently
+# didn't show up as untracked in `git status` during task P0-06.
+/data/
 *.parquet
 *.safetensors
 *.bin

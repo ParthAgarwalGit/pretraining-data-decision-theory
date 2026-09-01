@@ -47,20 +47,36 @@ Rules baked into the builder (not left to callers):
    checkpoint exists. **Report holes.** Do not silently drop; a missing cell changes
    which estimators are admissible.
 
+**Update (P0-06 findings, see `docs/decisions.md` 2026-09-02):** the two
+open questions below that motivated this section have already been
+answered at the aggregate level by `results/p0_06_inventory.json`. Do not
+re-treat them as open risks — but P1-01 still needs to do the finer-grained
+version (a full per-`(recipe, params, seed, task)` coverage matrix, not
+just the per-size seed list P0-06 checked), since a recipe/task could still
+have gaps that an aggregate seed count wouldn't reveal.
+
+- **Seeds are resolved:** every size has exactly 3 seeds, always including
+  `default`. Sizes 4M–750M use `small aux 2`/`small aux 3`; **1B (the
+  target scale) uses `large aux 2`/`large aux 3` instead** — a different
+  auxiliary-seed pair, not fewer seeds. So `mu_k(s*)` at 1B has the same
+  3-seed replication as every other size, and the noise-estimation concern
+  below does not apply. Still worth actually computing `sigma^2_seed`
+  directly from the 1B replicates in P1-05 rather than assuming it behaves
+  like the smaller sizes — but there is no missing-replication problem to
+  work around.
+- **`chinchilla` is resolved:** only one value, `5xC`, appears anywhere in
+  `eval_results`. It is not a second design axis; no conditioning needed.
+
 Also record, in `results/p1_01_frame.json`:
 
-- Which sizes have all 3 seeds and which have only `default`. **This matters:** the
-  seed names (`default`, `small aux 2`, `small aux 3`) suggest the auxiliary seeds may
-  exist only at small sizes. If `s* = 1B` has one seed, our ground truth `mu_k(s*)` has
-  irreducible measurement noise that we must estimate a different way (P1-06) and must
-  *subtract* when estimating bias. Getting this wrong inflates `sigma^2_extrap`
-  and would make our headline result wrong in our favour — be careful here.
-- Whether `chinchilla` (token multiplier) varies within a size, and if so whether we
-  should condition on it or treat it as a second design axis.
+- The full `(recipe, params, seed, task)` coverage matrix (P0-06 only
+  checked `(params, seed)`) — confirm there are no gaps at finer grain
+  before relying on it in P1-06's decomposition.
 
-**Definition of done:** cached frame + `results/p1_01_frame.json` with the coverage
-matrix and the seed-availability table. Report the seed-availability finding to the PI
-in your session summary even though it is not a GATE.
+**Definition of done:** cached frame + `results/p1_01_frame.json` with the
+full coverage matrix. The seed-availability question itself is already
+answered (see above); this task's job is the finer-grained confirmation,
+not re-discovering the headline fact.
 
 ---
 
@@ -204,10 +220,14 @@ options rather than continuing.
 Before we can call anything "bias", we must know the noise. Estimate three variance
 components and write `results/p1_05_noise.json`:
 
-1. **Seed variance** `sigma^2_seed(s, t)` — variance across the 3 seeds at each size
-   where they exist. If seeds exist only at small sizes, fit `sigma^2_seed` as a
-   function of `s` (expect it to shrink with scale) and extrapolate cautiously to `s*`,
-   clearly labelling it as an extrapolated noise estimate.
+1. **Seed variance** `sigma^2_seed(s, t)` — variance across the 3 seeds at each size.
+   As P0-06 found (see the P1-01 update above), every size including `s* = 1B` has 3
+   seeds, so this is computed directly at every size — **no extrapolated fallback is
+   needed here.** (An earlier draft of this task assumed seeds might exist only at
+   small sizes and planned an extrapolated fallback for `s*`; that assumption was
+   wrong and the fallback is dead code — do not build it.) Still worth checking
+   whether `sigma^2_seed` shrinks with scale as expected, since that's a real
+   empirical question, just not one that blocks computing the quantity at `s*`.
 2. **Checkpoint jitter** `sigma^2_ckpt(s, t)` — variance of the metric across the last
    few checkpoints of a single run (using the `step` axis). This captures
    training-noise and is available at *every* size including 1B, which makes it the
