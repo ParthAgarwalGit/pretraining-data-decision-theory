@@ -2,7 +2,7 @@
 
 Update this file at the end of **every** session (protocol step 11).
 
-Last updated: 2026-09-01 | Session: 1
+Last updated: 2026-09-01 | Session: 2
 
 States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
@@ -18,9 +18,9 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
 | Task | Title | State | PR | Notes |
 |---|---|---|---|---|
-| P0-01 | Verify and record the toolchain | DONE | | staged to docs/environment.md |
-| P0-02 | Propose repo names; create GitHub repo and skeleton | IN REVIEW | (opening) | branch protection unavailable on free plan — see docs/decisions.md |
-| P0-03 | Reproducible Python environment | TODO | | |
+| P0-01 | Verify and record the toolchain | DONE | [#1](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/1) | folded into docs/environment.md |
+| P0-02 | Propose repo names; create GitHub repo and skeleton | DONE | [#1](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/1) | branch protection unavailable on free plan — see docs/decisions.md |
+| P0-03 | Reproducible Python environment | IN REVIEW | (opening) | `make` was missing on Windows, installed GNU Make via winget; ruff scoped away from plan/ markdown; verified on a genuine fresh clone |
 | P0-04 | Provenance helper and results contract | TODO | | |
 | P0-05 | CI incl. fabrication guard | TODO | | |
 | P0-06 | Acquire and cache DataDecide | TODO | | |
