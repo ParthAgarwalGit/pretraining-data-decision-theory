@@ -1,0 +1,278 @@
+{
+  "provenance": {
+    "git_sha": "83c1f712fe9a749b895ccb678bc5790c6ea51d42",
+    "git_dirty": false,
+    "utc_timestamp": "2026-09-01T18:39:50.359591+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "P0-06"
+    }
+  },
+  "data": {
+    "eval_results": {
+      "n_rows": 1346400,
+      "n_columns": 44
+    },
+    "macro_avg": {
+      "n_rows": 224400,
+      "n_columns": 47
+    },
+    "scaling_law_fit": {
+      "n_rows": 132000,
+      "n_columns": 15
+    },
+    "ppl_results": {
+      "n_rows": 22709,
+      "n_columns": 16
+    },
+    "recipes": {
+      "n_rows": 25
+    },
+    "recipe_names": [
+      "C4",
+      "DCLM-Baseline",
+      "DCLM-Baseline (QC 10%)",
+      "DCLM-Baseline (QC 20%)",
+      "DCLM-Baseline (QC 7%, FW2)",
+      "DCLM-Baseline (QC 7%, FW3)",
+      "DCLM-Baseline (QC FW 10%)",
+      "DCLM-Baseline (QC FW 3%)",
+      "DCLM-Baseline 25% / Dolma 75%",
+      "DCLM-Baseline 50% / Dolma 50%",
+      "DCLM-Baseline 75% / Dolma 25%",
+      "Dolma1.6++",
+      "Dolma1.7",
+      "Dolma1.7 (no Flan)",
+      "Dolma1.7 (no Reddit)",
+      "Dolma1.7 (no code)",
+      "Dolma1.7 (no math, code)",
+      "Falcon",
+      "Falcon+CC",
+      "Falcon+CC (QC 10%)",
+      "Falcon+CC (QC 20%)",
+      "Falcon+CC (QC Orig 10%)",
+      "Falcon+CC (QC Tulu 10%)",
+      "FineWeb-Edu",
+      "FineWeb-Pro"
+    ],
+    "params_labels": [
+      "4M",
+      "6M",
+      "8M",
+      "10M",
+      "14M",
+      "16M",
+      "20M",
+      "60M",
+      "90M",
+      "150M",
+      "300M",
+      "530M",
+      "750M",
+      "1B"
+    ],
+    "params_sizes_numeric": [
+      4000000,
+      6000000,
+      8000000,
+      10000000,
+      14000000,
+      16000000,
+      20000000,
+      60000000,
+      90000000,
+      150000000,
+      300000000,
+      530000000,
+      750000000,
+      1000000000
+    ],
+    "seeds": [
+      "default",
+      "large aux 2",
+      "large aux 3",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "tasks": [
+      "arc_challenge",
+      "arc_easy",
+      "boolq",
+      "csqa",
+      "hellaswag",
+      "mmlu_abstract_algebra",
+      "mmlu_anatomy",
+      "mmlu_astronomy",
+      "mmlu_business_ethics",
+      "mmlu_clinical_knowledge",
+      "mmlu_college_biology",
+      "mmlu_college_chemistry",
+      "mmlu_college_computer_science",
+      "mmlu_college_mathematics",
+      "mmlu_college_medicine",
+      "mmlu_college_physics",
+      "mmlu_computer_security",
+      "mmlu_conceptual_physics",
+      "mmlu_econometrics",
+      "mmlu_electrical_engineering",
+      "mmlu_elementary_mathematics",
+      "mmlu_formal_logic",
+      "mmlu_global_facts",
+      "mmlu_high_school_biology",
+      "mmlu_high_school_chemistry",
+      "mmlu_high_school_computer_science",
+      "mmlu_high_school_european_history",
+      "mmlu_high_school_geography",
+      "mmlu_high_school_government_and_politics",
+      "mmlu_high_school_macroeconomics",
+      "mmlu_high_school_mathematics",
+      "mmlu_high_school_microeconomics",
+      "mmlu_high_school_physics",
+      "mmlu_high_school_psychology",
+      "mmlu_high_school_statistics",
+      "mmlu_high_school_us_history",
+      "mmlu_high_school_world_history",
+      "mmlu_human_aging",
+      "mmlu_human_sexuality",
+      "mmlu_international_law",
+      "mmlu_jurisprudence",
+      "mmlu_logical_fallacies",
+      "mmlu_machine_learning",
+      "mmlu_management",
+      "mmlu_marketing",
+      "mmlu_medical_genetics",
+      "mmlu_miscellaneous",
+      "mmlu_moral_disputes",
+      "mmlu_moral_scenarios",
+      "mmlu_nutrition",
+      "mmlu_philosophy",
+      "mmlu_prehistory",
+      "mmlu_professional_accounting",
+      "mmlu_professional_law",
+      "mmlu_professional_medicine",
+      "mmlu_professional_psychology",
+      "mmlu_public_relations",
+      "mmlu_security_studies",
+      "mmlu_sociology",
+      "mmlu_us_foreign_policy",
+      "mmlu_virology",
+      "mmlu_world_religions",
+      "openbookqa",
+      "piqa",
+      "socialiqa",
+      "winogrande"
+    ],
+    "n_tasks": 66,
+    "chinchilla_values": [
+      "5xC"
+    ],
+    "seeds_by_size": {
+      "4M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "6M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "8M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "10M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "14M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "16M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "20M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "60M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "90M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "150M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "300M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "530M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "750M": [
+        "default",
+        "small aux 2",
+        "small aux 3"
+      ],
+      "1B": [
+        "default",
+        "large aux 2",
+        "large aux 3"
+      ]
+    },
+    "expected_vs_actual": {
+      "expected": {
+        "n_recipes": 25,
+        "n_sizes": 14,
+        "n_seeds": 3
+      },
+      "actual": {
+        "n_recipes": 25,
+        "n_sizes": 14,
+        "n_seeds": 5
+      },
+      "matches_expected": {
+        "n_recipes": true,
+        "n_sizes": true,
+        "n_seeds": false
+      }
+    },
+    "dataset_revisions": {
+      "eval_results": "9919b5a0e61e57a85021263918fa82d6ceaee038",
+      "macro_avg": "9919b5a0e61e57a85021263918fa82d6ceaee038",
+      "scaling_law_fit": "9919b5a0e61e57a85021263918fa82d6ceaee038",
+      "ppl_results": "c4a9fa360a0c8351e71f3ede04dd165995fab68c",
+      "recipes": "3baf34baf5b636f0943401b5c6a2ccb7e5cf3bb9"
+    }
+  }
+}
