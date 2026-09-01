@@ -52,3 +52,67 @@ private-until-submission decision above.
 
 **Decided by:** Agent, following the explicit fallback instruction in
 `plan/01-phase0-setup.md` task P0-02, step 8.
+
+---
+
+## 2026-09-02 — DataDecide: what P0-06 actually downloads, and real dataset facts
+
+**Context:** Task P0-06 ("acquire and cache DataDecide") was planned around a
+secondhand description of the Hub repos (from the source PDF / an earlier
+tool-mediated preview). Building the real acquisition module surfaced
+several things that description got wrong or omitted, checked directly
+against the live Hub.
+
+**Findings, all verified against the live Hub on 2026-09-02:**
+
+1. **`allenai/DataDecide-data-recipes` is 19.2 TB** (6,194 files) of raw
+   preprocessed tokenized-corpus `.npy` shards -- not "the 25 corpora
+   definitions" as a small table. The actual human-readable recipe
+   composition table lives in that repo's `README.md` as a markdown table,
+   which is the only file `src/pdt/data/datadecide.py` ever fetches from it.
+   `allenai/DataDecide-eval-instances` is similarly 123 GB and is never
+   touched at all (the plan already correctly said Phase 1 doesn't need it).
+2. **`allenai/DataDecide-eval-results` ships two extra tables** beyond the
+   documented per-instance-family rows: `data/macro_avg-*.parquet`
+   (task-macro-averaged rows, including a precomputed `olmes_10_macro_avg`
+   "task") and `data/scaling_law_fit-*.parquet` -- **DataDecide's own
+   baseline scaling-law fit results**, with a `decision_acc` column per
+   (task, mix, metric, setup). The latter lets Phase 1 cross-check its own
+   reproduction directly against the authors' own numbers, not just the
+   ~80% figure quoted in the abstract. Both are now downloaded and cached by
+   `load_macro_avg()` / `load_scaling_law_fit()`.
+3. **The `metrics` column is inconsistently serialized across these files**:
+   single-quoted Python dict repr (`ast.literal_eval` required) in the main
+   `train-*.parquet` shards, but proper double-quoted JSON in `macro_avg`.
+   `_parse_metrics()` tries JSON first and falls back to `ast.literal_eval`.
+4. **25 recipes and 14 sizes are confirmed exactly** (independently, three
+   ways: the recipes README table, its per-size model-link table, and the
+   `data`/`params` columns of the real eval-results table). The 14 sizes are
+   4M, 6M, 8M, 10M, 14M, 16M, 20M, 60M, 90M, 150M, 300M, 530M, 750M, 1B.
+5. **Seeds: 5 distinct labels in the raw union (`default`, `small aux 2`,
+   `small aux 3`, `large aux 2`, `large aux 3`), not the 3 the plan
+   expected -- but every individual size still has exactly 3 seeds.** Sizes
+   4M through 750M use `small aux 2/3`; **1B (the target scale) uses
+   `large aux 2/3` instead of `small aux 2/3`**, with `default` present
+   everywhere. This resolves, positively, a risk `plan/02-phase1-datadecide.md`
+   task P1-01 flagged explicitly ("if `s* = 1B` has one seed, our ground
+   truth ... has irreducible measurement noise") -- the target scale does
+   have full 3-seed replication, just under different auxiliary-seed names.
+6. **Only one `chinchilla` value (`5xC`) appears in the eval-results table**
+   -- the multi-value design-axis concern P1-01 raised does not apply here.
+7. **66 distinct `task` values**, not the ~10 OLMES task families the
+   `macro_avg` table's task list suggested -- the full eval-results table is
+   evaluated at much finer granularity. Recorded as data for P1-01 to select
+   from; not resolved or filtered here.
+
+Full counts are in `results/p0_06_inventory.json` (regenerated from a clean
+tree, reproducible byte-for-byte aside from the timestamp).
+
+**Decision:** `download_snapshot()` and `download_file()` in
+`src/pdt/data/datadecide.py` require an explicit `allow_patterns` /
+`filename` argument (no safe default) specifically because of finding 1 --
+every call site is restricted to the small parquet/README files actually
+needed, never a bare snapshot of an entire repo.
+
+**Decided by:** Agent, while executing task P0-06, based on direct
+inspection of the live Hub rather than the plan's secondhand description.
