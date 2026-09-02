@@ -116,3 +116,34 @@ needed, never a bare snapshot of an entire repo.
 
 **Decided by:** Agent, while executing task P0-06, based on direct
 inspection of the live Hub rather than the plan's secondhand description.
+
+---
+
+## 2026-09-02 — GATE-0 cleared: target venue is COLM 2027
+
+**Context:** GATE-0 (`plan/01-phase0-setup.md`) required PI approval of the
+repo/licence/namespace choices (already settled at P0-02), the P0-06
+inventory results, the P0-07 novelty verdict, and a recommended submission
+target given verified deadlines.
+
+**Decision:** PI approved GATE-0 in full: merged PRs #6 (P0-07) and #7
+(P0-08), and confirmed the target venue is **COLM 2027** (paper deadline
+verified as ~March 31, 2027 in `docs/related_work.md` §5, moderate
+confidence pending `colmweb.org` posting its own 2027 CFP page). ICML 2027
+(~Jan 22, 2027) remains a stretch option only if Phase 1 and Phase 2 land
+well ahead of schedule; COLM 2027 is the plan of record.
+
+**Rationale:** COLM 2027 had the better-verified date of the two realistic
+options and leaves roughly 7 months of schedule slack from 2026-09-02,
+which matters given GATE-C (compute) and GATE-T (proof review) are both
+hard to schedule tightly.
+
+**How to apply:** `plan/07-phase6-paper.md`'s deadline-dependent tasks
+(P6-09's "within 2 weeks of the deadline" novelty sweep, and the general
+pacing in `PLAN.md` §3) should be read against a **~2027-03-31** target
+from here forward, not the placeholder windows in `PLAN.md` §4. Re-verify
+the exact COLM 2027 date directly from `colmweb.org` once its 2027 CFP page
+exists — the current date is from aggregator sites, not the canonical
+source.
+
+**Decided by:** Parth (PI), in chat, after reviewing the GATE-0 summary.
