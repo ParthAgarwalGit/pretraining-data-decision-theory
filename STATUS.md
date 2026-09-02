@@ -2,12 +2,12 @@
 
 Update this file at the end of **every** session (protocol step 11).
 
-Last updated: 2026-09-02 | Session: 9
+Last updated: 2026-09-02 | Session: 12
 
 States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
 ## Open GATEs
-- (none) — GATE-0 cleared 2026-09-02; Phase 1 is in progress. Next gate is GATE-1 (after P1-04).
+- **GATE-1** — reproduction checkpoint. P1-01 through P1-04 are complete; posting the required GATE-1 report to the PI now and waiting for a reply before starting P1-05. See docs/decisions.md.
 
 ## Blocked
 - (none)
@@ -32,11 +32,11 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
 | Task | Title | State | PR | Notes |
 |---|---|---|---|---|
-| P1-01 | Canonical analysis frame | IN REVIEW | (opening) | full (recipe, params, seed, task) coverage matrix is 100% complete -- 69,300/69,300 cells, 0 holes -- confirming P0-06's coarser check at full granularity; built on load_eval_results() rather than re-parsing metrics |
-| P1-02 | Ground truth at target scale, and gaps | TODO | | |
-| P1-03 | Reproduce DataDecide single-scale baseline | TODO | | target ~80% at 150M |
-| P1-04 | Scaling-law fitters; reproduce "extrapolation does not win" | TODO | | |
-| **GATE-1** | **Reproduction checkpoint — PI approval** | TODO | | |
+| P1-01 | Canonical analysis frame | DONE | [#9](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/9) | full (recipe, params, seed, task) coverage matrix is 100% complete -- 69,300/69,300 cells, 0 holes; gained a `source`/`metrics` parameterization in P1-02 after finding eval_results was the wrong granularity -- see docs/decisions.md |
+| P1-02 | Ground truth at target scale, and gaps | DONE | [#10](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/10) | **headline finding: 9/11 macro_avg tasks still ambiguous under primary_metric at 1B (6/11 under acc_per_char)** -- even DataDecide's own olmes_10_macro_avg has a ~0.05pp winning margin, within seed noise; found eval_results was the wrong task granularity (fixed frame.py), a cache-key bug that silently poisoned P1-01's own results (fixed), and non-deterministic tie-breaking in compute_ground_truth (fixed) -- all 3 caught by diffing clean-tree reruns against each other, see docs/decisions.md |
+| P1-03 | Reproduce DataDecide single-scale baseline | DONE | [#11](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/11) | **REPRODUCED: 76.3% at 150M (79.6% excluding ties) vs published ~80%** -- all 4 sensitivity variants cluster 73.3%-77.5%; accuracy-vs-size curve smooth and monotonic-ish (53% at 4M -> 85% at 530M); pipeline confirmed correct -- see PR for full table |
+| P1-04 | Scaling-law fitters; reproduce "extrapolation does not win" | DONE | [#12](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/12) | **REPRODUCED: 0/18 (fitter, design) combinations beat the single-scale frontier at matched compute** -- 6 fitters (Constant/PowerLawN/PowerLawC/ChinchillaND/TwoStepLadder/LogLinear) x 3 designs (<=150M/<=300M/<=530M); ConstantExtrapolator's per-design accuracy exactly reproduces the matching P1-03 single-scale point (hard consistency check, enforced in code); the <=530M design's own compute exceeds the largest single-scale comparison point (750M) so that design's matched-compute comparison is out of range, not a failure -- see docs/decisions.md and PR for full table |
+| **GATE-1** | **Reproduction checkpoint — PI approval** | IN REVIEW | | report posted to PI; awaiting reply before P1-05 |
 | P1-05 | Noise-floor estimation | TODO | | |
 | P1-06 | Bias/variance decomposition (core result) | TODO | | |
 | P1-07 | Plug-in bound and empirical coverage | TODO | | |
