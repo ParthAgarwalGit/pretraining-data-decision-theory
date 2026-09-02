@@ -147,3 +147,63 @@ exists — the current date is from aggregator sites, not the canonical
 source.
 
 **Decided by:** Parth (PI), in chat, after reviewing the GATE-0 summary.
+
+---
+
+## 2026-09-02 — P1-02: eval_results is the wrong granularity for the headline reproduction
+
+**Context:** P1-01's frame (already merged, PR #9) was built entirely from
+`eval_results`, which carries 66 "tasks" -- 9 core OLMES families plus each
+of the 57 individual MMLU *subject* splits (`mmlu_abstract_algebra`,
+`mmlu_marketing`, ...) as its own separate task. While building P1-02's
+ground-truth computation, most individual MMLU-subject tasks showed exact
+ties (`delta_min = 0.0`) between top recipes at 1B, which is what you'd
+expect from small per-subject eval sets producing coarse accuracy
+fractions.
+
+**Finding:** checked directly against `scaling_law_fit` (DataDecide's own
+baseline results, cached since P0-06) -- its `task` column contains
+exactly 11 values: the 9 core OLMES families, one aggregated `mmlu`, and
+`olmes_10_macro_avg`. **This confirms DataDecide's own headline numbers
+are computed at this 11-task macro-averaged granularity, not the 66-task
+fine-grained one.** `eval_results` is the wrong source to reproduce their
+~80% figure against; `macro_avg` (also cached since P0-06, previously
+unused past its own inventory count) is the right one.
+
+**Decision:** `src/pdt/data/frame.py`'s `build_frame()` gained a `source`
+parameter (`"eval_results"` or `"macro_avg"`, default unchanged at
+`"eval_results"` for backward compatibility) and a `metrics` parameter
+(previously a fixed whitelist -- `macro_avg` doesn't expose
+`bits_per_byte_corr`, so a fixed whitelist would have broken it). P1-02's
+ground truth is now computed from **both** sources: `macro_avg` as the
+primary, DataDecide-comparable result, `eval_results` retained as a
+fine-grained diagnostic explaining *why* ties happen. P1-03 must read
+ground truth from the `macro_avg` branch of `results/p1_02_target.json`,
+not `eval_results`.
+
+**A second, more serious bug found while making this change:** the cache
+key for `build_frame()` was keyed on `source` alone. P1-02's own script
+calling `build_frame(source="eval_results", metrics=("primary_metric",
+"acc_per_char"))` -- only 2 metrics -- silently wrote to the *same* cache
+file P1-01's default 6-metric call also uses. Re-running P1-01's script
+afterward silently returned the poisoned 2-metric cache: **8,078,400 rows
+became 2,692,800, a 3x undercount, with no error** -- exactly the kind of
+wrong-number-with-no-signal this project's provenance system exists to
+prevent, except provenance only validates git-tree cleanliness, not
+semantic correctness of a cached computation, so it did not catch this.
+Fixed by keying the cache filename on a hash of the sorted `metrics` tuple
+as well as `source`. Caught only by manually diffing a full regeneration
+against the already-merged, already-PI-reviewed P1-01 output before
+trusting the refactor -- confirmed the fix restores the original
+8,078,400-row result exactly. A regression test now pins this specific
+failure mode directly.
+
+**How to apply:** any future caller of `build_frame()` with a non-default
+`metrics` argument is safe now, but should still be aware that the cache
+directory (`data/cache/pdt/`) can accumulate one file per distinct
+(source, metrics) combination ever requested -- harmless (gitignored,
+small), just worth knowing if the count looks surprising.
+
+**Decided by:** Agent, while executing task P1-02, verified by diffing
+regenerated output against the already-merged P1-01 results before and
+after the fix.

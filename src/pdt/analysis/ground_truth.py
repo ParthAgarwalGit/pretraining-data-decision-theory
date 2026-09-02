@@ -1,0 +1,106 @@
+"""Ground truth at a target scale: per-task winners, gaps, and ambiguity.
+
+See plan/02-phase1-datadecide.md task P1-02. Shared by P1-02 (the primary
+1B ground truth), P1-03 (needs it to score the single-scale baseline), and
+eventually P5-03 (metric-choice ablation, different metric argument).
+"""
+
+from __future__ import annotations
+
+import math
+
+import polars as pl
+
+# A task's winner is "ambiguous" when the gap to the runner-up is smaller
+# than one pooled-seed standard error of that gap -- i.e. the effect size
+# (see _effect_size below) is under this many "noise units". This is a
+# diagnostic threshold for flagging tasks, not a calibrated hypothesis
+# test (the per-recipe std is estimated from only 3 seeds, 2 degrees of
+# freedom -- treat effect_size as directional, not a p-value).
+AMBIGUOUS_EFFECT_SIZE_THRESHOLD = 1.0
+
+
+def _effect_size(delta_min: float, sd_a: float, sd_b: float, n_seeds: int) -> float | None:
+    """Standardized gap between the winner and runner-up: delta_min divided
+    by the standard error of that gap, treating the two recipes as
+    independent (separate training runs), each estimated from n_seeds
+    replicates: SE = sqrt((sd_a^2 + sd_b^2) / n_seeds).
+
+    Returns None if both recipes have zero seed variance (degenerate --
+    cannot compute a standard error; happens only with duplicate/identical
+    seed values, not expected in real data but handled rather than
+    crashing).
+    """
+    pooled_variance = (sd_a**2 + sd_b**2) / n_seeds
+    if pooled_variance == 0:
+        return None
+    return delta_min / math.sqrt(pooled_variance)
+
+
+def compute_ground_truth(
+    long_frame: pl.DataFrame, metric_name: str, target_params_str: str
+) -> dict:
+    """Per-task ground truth at `target_params_str` for `metric_name`.
+
+    Uses only final-checkpoint rows, averaged over whatever seeds are
+    present for that scale (P0-06 found this is always exactly 3, with the
+    seed *labels* differing at 1B -- this function doesn't care what the
+    labels are, only how many there are).
+
+    Returns a dict with one entry per task: k_star, mu (per recipe), gaps
+    (per non-winning recipe), delta_min, runner_up, sd_seed (per recipe),
+    effect_size, and whether the task is flagged ambiguous.
+    """
+    subset = long_frame.filter(
+        (pl.col("metric_name") == metric_name)
+        & (pl.col("params_str") == target_params_str)
+        & (pl.col("is_final"))
+    )
+    if subset.height == 0:
+        raise ValueError(
+            f"no rows for metric_name={metric_name!r}, params_str={target_params_str!r}, "
+            "is_final=True -- check the metric name and scale label are real."
+        )
+
+    per_recipe_task = subset.group_by(["recipe", "task"]).agg(
+        pl.col("metric_value").mean().alias("mu"),
+        pl.col("metric_value").std(ddof=1).fill_null(0.0).alias("sd_seed"),
+        pl.col("metric_value").len().alias("n_seeds"),
+    )
+
+    per_task: dict[str, dict] = {}
+    for task in sorted(per_recipe_task["task"].unique().to_list()):
+        task_rows = per_recipe_task.filter(pl.col("task") == task).sort("mu", descending=True)
+        recipes = task_rows["recipe"].to_list()
+        mus = task_rows["mu"].to_list()
+        sds = task_rows["sd_seed"].to_list()
+        n_seeds_list = task_rows["n_seeds"].to_list()
+
+        k_star = recipes[0]
+        mu_star = mus[0]
+        sd_star = sds[0]
+
+        gaps = {recipes[i]: mu_star - mus[i] for i in range(1, len(recipes))}
+        runner_up = min(gaps, key=lambda k: gaps[k])
+        delta_min = gaps[runner_up]
+        runner_up_idx = recipes.index(runner_up)
+        sd_runner_up = sds[runner_up_idx]
+        # Same grid-cell shape for every recipe here, per P1-01's coverage check.
+        n_seeds = n_seeds_list[0]
+
+        effect_size = _effect_size(delta_min, sd_star, sd_runner_up, n_seeds)
+        is_ambiguous = effect_size is None or effect_size < AMBIGUOUS_EFFECT_SIZE_THRESHOLD
+
+        per_task[task] = {
+            "k_star": k_star,
+            "mu": dict(zip(recipes, mus, strict=True)),
+            "sd_seed": dict(zip(recipes, sds, strict=True)),
+            "n_seeds": n_seeds,
+            "gaps": gaps,
+            "delta_min": delta_min,
+            "runner_up": runner_up,
+            "effect_size": effect_size,
+            "is_ambiguous": is_ambiguous,
+        }
+
+    return per_task
