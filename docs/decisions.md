@@ -342,3 +342,117 @@ independent clean full runs (see Decision 2) and a hard consistency check
 in the script itself: `ConstantExtrapolator`'s per-design accuracy must
 exactly equal (not approximately) the matching P1-03 single-scale point,
 since it is the same computation by construction; this passed on both runs.
+
+---
+
+## 2026-09-03 — P1-05 noise-floor: eval-instances source, composite-task noise, sigma2_target definition, and a real reproducibility bug
+
+**Context:** `plan/02-phase1-datadecide.md` P1-05 asks for three variance
+components (seed, checkpoint, eval-sampling) and a combined
+`sigma^2_target(k,t)` "as the combination appropriate to how `mu_k(s*)` was
+estimated in P1-02" -- deliberately left for the agent to define and
+document, not spelled out.
+
+**Decision 1 -- `allenai/DataDecide-eval-instances` is 123GB, but the one
+number P1-05 needs (`n_instances` per task) lives in a single 269MB
+root-level file, `summary-metrics.jsonl`.** Confirmed via
+`HfApi().list_repo_files()` / `get_paths_info()` (no download) before
+touching anything: the 123GB is per-instance model predictions
+(`requests/*.jsonl.gz`, `models/*.tar.gz`, `sample-evals/**`), none of
+which this task needs. `summary-metrics.jsonl` reports one row per (task,
+model, size, seed, step) with a `num_instances` field confirmed constant
+across every row sharing a task (`load_eval_instance_counts` in
+`src/pdt/data/datadecide.py` raises if this ever stops holding). Fetched
+via `download_file`, the same one-named-file pattern `load_recipes` already
+established for the 19.2TB data-recipes repo -- never a snapshot of either
+large repo. `datadecide.py`'s module docstring, which previously said this
+repo is "similarly never touched," is updated to describe the distinction.
+
+**Decision 2 -- `olmes_10_macro_avg` has no eval set of its own; its
+eval-sampling noise is the variance of a mean, not `p(1-p)/n`.** Verified
+empirically before assuming it (see the module docstring's usual "confirm,
+don't trust a secondhand description" discipline): sampled 16
+(recipe, size) combinations from the cached frame and confirmed
+`olmes_10_macro_avg`'s `primary_metric` value equals the unweighted mean of
+the 10 primitive OLMES tasks' own values exactly (0.0 max absolute
+difference across all 16). `summary-metrics.jsonl` has no
+`olmes_10_macro_avg` row at all (only the 10 primitives), confirming it's a
+downstream aggregate, not a physical eval task. Its noise is therefore
+`Var((1/10) sum_i X_i) = (1/100) sum_i p_i(1-p_i)/n_i`
+(`noise.eval_sampling_noise_of_mean`), using each primitive task's own `p`
+at the *same* (recipe, size) and its own `n_instances`. The combined
+`mmlu` task (57 MMLU subjects) is treated as one primitive with its own
+pooled `n_instances=14042` straight from `summary-metrics.jsonl`, not
+re-derived from the 57 subtasks -- that file already reports it under the
+same `"mmlu"` task label `macro_avg.parquet` uses, so no extra aggregation
+step is needed or introduced.
+
+**Decision 3 -- `sigma^2_target(k,t) = sigma^2_seed(k, s*, t) / n_seeds`,
+*not* a combination with checkpoint jitter or eval noise.** P1-02's
+`compute_ground_truth()` estimates `mu_k(s*)` as a plain average over the 3
+seeds present at 1B -- no checkpoint or eval-noise correction is applied
+anywhere in that code. The honest noise in *that specific estimator* is
+therefore exactly its own standard error, the seed variance divided by the
+seed count. `sigma2_ckpt` and `sigma2_eval` are still computed and reported
+at every scale (satisfying the plan's three-component requirement, and
+available as the "fallback when seeds are missing" the plan describes for
+other uses), but are not folded into `sigma2_target` since P1-02's actual
+estimator never used them. Flagged as a modeling choice worth a second look
+if a reviewer disagrees, not treated as the only defensible answer.
+
+**Decision 4 -- checkpoint jitter uses a fixed window of the last 4
+checkpoints at every size, raw variance, no detrending.** 4, not 5 or more,
+because the smallest run (6M params) has exactly 4 checkpoints total
+(confirmed: `min == max == mean == 4` across all 25 recipes at 6M) -- any
+larger window would silently become "every checkpoint" there while staying
+a genuine tail window everywhere else, making the quantity mean something
+different by size. No detrending because the plan's spec is literally
+"variance across the last few checkpoints"; a visual check of one run's
+last 8 checkpoints (150M, arc_challenge) showed noisy fluctuation without a
+strong residual trend in that narrow window, supporting raw variance as a
+reasonable-enough jitter proxy without adding an undocumented detrending
+step the plan didn't ask for.
+
+**Decision 5 (a real bug, not a modeling choice) -- `noise.py`'s
+`group_by(...).agg(...)` calls now sort on a fully deterministic key and
+pass `maintain_order=True` before every variance/mean reduction.** Found by
+this project's standard 2-independent-runs diff: `checkpoint_jitter()`
+originally produced different `sigma2_ckpt` values on 333 of 3850 cells
+between two runs of identical code on identical cached data. Diagnosed by
+comparing the two runs' rows directly -- same recipe/size/task keys, same
+checkpoint counts, differences only in `sigma2_ckpt` itself, at
+~1e-14 relative magnitude (e.g. `1.6259168229488267e-05` vs
+`1.6259168229488264e-05`). This is IEEE-754 float addition's
+non-associativity: `var()` summed the same 4 numbers in a different order
+between runs (most likely because the cached parquet's parallel/chunked
+read doesn't guarantee row order), not a logic error -- the row *sets*
+were always identical. Setting `POLARS_MAX_THREADS=1` alone did not fix
+it; adding an explicit `.sort([...])` immediately before the `group_by`,
+plus `maintain_order=True` on the `group_by` itself, did -- verified
+across 5 independent runs (2 initial + 3 more after the fix), all
+byte-identical excluding `provenance.utc_timestamp`. Applied to both
+`seed_variance()` and `checkpoint_jitter()` for consistency, though only
+the latter was observed to actually fail (small 3-row groups apparently
+don't trigger whichever parallel code path causes this). **This same risk
+may be latent, unverified, in P1-01 through P1-04's own `group_by().agg()`
+calls** (`ground_truth.py`, `decision_accuracy.py`, `frame.py`), which have
+passed every reproducibility check run against them so far but were never
+specifically probed for it -- flagged as a background task
+(`task_2d6c6192`) rather than touched here, since fixing already-merged,
+already-verified code is out of P1-05's scope unless the audit finds an
+actual problem.
+
+**Empirical finding (not a bug):** seed variance does **not**
+monotonically shrink with scale in this data -- median `sigma2_seed`
+across the 25 recipes ranges narrowly (~2.9e-5 to ~5.9e-5) from 4M through
+1B with no clear downward trend (`monotonically_non_increasing: false` in
+`results/p1_05_noise.json`). The plan asked this as an open empirical
+question ("worth checking... as expected"); the answer here is "not as
+expected" -- worth carrying into the P1-06/P1-08 write-up rather than
+assuming noise simply shrinks with model size.
+
+**Decided by:** Agent, while executing task P1-05. Verified via 5
+independent full runs (see Decision 5) plus a completeness assertion in
+`experiments/p1_05_noise_floor.py` itself (`eval_sampling_noise` row count
+must equal `seed_variance` row count, or the script raises rather than
+silently dropping a cell).
