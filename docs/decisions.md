@@ -231,3 +231,114 @@ skipped in favor of trusting a single successful run.
 **Decided by:** Agent, while executing task P1-02, verified by diffing
 regenerated output against the already-merged P1-01 results before and
 after the fix.
+
+---
+
+## 2026-09-02 — P1-04 scaling-law fitters: two scoping decisions
+
+**Context:** `plan/02-phase1-datadecide.md` P1-04 specifies an
+`Extrapolator` interface (`fit`/`predict`/`jacobian`) and six concrete
+fitters, one of which (`TwoStepLadder`) explicitly follows DataDecide's own
+baseline method (Bhagia et al., arXiv:2412.04403).
+
+**Decision 1 — numerical jacobian, not six hand-derived analytic ones.**
+`src/pdt/scaling/base.py`'s `Extrapolator.jacobian()` is implemented once,
+generically, via central-difference numerical differentiation on the
+fitted parameter vector -- every subclass gets it for free by implementing
+`_predict_from_theta(theta, scale)` as a pure function. Hand-deriving six
+analytic gradients (one per fitter, `TwoStepLadder`'s composed through two
+chained functions) is six independent chances for a sign or chain-rule
+error. `plan/02-phase1-datadecide.md` P1-07 already plans to cross-check
+this exact machinery against bootstrap variance rather than assume perfect
+analytic exactness, so numerical precision here is squarely within what
+that later step is designed to catch if it's ever insufficient.
+
+**Decision 2 — `TwoStepLadder` is a scoped adaptation, not a literal
+reproduction of Bhagia et al.** Their method's step 1 target is actual
+pretraining validation loss. This project's cached tables carry task
+*accuracy* (`eval_results`/`macro_avg`, built in P0-06/P1-01), not
+per-recipe loss -- that lives in a separate table, `allenai/DataDecide-ppl-results`
+(also cached since P0-06, via `load_ppl_results()`, but never joined
+against the accuracy tables by (recipe, scale, seed) anywhere in this
+project yet). Implementing the literal method would require that join.
+Instead, `TwoStepLadder` here fits step 1 (a power law in compute) directly
+to the task metric as its own intermediate proxy, then step 2 reshapes that
+proxy through a 4-parameter sigmoid -- the closest same-data-source
+analogue to "compute -> loss -> metric" without pulling in a second table.
+
+**How to apply:** if a future task (or a reviewer) needs the literal
+Bhagia et al. method for a tighter DataDecide comparison, the join needed
+is `ppl_results` x `eval_results`/`macro_avg` on (recipe `data`, `params`,
+`seed`) -- `ppl_results` uses the same recipe/params/seed labels (confirmed
+in P0-06), so the join keys already line up; the work is building the
+loss-to-metric step 2 fit on real loss data instead of the metric-as-proxy
+approximation used now. Not planned as a required task, but flagged here so
+it isn't rediscovered from scratch if it becomes worth doing before the
+paper is finalized.
+
+**Decided by:** Agent, while executing task P1-04. All 6 fitters verified
+against clean synthetic curves generated from each one's own functional
+form before being trusted on real data (`tests/test_scaling.py`).
+
+---
+
+## 2026-09-02 — P1-04 experiment script: scope and matched-compute handling
+
+**Context:** `experiments/p1_04_extrapolation_baselines.py` fits all 6
+`pdt.scaling` extrapolators x 3 held-out designs (`S_fit` <=150M/<=300M/<=530M)
+x 11 macro_avg tasks x 25 recipes (4,950 fits total) and compares against
+the single-scale baseline from P1-03 at matched compute.
+
+**Decision 1 — one variant only (primary_metric, seed-averaged), not all
+four P1-03 sensitivity variants.** P1-03's four-variant sensitivity check
+(metric x seed-handling) existed because *that* task's job was specifically
+to stress-test the reproduction. P1-04's job is different: compare an
+extrapolation frontier against *the* single-scale frontier at matched
+compute, which requires both frontiers to use an identical metric/seed
+definition or the comparison is meaningless. Scoped to P1-03's headline
+definition (`primary_metric`, seed-averaged) -- the one DataDecide's own
+~80% figure targets.
+
+**Decision 2 — deterministic per-fit RNG seed via `sha256(fitter|design|task|recipe)`,
+not a single shared `np.random.default_rng`.** A shared mutable generator
+consumed sequentially across 4,950 fits would still be reproducible run to
+run, but only by accident of a frozen iteration order -- adding, removing,
+or reordering any fit anywhere would silently perturb every fit after it.
+Hashing the four identifying strings (via `hashlib.sha256`, not Python's
+built-in `hash()`, which is salted per-process by `PYTHONHASHSEED` and
+would break reproducibility across separate runs) gives every fit an
+independent, order-invariant seed. Verified: two independent full runs
+produced byte-identical `results/p1_04_extrapolation.json` output
+(excluding `provenance.utc_timestamp`).
+
+**Decision 3 — matched-compute comparison is `null`/"out of range" rather
+than extrapolated, when a design's total compute exceeds the largest
+single-scale point available.** The plan asks to compare each design
+against "the single-scale design of the same total compute" via
+interpolation of P1-03's real per-size points. In practice the <=530M
+design's total compute (sum of 6ND over 12 sizes, ~2.24e20) exceeds the
+compute of the largest available single-scale *proxy* point (750M,
+~1.39e20) -- extrapolating the comparison frontier itself past its own
+observed range would be a second, unrequested extrapolation stacked on top
+of the one actually being evaluated. `_log_interp_accuracy()` returns
+`(None, out_of_range=True)` in this case rather than guessing. This is a
+real result, not a bug: it means the <=530M design's accuracy (85.1%) has
+no matched-compute single-scale comparison point at all within this
+project's own data, only the unmatched observation that it exceeds every
+directly observed single-scale point below it.
+
+**Decision 4 — per-(fitter, design, task) results store aggregated fit
+diagnostics (mean n_converged, mean objective_spread across the 25
+recipes) plus every individual failure, not every individual fit's full
+diagnostics.** Satisfies the plan's "log every failed fit, never drop
+silently" requirement exactly (failures are rare and individually
+informative -- Claim 3 treats a failure itself as evidence). Storing all
+4,950 fits' full per-restart diagnostics would bloat the results file for
+information that's only useful in aggregate once a design/fitter/task
+group is healthy. In this run, 0 of 4,950 fits failed.
+
+**Decided by:** Agent, while executing task P1-04. Verified via two
+independent clean full runs (see Decision 2) and a hard consistency check
+in the script itself: `ConstantExtrapolator`'s per-design accuracy must
+exactly equal (not approximately) the matching P1-03 single-scale point,
+since it is the same computation by construction; this passed on both runs.
