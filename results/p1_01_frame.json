@@ -1,0 +1,51 @@
+{
+  "provenance": {
+    "git_sha": "9aa6de2c39e449dff935c41d805ab963da6af424",
+    "git_dirty": false,
+    "utc_timestamp": "2026-09-02T07:59:22.365423+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "P1-01"
+    }
+  },
+  "data": {
+    "frame_shape": {
+      "n_rows": 8078400,
+      "n_columns": 11
+    },
+    "metric_whitelist": [
+      "primary_metric",
+      "acc_per_char",
+      "acc_raw",
+      "correct_prob_per_char",
+      "norm_correct_prob",
+      "bits_per_byte_corr"
+    ],
+    "coverage": {
+      "n_recipes": 25,
+      "n_params_seed_pairs": 42,
+      "n_tasks": 66,
+      "n_expected_cells": 69300,
+      "n_present_cells": 69300,
+      "n_missing_cells": 0,
+      "fraction_present": 1.0,
+      "missing_by_task": {},
+      "missing_by_params": {},
+      "missing_cells_sample": [],
+      "missing_cells_sample_truncated": false
+    },
+    "dataset_revision": "9919b5a0e61e57a85021263918fa82d6ceaee038"
+  }
+}

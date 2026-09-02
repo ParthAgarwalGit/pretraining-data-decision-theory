@@ -2,7 +2,7 @@
 
 Update this file at the end of **every** session (protocol step 11).
 
-Last updated: 2026-09-02 | Session: 8
+Last updated: 2026-09-02 | Session: 9
 
 States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
@@ -32,7 +32,7 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
 | Task | Title | State | PR | Notes |
 |---|---|---|---|---|
-| P1-01 | Canonical analysis frame | TODO | | |
+| P1-01 | Canonical analysis frame | IN REVIEW | (opening) | full (recipe, params, seed, task) coverage matrix is 100% complete -- 69,300/69,300 cells, 0 holes -- confirming P0-06's coarser check at full granularity; built on load_eval_results() rather than re-parsing metrics |
 | P1-02 | Ground truth at target scale, and gaps | TODO | | |
 | P1-03 | Reproduce DataDecide single-scale baseline | TODO | | target ~80% at 150M |
 | P1-04 | Scaling-law fitters; reproduce "extrapolation does not win" | TODO | | |
