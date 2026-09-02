@@ -70,7 +70,19 @@ def compute_ground_truth(
 
     per_task: dict[str, dict] = {}
     for task in sorted(per_recipe_task["task"].unique().to_list()):
-        task_rows = per_recipe_task.filter(pl.col("task") == task).sort("mu", descending=True)
+        # Sort by mu descending, breaking exact ties by recipe name
+        # ascending. A secondary deterministic key is not optional here:
+        # this project found for real that exact ties in mu are common
+        # (many tasks have delta_min == 0.0 between the top recipes), and
+        # without one, which tied recipe becomes k_star/runner_up varies
+        # from run to run -- polars' sort has no stability guarantee across
+        # ties, so two runs of the identical computation on identical data
+        # silently produced different "winners". Caught by diffing two
+        # clean-tree runs against each other before trusting this task's
+        # own reproducibility claim.
+        task_rows = per_recipe_task.filter(pl.col("task") == task).sort(
+            ["mu", "recipe"], descending=[True, False]
+        )
         recipes = task_rows["recipe"].to_list()
         mus = task_rows["mu"].to_list()
         sds = task_rows["sd_seed"].to_list()

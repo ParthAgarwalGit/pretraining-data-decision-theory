@@ -204,6 +204,30 @@ directory (`data/cache/pdt/`) can accumulate one file per distinct
 (source, metrics) combination ever requested -- harmless (gitignored,
 small), just worth knowing if the count looks surprising.
 
+**A third bug, in `src/pdt/analysis/ground_truth.py` itself, found by the
+same discipline** (diffing two clean-tree runs of the *same* code against
+each other, not just checking each run's provenance individually): task
+`compute_ground_truth()` sorted recipes by `mu` descending with **no
+deterministic secondary key**. Given how pervasive exact ties in `mu`
+turned out to be (P1-02's own headline finding -- see below), and that
+polars gives no ordering guarantee across tied sort keys, two independent
+clean runs of the identical computation on identical data picked a
+*different* recipe as `k_star`/`runner_up` for every task with an exact
+top-of-table tie -- roughly a dozen tasks differed between two runs before
+the fix. Fixed by sorting on `["mu", "recipe"]` (mu descending, recipe name
+ascending as a fixed, arbitrary-but-stable tiebreaker). A regression test
+constructs an explicit 3-way exact tie and asserts the *same* winner is
+chosen whether the input rows arrive in forward or reversed order.
+
+**Why this is worth internalizing, not just fixing:** none of these three
+bugs would have been caught by `pdt.provenance.validate()` alone -- it
+checks that a result came from a clean git commit, not that the same
+commit's code is *deterministic* or *semantically correct*. The "verify
+byte-for-byte reproducibility by literally diffing two runs" step this
+project's tasks have been doing isn't a formality; it is what actually
+caught all three of these, and would not have caught any of them if
+skipped in favor of trusting a single successful run.
+
 **Decided by:** Agent, while executing task P1-02, verified by diffing
 regenerated output against the already-merged P1-01 results before and
 after the fix.

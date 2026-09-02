@@ -175,3 +175,29 @@ def test_effect_size_formula_directly():
 
 def test_effect_size_returns_none_for_zero_pooled_variance():
     assert gt._effect_size(0.1, 0.0, 0.0, 3) is None
+
+
+def test_exact_tie_breaking_is_deterministic_regardless_of_input_row_order():
+    # Regression: found for real -- two clean-tree runs of the same
+    # computation on identical data produced different k_star/runner_up
+    # for tasks with an exact tie in mu, because the sort had no
+    # deterministic secondary key and polars gives no stability guarantee
+    # across ties. Three recipes exactly tied at the top must always
+    # resolve to the same k_star/runner_up (alphabetically first/second),
+    # regardless of what order the input rows happen to arrive in.
+    tied_rows = [
+        *_rows("recipe-charlie", "task-1", [0.80, 0.80, 0.80]),
+        *_rows("recipe-alpha", "task-1", [0.80, 0.80, 0.80]),
+        *_rows("recipe-bravo", "task-1", [0.80, 0.80, 0.80]),
+        *_rows("recipe-delta", "task-1", [0.50, 0.50, 0.50]),
+    ]
+
+    forward = pl.DataFrame(tied_rows)
+    reversed_order = pl.DataFrame(list(reversed(tied_rows)))
+
+    result_forward = gt.compute_ground_truth(forward, "primary_metric", "1B")["task-1"]
+    result_reversed = gt.compute_ground_truth(reversed_order, "primary_metric", "1B")["task-1"]
+
+    assert result_forward["k_star"] == result_reversed["k_star"] == "recipe-alpha"
+    assert result_forward["runner_up"] == result_reversed["runner_up"] == "recipe-bravo"
+    assert result_forward["delta_min"] == result_reversed["delta_min"] == 0.0
