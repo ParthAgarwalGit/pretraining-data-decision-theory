@@ -2,7 +2,7 @@
 
 Update this file at the end of **every** session (protocol step 11).
 
-Last updated: 2026-09-02 | Session: 10
+Last updated: 2026-09-02 | Session: 11
 
 States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
@@ -33,8 +33,8 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 | Task | Title | State | PR | Notes |
 |---|---|---|---|---|
 | P1-01 | Canonical analysis frame | DONE | [#9](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/9) | full (recipe, params, seed, task) coverage matrix is 100% complete -- 69,300/69,300 cells, 0 holes; gained a `source`/`metrics` parameterization in P1-02 after finding eval_results was the wrong granularity -- see docs/decisions.md |
-| P1-02 | Ground truth at target scale, and gaps | IN REVIEW | (opening) | **headline finding: 9/11 macro_avg tasks still ambiguous under primary_metric at 1B (6/11 under acc_per_char)** -- even DataDecide's own olmes_10_macro_avg has a ~0.05pp winning margin, within seed noise; found eval_results was the wrong task granularity (fixed frame.py), a cache-key bug that silently poisoned P1-01's own results (fixed), and non-deterministic tie-breaking in compute_ground_truth (fixed) -- all 3 caught by diffing clean-tree reruns against each other, see docs/decisions.md |
-| P1-03 | Reproduce DataDecide single-scale baseline | TODO | | target ~80% at 150M |
+| P1-02 | Ground truth at target scale, and gaps | DONE | [#10](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/10) | **headline finding: 9/11 macro_avg tasks still ambiguous under primary_metric at 1B (6/11 under acc_per_char)** -- even DataDecide's own olmes_10_macro_avg has a ~0.05pp winning margin, within seed noise; found eval_results was the wrong task granularity (fixed frame.py), a cache-key bug that silently poisoned P1-01's own results (fixed), and non-deterministic tie-breaking in compute_ground_truth (fixed) -- all 3 caught by diffing clean-tree reruns against each other, see docs/decisions.md |
+| P1-03 | Reproduce DataDecide single-scale baseline | IN REVIEW | (opening) | **REPRODUCED: 76.3% at 150M (79.6% excluding ties) vs published ~80%** -- all 4 sensitivity variants cluster 73.3%-77.5%; accuracy-vs-size curve smooth and monotonic-ish (53% at 4M -> 85% at 530M); pipeline confirmed correct -- see PR for full table |
 | P1-04 | Scaling-law fitters; reproduce "extrapolation does not win" | TODO | | |
 | **GATE-1** | **Reproduction checkpoint — PI approval** | TODO | | |
 | P1-05 | Noise-floor estimation | TODO | | |
