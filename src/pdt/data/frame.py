@@ -1,25 +1,50 @@
 """The canonical tidy analysis frame for Phase 1.
 
 See plan/02-phase1-datadecide.md task P1-01. Builds on
-`pdt.data.datadecide.load_eval_results()` (already cached; already handles
-metrics parsing, the step==0 filter, and final-checkpoint flagging) rather
-than re-parsing the raw `metrics` column a second time -- that parse alone
-costs several minutes over 1.4M rows, and P0-06 already paid it once.
+`pdt.data.datadecide`'s loaders (already cached; already handle metrics
+parsing, the step==0 filter, and final-checkpoint flagging) rather than
+re-parsing a raw `metrics` column a second time -- that parse alone costs
+several minutes over 1.4M rows for `eval_results`, and P0-06 already paid
+it once.
+
+**Two sources, not one** (added after P1-01 first merged -- see
+docs/decisions.md 2026-09-02 "P1-02: eval_results is the wrong granularity
+for the headline reproduction"):
+
+- ``"eval_results"`` -- 66 tasks, including each of the 57 individual MMLU
+  *subject* splits (`mmlu_abstract_algebra`, `mmlu_marketing`, ...)
+  separately. Fine-grained; many of these individual splits have small eval
+  sets and produce exact ties between recipes.
+- ``"macro_avg"`` -- 11 tasks: the 9 core OLMES task families plus an
+  aggregated `mmlu` and `olmes_10_macro_avg`. **This is the granularity
+  DataDecide's own baseline results use** (confirmed directly against
+  `scaling_law_fit`'s `task` column, which contains exactly these 11
+  values) -- P1-02/P1-03's headline-number reproduction must source from
+  this, not `eval_results`, or it is comparing against the wrong unit of
+  analysis.
+
+The two sources don't expose the same metric columns (`macro_avg` is
+missing `bits_per_byte_corr`, one of the four continuous-proxy metrics
+reserved for P5-03) -- `metrics` is a parameter, not a fixed whitelist
+baked into the function, precisely because of that.
 """
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 import polars as pl
 
 from pdt.data import datadecide as dd
 
-_CACHE_PATH = Path("data/cache/pdt/frame.parquet")
+_CACHE_DIR = Path("data/cache/pdt")
 
 # The 6 metrics P1-01 whitelists: 2 discrete-accuracy metrics used for the
 # headline decision-accuracy analysis, plus 4 continuous likelihood proxies
-# reserved for the P5-03 metric-choice ablation.
+# reserved for the P5-03 metric-choice ablation. Only a source's own
+# available columns are used by default -- see build_frame()'s `metrics`
+# parameter and its per-source validation.
 METRIC_WHITELIST = (
     "primary_metric",
     "acc_per_char",
@@ -28,6 +53,16 @@ METRIC_WHITELIST = (
     "norm_correct_prob",
     "bits_per_byte_corr",
 )
+
+# Maps to attribute *names* on pdt.data.datadecide, resolved via getattr()
+# at call time (not bound directly to the function objects here) so that
+# monkeypatching dd.load_eval_results / dd.load_macro_avg in tests works as
+# expected -- a dict of bound references would capture them at this
+# module's import time instead, before any test monkeypatch runs.
+_SOURCE_LOADER_NAMES = {
+    "eval_results": "load_eval_results",
+    "macro_avg": "load_macro_avg",
+}
 
 _ID_COLS = (
     "data",
@@ -56,26 +91,52 @@ _FINAL_COLUMN_ORDER = (
 )
 
 
-def build_frame(*, revision: str | None = None, force_refresh: bool = False) -> pl.DataFrame:
+def build_frame(
+    *,
+    source: str = "eval_results",
+    metrics: tuple[str, ...] = METRIC_WHITELIST,
+    revision: str | None = None,
+    force_refresh: bool = False,
+) -> pl.DataFrame:
     """Build (or load from cache) the tidy long-format analysis frame.
 
     One row per (recipe, params, seed, task, step, metric_name), restricted
-    to METRIC_WHITELIST. Columns exactly match the spec in
+    to `metrics`. Columns exactly match the spec in
     plan/02-phase1-datadecide.md P1-01:
     recipe | params_str | params_num | seed | task | step | tokens | compute
     | metric_name | metric_value | is_final
+
+    `source` selects which upstream table to build from -- see the module
+    docstring for why this matters and is not a single fixed choice.
     """
-    if _CACHE_PATH.exists() and not force_refresh:
-        return pl.read_parquet(_CACHE_PATH)
+    if source not in _SOURCE_LOADER_NAMES:
+        raise ValueError(
+            f"unknown source {source!r}; expected one of {sorted(_SOURCE_LOADER_NAMES)}"
+        )
 
-    wide = dd.load_eval_results(revision=revision)
+    # The cache key must include `metrics`, not just `source`: two calls
+    # with the same source but different metric selections build genuinely
+    # different frames. Found the hard way -- an earlier version keyed the
+    # cache on `source` alone, so a P1-02 run requesting only 2 metrics
+    # silently poisoned the cache for P1-01's own 6-metric default request
+    # made afterward (3x fewer rows, no error, no warning). A short hash of
+    # the sorted metric names keeps the filename compact regardless of how
+    # many metrics are requested.
+    metrics_key = hashlib.sha256(",".join(sorted(metrics)).encode()).hexdigest()[:10]
+    cache_path = _CACHE_DIR / f"frame_{source}__{metrics_key}.parquet"
+    if cache_path.exists() and not force_refresh:
+        return pl.read_parquet(cache_path)
 
-    value_cols = [f"metric_{name}" for name in METRIC_WHITELIST]
+    loader = getattr(dd, _SOURCE_LOADER_NAMES[source])
+    wide = loader(revision=revision)
+
+    value_cols = [f"metric_{name}" for name in metrics]
     missing = [c for c in value_cols if c not in wide.columns]
     if missing:
         raise RuntimeError(
-            f"METRIC_WHITELIST names not found as columns in load_eval_results(): "
-            f"{missing}. The whitelist may be stale against the real schema."
+            f"metrics {missing} not found as columns in load_{source}(). Either "
+            f"the requested metric doesn't exist in this source, or the "
+            f"whitelist is stale against the real schema -- check both."
         )
 
     long = wide.select([*_ID_COLS, *value_cols]).unpivot(
@@ -90,8 +151,8 @@ def build_frame(*, revision: str | None = None, force_refresh: bool = False) -> 
     )
     long = long.select(list(_FINAL_COLUMN_ORDER))
 
-    _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    long.write_parquet(_CACHE_PATH)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    long.write_parquet(cache_path)
     return long
 
 
