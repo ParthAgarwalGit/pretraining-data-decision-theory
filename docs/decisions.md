@@ -609,3 +609,55 @@ stronger safety property than adding a sort would be.
 flagged. Verified via 25 independent full runs pre-fix (24 pairwise diffs)
 and 10 independent full runs post-fix (all byte-identical), plus 3 clean
 regenerations of the affected results files.
+
+---
+
+## 2026-09-03 — P1-09 rank-reversal census: multiple comparisons inflate the naive reversal rate
+
+**Context:** `plan/02-phase1-datadecide.md` P1-09 asks to classify every
+recipe pair per task as stable / reversing (a genuine ranking flip
+somewhere across the 14-size ladder) / within-noise, using an effect-size
+threshold to tell a real reversal from noise sitting near a tie. The
+obvious choice was to reuse `AMBIGUOUS_EFFECT_SIZE_THRESHOLD = 1.0`, the
+threshold P1-02/P1-03 already established project-wide for exactly this
+"is this gap real or noise" question.
+
+**Decision -- report classification at a Bonferroni-corrected threshold as
+the primary figure, with the uncorrected 1.0 threshold kept only for
+continuity.** Reusing 1.0 here is a different statistical situation than
+where it was established: P1-02 applies it *once* per (task, pair) at a
+single fixed scale; P1-09 applies the identical per-size significance
+test *14 times* per pair (once per size on the ladder) and calls a pair
+"reversing" if any two of those 14 tests disagree in sign. Run that many
+times without correction, a pair whose *true* gap is near zero at most
+sizes has a substantial chance of clearing `|effect_size| >= 1.0` in
+*both* directions by chance alone -- `effect_size=1.0` is a fairly loose
+threshold to begin with (P1-02's own comment on it: "not a calibrated
+hypothesis test"), and 14 independent-ish chances to clear it in each
+direction compounds that. Caught by an explicit sensitivity check before
+trusting the number: on a 3-task sample, the reversing rate was 79.3% at
+threshold 1.0, 40.9% at 1.96 (conventional single-test 95%), and 14.6% at
+a Bonferroni-corrected 2.94 -- an enormous swing driven entirely by the
+threshold, not by anything about the data changing. The full 11-task run
+confirms the same pattern: 61.7% reversing at the uncorrected threshold
+vs. **15.2% at the Bonferroni-corrected one** (`z = 2.9137`, from
+`norm.ppf(1 - (0.05/14)/2)`, controlling family-wise error at alpha=0.05
+across the 14 simultaneous per-pair tests). `results/p1_09_rank_reversals.json`
+reports both, under `thresholds.uncorrected_1_0` and `thresholds.bonferroni`,
+with `primary_threshold_label: "bonferroni"` naming which one should be
+quoted as *the* finding. 15.2% is still a real, non-trivial reversal rate
+-- meaningfully supports the impossibility-regime framing (Claim 2) -- just
+not the dramatically larger uncorrected number, which would have
+overstated it.
+
+**How to apply:** anywhere this project reports "N% of pairs reverse" (the
+paper draft, P1-11's figures, P5-04's stress-test seed set), cite the
+Bonferroni figure, not the uncorrected one. The uncorrected variant exists
+in the results file for continuity/comparison, not as an alternative
+headline number to pick opportunistically.
+
+**Decided by:** Agent, while executing task P1-09. Caught via a targeted
+sensitivity check (varying the threshold on a 3-task sample) before
+trusting the initial single-threshold run's headline number, in the same
+spirit as this project's other threshold/variant sensitivity checks
+(P1-02's ambiguity threshold, P1-03's four-variant table).
