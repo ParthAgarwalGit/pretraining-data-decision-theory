@@ -487,8 +487,8 @@ per call), diffing all 24 pairs against the first run.
 source.** All 24/24 independent-process pairs differed from each other:
 185 total leaf differences, always in the returned `mu` value, always at
 last-bit-of-float64 magnitude (relative difference 1.12e-16 to 3.74e-16,
-e.g. `0.29677419354838713` vs `0.296774193548387` for
-`Dolma1.7 (no Flan)` / `mmlu_high_school_biology` / 530M). Exactly the
+e.g. `0.29677419354838713` vs `0.296774193548387` <!-- NUMBER-OK: pre-fix scratch-audit values, never written to results/ -->
+for `Dolma1.7 (no Flan)` / `mmlu_high_school_biology` / 530M). Exactly the
 same mechanism as `checkpoint_jitter()`'s bug: `group_by(["recipe",
 "task"]).agg(mean())` with no sort and no `maintain_order`. Every
 differing cell used `seed_mode="average"` (a real 3-row float sum); zero
@@ -537,8 +537,8 @@ regeneration on this fixed code found **6,674 differences**: 3,096 in
 sqrt(pooled_variance)` divides by a near-zero quantity built from those
 same `sd_seed` values), **one real `is_ambiguous` flip**
 (`eval_results`/`primary_metric`/`mmlu_electrical_engineering`:
-`effect_size` was `0.9999999999999998` in the original run and
-`1.0000000000000016` in the clean regeneration -- literally a coin-flip
+`effect_size` was `0.9999999999999998` in the original run and `1.0000000000000016` in the clean regeneration <!-- NUMBER-OK: pre-fix value superseded by the regenerated results/p1_02_target.json, kept here for the audit record -->
+-- literally a coin-flip
 across the `AMBIGUOUS_EFFECT_SIZE_THRESHOLD = 1.0` boundary caused by
 last-bit noise, not a real disagreement about the task), and **one
 `runner_up` flip** (`eval_results`/`acc_per_char`/`mmlu_college_physics`).
