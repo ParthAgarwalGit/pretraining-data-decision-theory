@@ -661,3 +661,132 @@ sensitivity check (varying the threshold on a 3-task sample) before
 trusting the initial single-threshold run's headline number, in the same
 spirit as this project's other threshold/variant sensitivity checks
 (P1-02's ambiguity threshold, P1-03's four-variant table).
+---
+
+## 2026-09-03 — P1-06 bias/variance decomposition: compute scope, shared-draw design, and a BLAS crash
+
+**Context:** `plan/02-phase1-datadecide.md` P1-06 is "the core result" -- for
+every (extrapolator, design, recipe, task), bootstrap-resample (B>=200,
+two schemes) and decompose the resulting spread into estimation variance
+and squared bias. Read literally across the full grid this project has
+used since P1-04 (6 fitters x 3 designs x 25 recipes x 11 tasks), this is
+~2 million individual scaling-law fits.
+
+**Decision 1 -- run the full grid (no fitter/design cuts), parallelized
+across processes, not scaled down.** A back-of-envelope estimate from
+P1-04's own per-fit timing (~40-80ms with 8 restarts) put a serial run at
+16-40+ hours -- too long to just run, but this machine has 20 CPU cores
+and each (fitter, design, task, scheme) combination's ~5,000 fits are
+embarrassingly parallel. Rather than cut fitters or designs (which would
+have weakened the actual scientific comparison P1-08 needs -- predicted
+vs. observed accuracy for *every* method), the fix was
+`concurrent.futures.ProcessPoolExecutor` over the 396 (fitter, design,
+task, scheme) work units, each running its own B=200 x 25 recipes
+sequentially inside one worker. Empirically verified via two smoke tests
+against real data (not synthetic) before committing to the full run: a
+single real fit (TwoStepLadder, the fitter expected to be slowest) took
+~41.5ms, giving a full-grid estimate of ~75-90 minutes wall-clock with
+20-way parallelism -- long enough to run as a background job, short enough
+not to need reducing B below the plan's own "B >= 200" floor or dropping
+any fitter/design from the grid.
+
+**Decision 2 (a real bug, caught before it could waste an hour) -- BLAS
+must be pinned to 1 thread per worker process.** The first real
+process-pool run crashed immediately: `OpenBLAS error: Memory allocation
+still failed after 10 retries, giving up`, then `BrokenProcessPool`. Root
+cause: numpy/scipy link against a multi-threaded BLAS that, left to its
+own defaults, spawns its own thread pool *inside every worker process* --
+20 worker processes x up to 20 BLAS threads each is up to 400 threads
+competing for memory on a 20-core machine, and every one of this script's
+fits works on <=12 data points, far too small for BLAS multi-threading to
+help even if it didn't crash. Fixed by setting
+`OMP_NUM_THREADS`/`OPENBLAS_NUM_THREADS`/`MKL_NUM_THREADS`/`NUMEXPR_NUM_THREADS`
+to `"1"` via `os.environ.setdefault(...)` *before* numpy/scipy are
+imported anywhere in the module -- required specifically before the
+import, not just before `main()` runs, because Windows' spawn-based
+multiprocessing re-executes the whole module top-to-bottom in every
+worker process, including its imports. Re-verified against real data
+after the fix: 0 failed fits across two smoke tests (11,000 and 220,000
+individual fits respectively).
+
+**Decision 3 -- seed-bootstrap and parametric-bootstrap both draw ONE
+shared random pattern per (scale, replicate), applied identically to every
+recipe, rather than independent draws per recipe.** The plan requires the
+pairwise statistic `D_k = mu_hat_k*(s*) - mu_hat_k(s*)` to be "computed
+from the same bootstrap replicate (so the correlation between the two
+arms' fits is preserved)" and calls this "a real and important effect."
+If every recipe drew independent randomness, there would be no shared
+condition for a correlation to survive in the first place -- two recipes
+evaluated at the same scale on the same benchmark instances share real
+correlated noise (a hard eval instance is hard for every recipe; a
+checkpoint-timing coincidence at a given step affects whichever recipes
+happen to be evaluated near it). Implemented as: one rng per (design,
+task, scheme, replicate) -- deliberately *not* keyed on fitter or recipe
+-- draws one resample-index pattern (seed bootstrap) or one standard-normal
+`z` (parametric bootstrap) per proxy scale; every recipe's own observed
+values are then perturbed by that same shared pattern/z (recipe-specific
+magnitude for parametric, since each recipe keeps its own noise variance;
+recipe-specific *values* selected by the same slot pattern for seed
+bootstrap). See `src/pdt/analysis/bootstrap.py`'s module docstring for the
+full reasoning. Each fit's own multi-start-restart randomness is still
+independently seeded per (fitter, design, task, scheme, recipe, replicate)
+-- that's a numerical-optimization detail, not a scientific correlation
+source, and doesn't need to be shared.
+
+**Decision 4 -- `sigma2_target` for the pairwise decomposition is
+`sigma2_target(k*, t) + sigma2_target(k, t)`, not re-derived.** The plan
+gives the marginal formula (`sigma2_extrap_hat_k = max(0, bias_hat_k^2 -
+v_hat_k/B - sigma2_target(k,t))`) but doesn't spell out the pairwise
+analogue. Following the same "these are two independent training runs"
+reasoning `decision_accuracy.pairwise_decision_accuracy`'s pooled-variance
+calculation already uses, the noise in the *difference* of two
+independent estimates is the sum of their individual noises. Reuses
+`bootstrap.bias_variance_decomposition` unchanged for both the marginal
+and pairwise cases -- it doesn't care whether its input series is a raw
+`mu_hat^(b)` series or a difference series `D_k^(b)`, only that `mu_true`
+and `sigma2_target` are the matching quantities for whichever series was
+passed.
+
+**Decision 5 -- a per-(fitter, design, task, scheme, recipe) cell needs
+>=20 successful bootstrap replicates (10% of B=200) or it's flagged
+`insufficient_replicates` rather than reporting a decomposition computed
+from too few points.** Individual bootstrap-replicate fit failures are
+expected to be rare but not impossible (a resampled/perturbed trajectory
+can occasionally be harder to fit than the original), and per this
+project's standing rule (P1-04's `FitFailure` handling; the plan's own
+"log every failed fit, never drop silently" for P1-04) a failure is
+evidence, not noise to average away. In the actual run: 0 fits failed
+across both smoke tests; the real full run's failure count is recorded in
+`results/p1_06_decomposition.json`'s `n_fits_total_failed`.
+
+**Decided by:** Agent, while executing task P1-06. Verified via two
+end-to-end smoke tests against real (not synthetic) cached data before
+launching the full run: a reduced-scope run through the actual `main()`
+entry point (2 fitters, 1 design, all 11 tasks, B=10, 44 work units,
+220,000 individual fits, 0 failures) confirmed the full pipeline --
+multiprocessing, JSON serialization of numpy float64 results via the
+existing `provenance` encoder, aggregation -- end to end before spending
+the ~75-90 minutes on the real B=200 full-grid run.
+
+**Decision 6 (found after the first full run completed) -- results file
+must round to 8 significant figures and drop two redundant fields per
+recipe entry.** The first full run wrote a 7.4MB
+`results/p1_06_decomposition.json` -- over this project's 5MB
+pre-commit limit (`check-added-large-files --maxkb=5000`). Root cause:
+~19,400 per-recipe decomposition entries (9,900 marginal + 9,504
+pairwise across 396 combos), each serializing 3 float64 values at full
+~17-digit precision (pure noise for a bootstrap estimate off B=200
+replicates -- roughly 2 meaningful digits at best) plus two fields
+(`mean_prediction`, `n_replicates`) that are either derivable
+(`mean_prediction = mu_true + bias_hat`) or constant in the overwhelmingly
+common case (`n_replicates == 200` whenever not flagged
+`insufficient_replicates`) and read by no downstream consumer. Fixed by
+rounding every reported float to 8 significant figures
+(`_round_sigfigs`) and dropping both redundant fields, verified against
+the *actual already-computed* first run's data (not a synthetic guess)
+before spending another ~2.5 hours re-running: projected 2.79MB, comfortable
+headroom under the limit. Did not hand-edit the existing 7.4MB file into a
+smaller one and commit that -- results here must be exactly what running
+`experiments/p1_06_decomposition.py` produces, so the fix went into the
+script and the whole ~2.5-hour computation was re-run from scratch rather
+than post-processed.
