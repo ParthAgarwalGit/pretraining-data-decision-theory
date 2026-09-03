@@ -42,7 +42,7 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 | P1-06 | Bias/variance decomposition (core result) | IN PROGRESS | | full B=200 x 2-scheme x 6-fitter x 3-design x 11-task bootstrap running in background (~75-90 min estimated); see docs/decisions.md for compute-scoping/shared-draw-design/BLAS-crash-fix decisions |
 | P1-07 | Plug-in bound and empirical coverage | TODO | | |
 | P1-08 | Does the bound predict the 80% ceiling? | TODO | | |
-| P1-09 | Rank-reversal census | DONE | (opening) | 3300 pairs x 11 tasks classified stable/reversing/within_noise across the 14-size ladder; **naive threshold gave an inflated 61.7% reversing rate -- caught a multiple-comparisons issue (14 per-pair tests, uncorrected) and fixed with a Bonferroni correction: primary figure is 15.2% reversing** (500/3300); still a real, meaningful fraction supporting the impossibility-regime framing, just not the dramatically larger uncorrected number -- see docs/decisions.md |
+| P1-09 | Rank-reversal census | DONE | [#15](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/15) | 3300 pairs x 11 tasks classified stable/reversing/within_noise across the 14-size ladder; **naive threshold gave an inflated 61.7% reversing rate -- caught a multiple-comparisons issue (14 per-pair tests, uncorrected) and fixed with a Bonferroni correction: primary figure is 15.2% reversing** (500/3300); still a real, meaningful fraction supporting the impossibility-regime framing, just not the dramatically larger uncorrected number -- see docs/decisions.md |
 | P1-10 | Secondary ladders: Pythia and OLMo 2 | TODO | | |
 | P1-11 | Phase 1 figures (F1-F5) | TODO | | |
 | P1-12 | Publish derived tables; Phase 1 memo | TODO | | |
