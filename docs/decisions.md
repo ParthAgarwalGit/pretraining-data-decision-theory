@@ -496,40 +496,85 @@ differences ever appeared under `seed_mode="default_only"` (a 1-row
 "reduction" -- no summation, nothing to reorder), consistent with the
 mechanism.
 
-**Finding 2 (tested, not reproduced) -- `ground_truth.compute_ground_truth()`
-and `decision_accuracy.recipe_trajectories()` did *not* fail in this same
-24-pair test**, despite `compute_ground_truth()` running the *same*
-filter + `group_by(["recipe","task"])` shape (just with `.std()` and
-`.len()` added alongside `.mean()`) on the *same* `eval_results` frame
-that broke `recipe_means()`, and `recipe_trajectories()` feeding an even
-larger single `group_by` call (all 13 proxy sizes at once) through a
-near-identical `.agg(mean(), first(), mean())`. Zero diffs also on
-`recipe_means()` itself when run against `macro_avg` (11 tasks) rather
-than `eval_results` (66 tasks) -- suggesting whichever polars execution
-path causes this is sensitive to some combination of total row/group
-count and the exact shape of the aggregation expression, not simply "3-row
-groups are safe" (P1-05's working theory after `seed_variance()` didn't
-reproduce it either -- that theory does not fully hold up: here, a
-3-row-group `.mean()`-only reduction over `eval_results` *did* fail on one
-neighboring function and not on two structurally near-identical ones
-sharing the same input data). This is the same lesson P1-05 drew, sharper:
-empirical confirmation, not analogy to a similar-looking function, is what
-this project trusts.
+**Finding 2 (tested, not reproduced under cache-hit conditions) --
+`ground_truth.compute_ground_truth()` and `decision_accuracy.recipe_trajectories()`
+did *not* fail in this same 24-pair test**, despite `compute_ground_truth()`
+running the *same* filter + `group_by(["recipe","task"])` shape (just with
+`.std()` and `.len()` added alongside `.mean()`) on the *same*
+`eval_results` frame that broke `recipe_means()`, and `recipe_trajectories()`
+feeding an even larger single `group_by` call (all 13 proxy sizes at once)
+through a near-identical `.agg(mean(), first(), mean())`. Zero diffs also
+on `recipe_means()` itself when run against `macro_avg` (11 tasks) rather
+than `eval_results` (66 tasks). At the time this looked like it might mean
+"whichever polars execution path causes this is sensitive to some
+combination of total row/group count and the exact shape of the
+aggregation expression" -- Finding 3 below shows that read is incomplete.
+
+**Finding 3 (the real scope, found by comparing against the actual
+already-committed artifacts) -- both functions *did* corrupt the actual
+P1-02/P1-03/P1-04 results as originally committed, and Finding 2's clean
+result was an artifact of testing under lower-risk conditions than the
+original runs actually ran under.** `build_frame()` only performs its
+expensive `.unpivot()` rebuild from the *raw* per-source cache
+(`data/cache/datadecide/{eval_results,macro_avg}.parquet`, 204MB /
+44MB) on the *first-ever* call for a given `(source, metrics)` pair;
+every call after that hits the small, already-narrowed
+`data/cache/pdt/frame_*.parquet` file (4.9MB / 1.5MB) instead. P1-02's
+original run on 2026-09-02 *was* that first-ever call (its
+`frame_eval_results__f1b83261ec.parquet` / `frame_macro_avg__f1b83261ec.parquet`
+cache files were written 90 seconds before its own commit timestamp) --
+meaning the original `compute_ground_truth()` calls that produced the
+currently-committed P1-02/P1-03/P1-04 numbers read from the *large* raw
+parquet file, while every regeneration since (including this task's
+25-independent-process Finding 1/2 audit, which ran *after* the narrow
+cache already existed) reads the *small* pre-narrowed one. Diffing the
+true original `results/p1_02_target.json` (git SHA `0ea49ca`, from that
+first-ever run) against a byte-identical-across-two-runs clean
+regeneration on this fixed code found **6,674 differences**: 3,096 in
+`sd_seed` and 31 in `mu` at last-bit-of-float64 magnitude (relative
+<=4.9e-14, the same mechanism as Finding 1), 122 in `effect_size`
+(amplified up to 65% relative, since `effect_size = delta_min /
+sqrt(pooled_variance)` divides by a near-zero quantity built from those
+same `sd_seed` values), **one real `is_ambiguous` flip**
+(`eval_results`/`primary_metric`/`mmlu_electrical_engineering`:
+`effect_size` was `0.9999999999999998` in the original run and
+`1.0000000000000016` in the clean regeneration -- literally a coin-flip
+across the `AMBIGUOUS_EFFECT_SIZE_THRESHOLD = 1.0` boundary caused by
+last-bit noise, not a real disagreement about the task), and **one
+`runner_up` flip** (`eval_results`/`acc_per_char`/`mmlu_college_physics`).
+`k_star` (the actual per-task "winner") never changed, in any of the
+6,674 diffs. The equivalent comparison for `results/p1_03_single_scale.json`
+found 11 diffs (`kendall_tau`/`kendall_p_value`/`macro_avg_kendall_tau`
+at the 16M and 300M proxy sizes only) with `accuracy_including_ties`/
+`accuracy_excluding_ties` unchanged at every size and the 76.3% headline
+untouched; `results/p1_04_extrapolation.json` found 61 diffs (57
+`mean_objective_spread` + 1 `mean_n_converged` optimizer-convergence
+diagnostics, downstream of `recipe_trajectories()`'s perturbed input
+`mu` values feeding the nonlinear fits, plus 1 `kendall_tau`/`kendall_p_value`
+pair inherited from `ConstantExtrapolator`'s known exact equivalence to
+a P1-03 point) with every `prediction`/`accuracy`/`beats_single_scale`
+value, and the 0/18 headline, unchanged. **So: `recipe_means()` is
+confirmed broken by direct repro (Finding 1); `compute_ground_truth()`
+is confirmed broken by this before/after comparison against its own
+real, already-committed output (Finding 3), just not reproducible under
+the lower-risk cache-hit conditions Finding 2's fresh audit ran under;
+`recipe_trajectories()` is a one-step-removed casualty of
+`compute_ground_truth`/`recipe_means`'s bug rippling into its own fit
+inputs in the already-committed P1-04 numbers, though its *own*
+`group_by` was never directly shown to reorder rows itself.** The
+practical lesson survives even sharper than P1-05's version of it: a
+negative result from an empirical repro is scoped to the conditions it
+ran under (here, "cache already warm") and does not generalize to a
+structurally identical call made under different conditions (here, "cache
+cold, first build") -- which is exactly why the fix was applied to all
+three functions rather than only the one Finding 1 caught directly.
 
 **Decision:** fixed all three functions
 (`ground_truth.compute_ground_truth()`, `decision_accuracy.recipe_means()`,
 `decision_accuracy.recipe_trajectories()`) with the same `.sort([...])` +
 `maintain_order=True` pattern P1-05 established, sorting on each
 function's group-by keys plus the seed (or seed+params_str) dimension
-being reduced away. `recipe_means()` needed it (Finding 1);
-`compute_ground_truth()` and `recipe_trajectories()` got it anyway, for
-consistency with how P1-05 already treated its own not-observed-to-fail
-sibling (`seed_variance()`) -- the fix is free (no test regression, no
-behavior change on data that was already order-stable) and removes a
-latent risk that today's negative result does not actually rule out for
-different data sizes or a different polars version. Each function's
-comment states plainly which case it is (confirmed failing vs. defensive),
-so a future reader does not mistake one for the other.
+being reduced away.
 
 **Verification:** `make check`-equivalent (147 tests, 100% coverage on
 both changed files) passes unchanged. Re-ran the same 25-independent-process
@@ -538,13 +583,11 @@ repro script after the fix: all 10 sampled runs are byte-identical
 Regenerated `results/p1_02_target.json`, `results/p1_03_single_scale.json`,
 and `results/p1_04_extrapolation.json` from a clean tree (the only three
 result files whose generating scripts call one of the three fixed
-functions) and diffed each new `data` payload against the version already
-on `main`'s upstream branches byte-for-byte -- see the PR for the exact
-diffs; note that a payload can legitimately be unchanged (Finding 2: none
-of P1-02/03/04's actual real call patterns exercised the specific
-source/mode combination Finding 1 found broken) without that meaning the
-regeneration was unnecessary, since the *code* backing the provenance
-claim did change.
+functions), each verified independently deterministic (two clean
+regenerations of each, byte-identical `data` payload), and each diffed
+against the version already committed on its upstream branch -- see
+Finding 3 above and the PR for the exact diffs and headline-number
+confirmation.
 
 **Other `group_by().agg()` calls surveyed and found not at risk** (no fix
 applied): `frame.py`'s two `coverage_matrix()` calls

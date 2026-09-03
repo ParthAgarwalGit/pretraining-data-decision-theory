@@ -67,15 +67,21 @@ def compute_ground_truth(
     # same defensive pattern noise.py uses (see docs/decisions.md
     # 2026-09-03, P1-05 Decision 5): mean()/std() are not order-associative
     # in floating point, so an unspecified row order out of a
-    # parallel/chunked parquet read can in principle produce
-    # last-bit-different results run to run. A dedicated audit (see
-    # docs/decisions.md, the entry following this one) diffed 24
-    # independent full runs of this exact function against real cached
-    # data (both sources, every scale) and found zero differences here --
-    # unlike decision_accuracy.recipe_means(), which the same audit found
-    # DOES fail this way on the larger eval_results frame. Fixed here too,
-    # for consistency, since nothing guarantees this stays safe as the
-    # data or polars' internals change.
+    # parallel/chunked parquet read can produce last-bit-different results
+    # run to run. Confirmed to actually happen here, not just in theory:
+    # see docs/decisions.md's "group_by().agg() determinism audit" entry,
+    # Finding 3 -- diffing the real, already-committed P1-02 output
+    # against a clean regeneration of this fixed code found 6,674
+    # differences (sd_seed/mu at last-bit magnitude, effect_size amplified
+    # by dividing by a near-zero quantity, one real is_ambiguous flip
+    # dead-on the 1.0 threshold). A same-day 24-independent-process audit
+    # of this function did NOT reproduce it -- that negative result turned
+    # out to be scoped to reading the already-narrowed frame cache
+    # (data/cache/pdt/frame_*.parquet); the original run that produced
+    # the committed numbers was the first-ever call for that cache key,
+    # which reads the much larger raw per-source parquet instead. Do not
+    # trust a clean N-run audit against warm cache as proof a cold-cache
+    # call is equally safe.
     per_recipe_task = (
         subset.sort(["recipe", "task", "seed"])
         .group_by(["recipe", "task"], maintain_order=True)

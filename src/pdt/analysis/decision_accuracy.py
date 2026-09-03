@@ -197,12 +197,17 @@ def recipe_trajectories(
         )
 
     # Sorted + maintain_order=True for the same reason recipe_means() above
-    # needs it: mean() is order-sensitive in floating point. Not observed
-    # to actually differ across the 24-run audit in docs/decisions.md
-    # (unlike recipe_means() on eval_results, which was), but this
-    # function shares the exact same missing-safeguard shape on the same
-    # underlying frames, so it gets the same defensive fix rather than
-    # being left as an unverified latent risk.
+    # needs it: mean() is order-sensitive in floating point. A same-day
+    # 24-independent-process audit against the (already-cached, warm)
+    # frame did not reproduce a direct failure here -- but see
+    # docs/decisions.md's "group_by().agg() determinism audit" entry,
+    # Finding 3: the already-committed P1-04 results (which depend on
+    # this function's `mu` values as fit inputs) show 61 diagnostic-level
+    # differences against a clean regeneration of this fixed code,
+    # traced to the same root cause rippling through from
+    # compute_ground_truth()/recipe_means(). Fixed for the same reason
+    # those two needed it: nothing about a clean same-day audit rules out
+    # the cold-cache conditions the original committed run actually used.
     grouped = (
         subset.sort(["recipe", "task", "params_str", "seed"])
         .group_by(["recipe", "task", "params_str"], maintain_order=True)
