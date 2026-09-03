@@ -790,3 +790,64 @@ smaller one and commit that -- results here must be exactly what running
 `experiments/p1_06_decomposition.py` produces, so the fix went into the
 script and the whole ~2.5-hour computation was re-run from scratch rather
 than post-processed.
+
+---
+
+## 2026-09-04 — P1-06 finding: the sigma2_extrap/v ratio falls with compute, not rises
+
+**Context:** `plan/02-phase1-datadecide.md` P1-06 states an explicit
+"signature prediction": *"the ratio `sigma2_extrap_hat / v_hat` grows with
+compute [in `S_fit`], because `v` shrinks and `sigma2_extrap` does not."*
+This is presented as the theory's own falsifiable expectation, not a
+tentative guess.
+
+**Finding: the opposite happens, for every one of the 6 fitters, at every
+step from `<=150M` to `<=300M` to `<=530M`.** From
+`results/p1_06_decomposition.json`'s `ratio_vs_compute` (median across all
+275 (task, recipe) cells, `seed_bootstrap` scheme):
+
+| Fitter | ratio @150M | ratio @300M | ratio @530M |
+|---|---|---|---|
+| ConstantExtrapolator | 1612.6 | 574.0 | 195.1 |
+| PowerLawN | 9.57 | 7.21 | 5.20 |
+| PowerLawC | 20.79 | 16.10 | 11.98 |
+| ChinchillaND | 8.81 | 5.20 | 3.42 |
+| TwoStepLadder | 16.37 | 11.32 | 10.70 |
+| LogLinear | 310.5 | 272.7 | 230.2 |
+
+Every single row falls monotonically. Looking at `median_sigma2_extrap_hat`
+and `median_v_hat` separately (not just their ratio) shows why: both
+*do* shrink as the design grows, but `sigma2_extrap_hat` shrinks
+faster than `v_hat` -- e.g. PowerLawN's `v_hat` is roughly flat
+(2.72e-3 -> 3.48e-3 -> 3.47e-3, if anything drifting up slightly) while
+its `sigma2_extrap_hat` falls by more than 30% (2.10e-2 -> 1.79e-2 ->
+1.45e-2). The plan's prediction assumed `v` would be the one doing the
+shrinking; empirically here it's `sigma2_extrap` that responds most to a
+larger design.
+
+**Why this is plausible, not just noise:** a design with a larger largest
+size (530M vs 150M) is extrapolating a shorter *relative* distance to the
+1B target, which should plausibly reduce bias more than it reduces the
+bootstrap-estimated variance of an already-well-identified fit (`v_hat`'s
+flatness suggests these fits are not variance-starved even at the
+smallest design -- 10 scales is already comfortably above every fitter's
+minimum data requirement, so adding more scales mostly sharpens *where*
+the curve is anchored, i.e. bias, more than it sharpens the *spread*
+across bootstrap replicates).
+
+**How to apply:** do not average over this or reframe it as "roughly
+matches the theory." State it plainly in `docs/findings/p1_06.md` (the
+plan's own required deliverable, which must say "plainly whether
+`sigma2_extrap` is large, small, or task-dependent") as a real
+discrepancy between the stated theoretical expectation and this
+empirical ladder, and flag it forward into P1-08 (does the bound predict
+the 80% ceiling) and, per the plan's own P1-07 instructions, into P2 as a
+theory-refinement candidate if P1-07's actual bound-tightness check also
+shows something inconsistent with the marginal-form theory as currently
+stated. This is exactly the kind of result the plan's own review gates
+(plan/09-review-gates.md) exist to surface to the PI rather than paper
+over -- reported here, not adjusted to fit the prediction.
+
+**Decided by:** Agent, while executing task P1-06, reading the actual
+`ratio_vs_compute` table before writing STATUS.md rather than assuming
+the plan's stated direction would hold.
