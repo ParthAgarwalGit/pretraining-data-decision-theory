@@ -62,10 +62,28 @@ def compute_ground_truth(
             "is_final=True -- check the metric name and scale label are real."
         )
 
-    per_recipe_task = subset.group_by(["recipe", "task"]).agg(
-        pl.col("metric_value").mean().alias("mu"),
-        pl.col("metric_value").std(ddof=1).fill_null(0.0).alias("sd_seed"),
-        pl.col("metric_value").len().alias("n_seeds"),
+    # Sorted on a fully deterministic key before the group-by/mean+std
+    # reduction, with maintain_order=True on the group_by itself -- the
+    # same defensive pattern noise.py uses (see docs/decisions.md
+    # 2026-09-03, P1-05 Decision 5): mean()/std() are not order-associative
+    # in floating point, so an unspecified row order out of a
+    # parallel/chunked parquet read can in principle produce
+    # last-bit-different results run to run. A dedicated audit (see
+    # docs/decisions.md, the entry following this one) diffed 24
+    # independent full runs of this exact function against real cached
+    # data (both sources, every scale) and found zero differences here --
+    # unlike decision_accuracy.recipe_means(), which the same audit found
+    # DOES fail this way on the larger eval_results frame. Fixed here too,
+    # for consistency, since nothing guarantees this stays safe as the
+    # data or polars' internals change.
+    per_recipe_task = (
+        subset.sort(["recipe", "task", "seed"])
+        .group_by(["recipe", "task"], maintain_order=True)
+        .agg(
+            pl.col("metric_value").mean().alias("mu"),
+            pl.col("metric_value").std(ddof=1).fill_null(0.0).alias("sd_seed"),
+            pl.col("metric_value").len().alias("n_seeds"),
+        )
     )
 
     per_task: dict[str, dict] = {}

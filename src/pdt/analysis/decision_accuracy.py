@@ -70,7 +70,19 @@ def recipe_means(
             "is_final=True -- check the metric name and scale label are real."
         )
 
-    grouped = subset.group_by(["recipe", "task"]).agg(pl.col("metric_value").mean().alias("mu"))
+    # Sorted on a fully deterministic key before the group-by/mean
+    # reduction, with maintain_order=True on the group_by itself: mean()
+    # is not order-associative in floating point, and this specific call
+    # was confirmed to actually flip last-bit float64 values run to run on
+    # the (larger) eval_results source -- 24/24 independent-process runs
+    # differed from each other before this fix, always in `mu`, always at
+    # ~1e-14 relative magnitude. See docs/decisions.md for the audit that
+    # found this (the same class of bug P1-05 fixed in noise.py).
+    grouped = (
+        subset.sort(["recipe", "task", "seed"])
+        .group_by(["recipe", "task"], maintain_order=True)
+        .agg(pl.col("metric_value").mean().alias("mu"))
+    )
 
     result: dict[str, dict[str, float]] = {}
     for task, recipe, mu in zip(
@@ -184,10 +196,21 @@ def recipe_trajectories(
             "is_final=True -- check the metric name and size labels are real."
         )
 
-    grouped = subset.group_by(["recipe", "task", "params_str"]).agg(
-        pl.col("metric_value").mean().alias("mu"),
-        pl.col("params_num").first().alias("n"),
-        pl.col("tokens").mean().alias("d"),
+    # Sorted + maintain_order=True for the same reason recipe_means() above
+    # needs it: mean() is order-sensitive in floating point. Not observed
+    # to actually differ across the 24-run audit in docs/decisions.md
+    # (unlike recipe_means() on eval_results, which was), but this
+    # function shares the exact same missing-safeguard shape on the same
+    # underlying frames, so it gets the same defensive fix rather than
+    # being left as an unverified latent risk.
+    grouped = (
+        subset.sort(["recipe", "task", "params_str", "seed"])
+        .group_by(["recipe", "task", "params_str"], maintain_order=True)
+        .agg(
+            pl.col("metric_value").mean().alias("mu"),
+            pl.col("params_num").first().alias("n"),
+            pl.col("tokens").mean().alias("d"),
+        )
     )
 
     result: dict[str, dict[str, list[tuple[Scale, float]]]] = {}

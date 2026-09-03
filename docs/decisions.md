@@ -456,3 +456,113 @@ independent full runs (see Decision 5) plus a completeness assertion in
 `experiments/p1_05_noise_floor.py` itself (`eval_sampling_noise` row count
 must equal `seed_variance` row count, or the script raises rather than
 silently dropping a cell).
+
+---
+
+## 2026-09-03 — Background task `task_2d6c6192`: `group_by().agg()` determinism audit across `src/pdt/`
+
+**Context:** P1-05's own reproducibility fix (Decision 5, above) found a
+real float-summation-order bug in `noise.py` and explicitly flagged that
+`ground_truth.py`, `decision_accuracy.py`, and `frame.py` carry
+structurally similar `group_by().agg()` calls that had "passed every
+reproducibility check run against them so far but were never specifically
+probed for it." This task is that probe.
+
+**Method:** every `group_by(...).agg(...)` call under `src/pdt/` was
+enumerated (`grep -rn group_by src/pdt`) and triaged by whether its
+aggregation is a floating-point reduction sensitive to summation order
+(`.mean()`, `.std()`, `.var()`) versus one that isn't (`.max()`, `.len()`,
+`.n_unique()`, `.first()` -- see below). Every reduction-sensitive call
+lacking an explicit deterministic `.sort()` + `maintain_order=True` was
+then empirically tested, not assumed broken: a repro script exercised each
+function against the **real cached data** (both `macro_avg` and
+`eval_results` sources, every proxy size, both `recipe_means()` seed
+modes), run as **25 independent fresh Python processes** (not 25 calls in
+one process -- the bug is a race in how a parallel/chunked parquet read
+hands back row order, which a single warm process wouldn't re-trigger
+per call), diffing all 24 pairs against the first run.
+
+**Finding 1 (real bug, confirmed) -- `decision_accuracy.recipe_means()`
+(seed_mode="average") is genuinely nondeterministic on the `eval_results`
+source.** All 24/24 independent-process pairs differed from each other:
+185 total leaf differences, always in the returned `mu` value, always at
+last-bit-of-float64 magnitude (relative difference 1.12e-16 to 3.74e-16,
+e.g. `0.29677419354838713` vs `0.296774193548387` for
+`Dolma1.7 (no Flan)` / `mmlu_high_school_biology` / 530M). Exactly the
+same mechanism as `checkpoint_jitter()`'s bug: `group_by(["recipe",
+"task"]).agg(mean())` with no sort and no `maintain_order`. Every
+differing cell used `seed_mode="average"` (a real 3-row float sum); zero
+differences ever appeared under `seed_mode="default_only"` (a 1-row
+"reduction" -- no summation, nothing to reorder), consistent with the
+mechanism.
+
+**Finding 2 (tested, not reproduced) -- `ground_truth.compute_ground_truth()`
+and `decision_accuracy.recipe_trajectories()` did *not* fail in this same
+24-pair test**, despite `compute_ground_truth()` running the *same*
+filter + `group_by(["recipe","task"])` shape (just with `.std()` and
+`.len()` added alongside `.mean()`) on the *same* `eval_results` frame
+that broke `recipe_means()`, and `recipe_trajectories()` feeding an even
+larger single `group_by` call (all 13 proxy sizes at once) through a
+near-identical `.agg(mean(), first(), mean())`. Zero diffs also on
+`recipe_means()` itself when run against `macro_avg` (11 tasks) rather
+than `eval_results` (66 tasks) -- suggesting whichever polars execution
+path causes this is sensitive to some combination of total row/group
+count and the exact shape of the aggregation expression, not simply "3-row
+groups are safe" (P1-05's working theory after `seed_variance()` didn't
+reproduce it either -- that theory does not fully hold up: here, a
+3-row-group `.mean()`-only reduction over `eval_results` *did* fail on one
+neighboring function and not on two structurally near-identical ones
+sharing the same input data). This is the same lesson P1-05 drew, sharper:
+empirical confirmation, not analogy to a similar-looking function, is what
+this project trusts.
+
+**Decision:** fixed all three functions
+(`ground_truth.compute_ground_truth()`, `decision_accuracy.recipe_means()`,
+`decision_accuracy.recipe_trajectories()`) with the same `.sort([...])` +
+`maintain_order=True` pattern P1-05 established, sorting on each
+function's group-by keys plus the seed (or seed+params_str) dimension
+being reduced away. `recipe_means()` needed it (Finding 1);
+`compute_ground_truth()` and `recipe_trajectories()` got it anyway, for
+consistency with how P1-05 already treated its own not-observed-to-fail
+sibling (`seed_variance()`) -- the fix is free (no test regression, no
+behavior change on data that was already order-stable) and removes a
+latent risk that today's negative result does not actually rule out for
+different data sizes or a different polars version. Each function's
+comment states plainly which case it is (confirmed failing vs. defensive),
+so a future reader does not mistake one for the other.
+
+**Verification:** `make check`-equivalent (147 tests, 100% coverage on
+both changed files) passes unchanged. Re-ran the same 25-independent-process
+repro script after the fix: all 10 sampled runs are byte-identical
+(`sha256sum` match) across both sources, every function, every scale.
+Regenerated `results/p1_02_target.json`, `results/p1_03_single_scale.json`,
+and `results/p1_04_extrapolation.json` from a clean tree (the only three
+result files whose generating scripts call one of the three fixed
+functions) and diffed each new `data` payload against the version already
+on `main`'s upstream branches byte-for-byte -- see the PR for the exact
+diffs; note that a payload can legitimately be unchanged (Finding 2: none
+of P1-02/03/04's actual real call patterns exercised the specific
+source/mode combination Finding 1 found broken) without that meaning the
+regeneration was unnecessary, since the *code* backing the provenance
+claim did change.
+
+**Other `group_by().agg()` calls surveyed and found not at risk** (no fix
+applied): `frame.py`'s two `coverage_matrix()` calls
+(`group_by("task"/"params_str").agg(pl.len())`) aggregate with an exact
+integer row count, which has no floating-point summation-order
+sensitivity at all. `datadecide.py`'s
+`_add_params_num_and_final_flag()` groups on `.max()` (step number),
+also order-independent for the same reason (max, unlike sum/mean/var, is
+associative regardless of float representation). `datadecide.py`'s
+`_parse_eval_instance_counts()` uses `.first()` (order-sensitive in
+general) alongside `.n_unique()`, but the function raises
+`RuntimeError` if `n_unique() != 1` for any task before ever trusting the
+`.first()` value -- by the time a `num_instances` value is returned, every
+row in its group is provably identical, so which physical row was
+"first" cannot matter. Left as-is; the existing invariant check is a
+stronger safety property than adding a sort would be.
+
+**Decided by:** Agent, executing the background task P1-05's Decision 5
+flagged. Verified via 25 independent full runs pre-fix (24 pairwise diffs)
+and 10 independent full runs post-fix (all byte-identical), plus 3 clean
+regenerations of the affected results files.
