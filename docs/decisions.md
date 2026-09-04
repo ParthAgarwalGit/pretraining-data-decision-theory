@@ -995,3 +995,82 @@ trusting the first run's console output, which had already produced
 nonsensical negative percentages -- a signal something was wrong with the
 *interpretation*, not (as first suspected) a bug in P1-06/07's actual
 computed values, both of which were re-checked and confirmed correct.
+
+---
+
+## 2026-09-05 — P1-10 secondary ladder: scope forced by Pythia's own data, and an inconclusive replication
+
+**Context:** `plan/02-phase1-datadecide.md` P1-10 asks for the P1-06
+decomposition rerun on Pythia, with an explicit escape clause ("if this
+task balloons... cap it at one ladder and one task family and say so").
+Every scope reduction below was discovered while building this, not
+chosen in advance -- see `experiments/p1_10_secondary_ladder.py`'s module
+docstring for the full list; this entry covers the reasoning and the
+result.
+
+**Decision 1 -- `1.4b`, not `1b`, is the target scale.** `1b` has no
+plain (non-deduped) directory in `EleutherAI/pythia`'s published evals --
+only `pythia-1b-bf16`, `pythia-1b-0.5MtokBS`, and `pythia-1b-deduped`,
+discovered via a real 404, not assumed from the naming pattern that holds
+for every other size. Rather than guess which irregular variant is the
+"real" standard 1B run, `1.4b` (clean `pythia-1.4b` /
+`pythia-1.4b-deduped` directories) is used instead. `src/pdt/data/pythia.py`
+documents this; `SIZES` still lists `"1b"` for completeness but callers
+needing a full ladder should avoid it.
+
+**Decision 2 -- only `ConstantExtrapolator` and `LogLinear` run; the
+other 4 P1-04 fitters cannot.** Only 3 Pythia sizes exist below the
+target (`70m`/`160m`/`410m`). `PowerLawN`/`PowerLawC` need `>=4` scales to
+identify 3 parameters, `ChinchillaND` needs `>=6` for 5, `TwoStepLadder`
+needs `>=8` for 7 -- none can fit with only 3 candidate points. This is a
+hard data-availability constraint, not a scope choice: DataDecide has 14
+sizes with 10-12 below any reasonable target; Pythia's ladder is 8 sizes
+total with only 3 below `1.4b`.
+
+**Decision 3 -- parametric bootstrap only, using checkpoint jitter as the
+sole noise source.** `EleutherAI/pythia`'s published per-checkpoint evals
+have exactly one row per (size, variant, step) -- no second seed to
+resample from, unlike DataDecide's 3 seeds everywhere. Reused P1-05's
+checkpoint-jitter method (variance across the last 4 of a run's own
+published checkpoints) as the noise variance fed into
+`bootstrap.apply_parametric_noise` -- the same shared-per-scale-per-replicate
+draw design P1-06 established, just with `K=2` recipes instead of 25.
+
+**Decision 4 -- `mmlu` is reconstructed as the unweighted mean of 57
+`hendrycksTest-*` subtasks; `boolq`/`csqa`/`hellaswag`/`openbookqa`/
+`socialiqa` (and therefore `olmes_10_macro_avg`) are dropped entirely.**
+Checked directly against one raw eval JSON's own task keys (not assumed):
+only `arc_challenge`, `arc_easy`, `piqa`, `winogrande`, and the 57
+`hendrycksTest-*` MMLU subjects have any counterpart in Pythia's public
+eval set. The `mmlu` reconstruction uses the same unweighted-mean
+convention this project already verified DataDecide's own `macro_avg`
+table uses for `mmlu` (P1-05/P1-06). 5 of DataDecide's 11 headline tasks
+have no Pythia counterpart at all and are silently unavailable, not
+approximated.
+
+**Decision 5 -- `Scale.d` is a placeholder, unused by either fitter that
+actually runs.** Real per-checkpoint token counts for Pythia would need
+combining published batch-size/sequence-length constants per size (which
+differ across some sizes, per the `-0.5MtokBS`/`-1MtokBS` alternate
+directories seen while exploring the repo) -- not computed here, because
+neither `ConstantExtrapolator` nor `LogLinear` reads `scale.d` or
+`scale.compute` anywhere in their fit or predict logic. `Scale(n=n,
+d=20*n)` is a syntactically-required placeholder that never influences
+any reported number -- confirmed by reading both fitters' source before
+relying on this, not assumed safe.
+
+**Result: the P1-06 ratio-vs-compute finding does not clearly replicate,
+in either direction.** `ConstantExtrapolator`'s median `sigma2_extrap/v`
+ratio across the 5 tasks is 131.0 at the smaller design (`le_160m`, 2
+sizes) and 137.6 at the larger one (`le_410m`, 3 sizes) -- essentially
+flat (~5% difference), not the clear monotonic fall P1-06 found in
+DataDecide across 3 designs, but also not a clean rise. With only 2
+usable design points and 1 fitter able to run at both, this is a weak
+test either way -- reported as inconclusive rather than forced into
+"replicates" or "contradicts."
+
+**Decided by:** Agent, while executing task P1-10. Every scope limit here
+was verified against the real published repo structure before being
+treated as a constraint (the `1b` 404, the exact task-key overlap, the
+minimum-scales-per-fitter arithmetic), not assumed from the plan's or
+this project's own DataDecide-side conventions.

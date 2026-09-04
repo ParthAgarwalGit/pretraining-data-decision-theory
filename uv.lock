@@ -995,6 +995,7 @@ fitting = [
 hub = [
     { name = "datasets" },
     { name = "huggingface-hub" },
+    { name = "requests" },
 ]
 plotting = [
     { name = "matplotlib" },
@@ -1013,6 +1014,7 @@ requires-dist = [
     { name = "pyarrow", marker = "extra == 'core'", specifier = ">=17.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
+    { name = "requests", marker = "extra == 'hub'", specifier = ">=2.31" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
     { name = "scipy", marker = "extra == 'core'", specifier = ">=1.12" },
     { name = "statsmodels", marker = "extra == 'fitting'", specifier = ">=0.14" },
