@@ -242,3 +242,29 @@ def test_cached_or_build_writes_revision_sidecar(tmp_path, monkeypatch):
 def test_cached_revision_returns_none_before_anything_is_cached(tmp_path, monkeypatch):
     monkeypatch.setattr(dd, "_CACHE_DIR", tmp_path)
     assert dd.cached_revision("never_built") is None
+
+
+# ---------------------------------------------------------------------------
+# _parse_eval_instance_counts
+# ---------------------------------------------------------------------------
+
+
+def test_parse_eval_instance_counts_collapses_to_one_row_per_task():
+    raw = pl.DataFrame(
+        {
+            "task": ["arc_challenge", "arc_challenge", "boolq", "boolq"],
+            "num_instances": [1172, 1172, 3270, 3270],
+        }
+    )
+    out = dd._parse_eval_instance_counts(raw)
+    assert out.height == 2
+    assert dict(zip(out["task"].to_list(), out["num_instances"].to_list(), strict=True)) == {
+        "arc_challenge": 1172,
+        "boolq": 3270,
+    }
+
+
+def test_parse_eval_instance_counts_raises_if_num_instances_varies_within_a_task():
+    raw = pl.DataFrame({"task": ["arc_challenge", "arc_challenge"], "num_instances": [1172, 1173]})
+    with pytest.raises(RuntimeError, match="not constant"):
+        dd._parse_eval_instance_counts(raw)
