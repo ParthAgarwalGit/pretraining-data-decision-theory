@@ -1074,3 +1074,111 @@ was verified against the real published repo structure before being
 treated as a constraint (the `1b` 404, the exact task-key overlap, the
 minimum-scales-per-fitter arithmetic), not assumed from the plan's or
 this project's own DataDecide-side conventions.
+
+---
+
+## 2026-09-05 — P1-11 figures: five rendering bugs found by reading the actual PDFs, not by trusting exception-free code
+
+**Context:** `plan/02-phase1-datadecide.md` P1-11 asks for F1-F5, generated
+by `src/pdt/viz/` with no manual steps, meeting: colourblind-safe
+palette, no red/green pairing, legible at 6cm wide, vector PDF, every
+axis labelled with units, no chart junk. Every figure below ran and
+produced a PDF on the first try -- none of the bugs in this entry would
+have been caught by "does `generate()` raise an exception," only by
+opening the rendered file. That is the one policy this entry is really
+recording: every figure was rendered to a 300-DPI PNG (`bbox_inches="tight"`)
+and read with the Read tool before being accepted, and every fix below
+was re-verified the same way, iterating until the render matched the
+data, not the code's apparent intent.
+
+**Decision 1 -- figure text sizing lives in global `rcParams`, not
+per-instance `Text.set_size()` calls.** `src/pdt/viz/style.py` originally
+set font sizes via calls like `ax.title.set_size(8)` inside `new_figure()`,
+before any title text existed. `ax.set_title(...)`, called later by each
+F-module, creates a *new* `Text` object that does not inherit that
+earlier call, so F1's title rendered at matplotlib's default size and
+clipped at the figure edge. Fixed by moving every size to a module-level
+`plt.rcParams.update({...})` at import time, which applies correctly
+regardless of when the text object is created.
+
+**Decision 2 -- `style.save()` uses `bbox_inches="tight"`, but that alone
+does not rescue every legend.** Added `bbox_inches="tight", pad_inches=0.03`
+to `fig.savefig()` after F2's below-axes legend was cropped at the page
+edge (`ConstantExtrapolator` rendered as `Constant...` cut off; confirmed
+against a high-DPI PNG, not just the PDF's text layer, to rule out a
+viewer-side artifact before treating it as a real bug). This is now the
+default for every figure. It is necessary but was not, by itself,
+sufficient for F2's specific layout -- see Decision 3.
+
+**Decision 3 -- F2's legend is built with `fig.legend()` at explicit
+figure-fraction coordinates, not `ax.legend(bbox_to_anchor=...)` in
+axes-fraction coordinates.** Three compounding problems, found and fixed
+in sequence by re-rendering after each:
+  - A 3-column legend (`ncol=3`) put `ConstantExtrapolator` and the other
+    long fitter names past the figure's right edge even with
+    `bbox_inches="tight"` -- because that legend was attached via
+    `ax.add_artist()` rather than being the axes' own tracked legend, and
+    was under-measured by the tight-bbox pass. Switched to `ncol=2`,
+    which fits inside the 6cm width without depending on tight-bbox to
+    rescue an overflowing column.
+  - The default log-scale tick locator added minor ticks (`2x, 3x, 4x,
+    6x`) at every decade; with all 3 real compute values inside one
+    decade, the x-axis became an illegible smear of overlapping labels.
+    Fixed with an explicit `FixedLocator` at the 3 real values and minor
+    ticks off.
+  - `matplotlib.ticker.LogFormatterMathtext`, given those 3 non-decade
+    values, rendered malformed fractional exponents (`10^19.33`) and
+    silently dropped the middle tick's label. Replaced with a hand-built
+    `a \times 10^{b}` formatter -- justified here specifically because
+    there are only ever 3 fixed values, so a general log-tick formatter
+    is solving a harder problem than actually exists.
+  - The legend was then moved below the axes via `ax.legend(bbox_to_anchor=...,
+    loc="upper center")` in axes-fraction coordinates, which put the
+    legend's `"Fitter"` title directly on top of the xlabel -- the
+    axes-fraction offset didn't account for the xlabel's own position
+    below the axes, which is itself computed after the fact by
+    matplotlib. `fig.legend(bbox_to_anchor=...)` in figure-fraction
+    coordinates removes that coupling (xlabel and both legends are all
+    positioned as absolute fractions of the same fixed canvas), and the
+    redundant `"Fitter"` title was dropped rather than fought with --
+    the legend's entries (fitter names) are already self-explanatory.
+
+**Decision 4 -- F3 shows full fitter names, not a 4-character
+truncation, and moved its legend below the axis.** `x_labels.append(f"{fitter[:4]}...")`
+made `PowerLawC` and `PowerLawN` both render as `"Powe"` -- indistinguishable,
+not just ugly, since the figure has 6 columns for each and a reader
+cannot tell which is which. Rotated 90 degrees at a small font size, the
+full names cost vertical space, not horizontal, so truncation was
+solving a problem that didn't exist; the figure width was also increased
+to 12cm (matching F4's existing precedent for a dense, many-category
+panel) to give each of the 18 (fitter, design) columns more room.
+Separately, the in-plot legend (`loc="center left"`) sat at the same
+height as the real "observed accuracy" data cluster it was labelling, an
+overlap confirmed by reading the render, not assumed from the `loc`
+string. There is no y-band in this figure that is empty across the full
+x-range (the plug-in-bound series sits at ~0 for every single column), so
+the legend was moved below the axis instead of relocated in-plot.
+
+**Decision 5 -- F5's legend corner was chosen from the actual data
+range, not matplotlib's default placement.** `loc="upper left"` put the
+legend on top of a dense scatter cluster (every point has `bound_marginal`
+or `bound_pairwise >= 1.16`, and the cluster of near-1 empirical-error-rate
+points sits exactly in the upper-left quadrant of this log-log square).
+Checked the underlying `results/p1_07_bound_coverage.json` values
+directly (`max(empirical_error_rate) == 1.0`, `min(bound) == 1.16`) before
+picking `loc="lower right"`, which is providably empty rather than
+visually guessed to be empty.
+
+**F1 and F4 needed no changes.** F1's in-plot legend sits in the plot's
+own empty region (accuracy never drops much below 0.5, so the
+lower-right stays clear); F4's two-panel `loc="best"` legends were
+checked the same way as everything else here and did not overlap either
+panel's curve.
+
+**Decided by:** Agent, while executing task P1-11. Every fix in this
+entry was verified by rendering a 300-DPI PNG and reading it (zooming
+into the specific region in question where a whole-figure read wasn't
+conclusive enough), then repeating after each change until the render
+matched expectations -- the same "read the actual output, don't trust
+the code" discipline this project has applied to every prior task's
+results files, applied here to a visual artifact instead of a number.
