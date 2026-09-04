@@ -39,7 +39,7 @@ def _fake_wide_frame(n_rows: int = 2) -> pl.DataFrame:
 
 
 def test_build_frame_has_the_spec_column_order(tmp_path, monkeypatch):
-    monkeypatch.setattr(frame_mod, "_CACHE_PATH", tmp_path / "frame.parquet")
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
     monkeypatch.setattr(dd, "load_eval_results", lambda revision=None: _fake_wide_frame())
 
     result = frame_mod.build_frame()
@@ -48,7 +48,7 @@ def test_build_frame_has_the_spec_column_order(tmp_path, monkeypatch):
 
 
 def test_build_frame_melts_one_row_per_metric(tmp_path, monkeypatch):
-    monkeypatch.setattr(frame_mod, "_CACHE_PATH", tmp_path / "frame.parquet")
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
     monkeypatch.setattr(dd, "load_eval_results", lambda revision=None: _fake_wide_frame(n_rows=3))
 
     result = frame_mod.build_frame()
@@ -58,7 +58,7 @@ def test_build_frame_melts_one_row_per_metric(tmp_path, monkeypatch):
 
 
 def test_build_frame_strips_metric_prefix_and_renames_columns(tmp_path, monkeypatch):
-    monkeypatch.setattr(frame_mod, "_CACHE_PATH", tmp_path / "frame.parquet")
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
     monkeypatch.setattr(dd, "load_eval_results", lambda revision=None: _fake_wide_frame())
 
     result = frame_mod.build_frame()
@@ -69,7 +69,7 @@ def test_build_frame_strips_metric_prefix_and_renames_columns(tmp_path, monkeypa
 
 
 def test_build_frame_caches_and_does_not_recall_loader(tmp_path, monkeypatch):
-    monkeypatch.setattr(frame_mod, "_CACHE_PATH", tmp_path / "frame.parquet")
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
     calls = []
 
     def fake_loader(revision=None):
@@ -85,7 +85,7 @@ def test_build_frame_caches_and_does_not_recall_loader(tmp_path, monkeypatch):
 
 
 def test_build_frame_force_refresh_recalls_loader(tmp_path, monkeypatch):
-    monkeypatch.setattr(frame_mod, "_CACHE_PATH", tmp_path / "frame.parquet")
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
     calls = []
 
     def fake_loader(revision=None):
@@ -101,12 +101,88 @@ def test_build_frame_force_refresh_recalls_loader(tmp_path, monkeypatch):
 
 
 def test_build_frame_raises_if_whitelist_column_missing(tmp_path, monkeypatch):
-    monkeypatch.setattr(frame_mod, "_CACHE_PATH", tmp_path / "frame.parquet")
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
     incomplete = _fake_wide_frame().drop("metric_primary_metric")
     monkeypatch.setattr(dd, "load_eval_results", lambda revision=None: incomplete)
 
     with pytest.raises(RuntimeError, match="metric_primary_metric"):
         frame_mod.build_frame()
+
+
+def test_build_frame_rejects_unknown_source(tmp_path, monkeypatch):
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
+
+    with pytest.raises(ValueError, match="unknown source"):
+        frame_mod.build_frame(source="not_a_real_source")
+
+
+def test_build_frame_macro_avg_source_calls_the_right_loader(tmp_path, monkeypatch):
+    # Regression: an earlier version stored bound function references in a
+    # dict at module-import time, which silently ignored this exact
+    # monkeypatch (dd.load_eval_results being patched instead) -- catch
+    # that class of bug directly, per source.
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
+    calls = []
+
+    def fake_macro_avg(revision=None):
+        calls.append("macro_avg")
+        return _fake_wide_frame()
+
+    def fake_eval_results(revision=None):
+        calls.append("eval_results")
+        return _fake_wide_frame()
+
+    monkeypatch.setattr(dd, "load_macro_avg", fake_macro_avg)
+    monkeypatch.setattr(dd, "load_eval_results", fake_eval_results)
+
+    frame_mod.build_frame(source="macro_avg")
+
+    assert calls == ["macro_avg"]
+
+
+def test_build_frame_metrics_parameter_overrides_the_default_whitelist(tmp_path, monkeypatch):
+    # macro_avg is missing metric_bits_per_byte_corr in the real data --
+    # requesting only the two metrics it does have must not trip the
+    # missing-column check that would fire under the full default whitelist.
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
+    narrow_wide = _fake_wide_frame().drop("metric_bits_per_byte_corr")
+    monkeypatch.setattr(dd, "load_macro_avg", lambda revision=None: narrow_wide)
+
+    result = frame_mod.build_frame(source="macro_avg", metrics=("primary_metric", "acc_per_char"))
+
+    assert set(result["metric_name"].unique().to_list()) == {"primary_metric", "acc_per_char"}
+
+
+def test_build_frame_different_sources_cache_separately(tmp_path, monkeypatch):
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
+    monkeypatch.setattr(dd, "load_eval_results", lambda revision=None: _fake_wide_frame())
+    monkeypatch.setattr(dd, "load_macro_avg", lambda revision=None: _fake_wide_frame(n_rows=5))
+
+    eval_results_frame = frame_mod.build_frame(source="eval_results")
+    macro_avg_frame = frame_mod.build_frame(source="macro_avg")
+
+    assert eval_results_frame.height != macro_avg_frame.height
+    assert len(list(tmp_path.glob("frame_*.parquet"))) == 2
+
+
+def test_build_frame_different_metrics_cache_separately_not_shared(tmp_path, monkeypatch):
+    # Regression: an earlier version keyed the cache on `source` alone, so
+    # a caller requesting a narrower `metrics` set (as P1-02 does, for
+    # source="eval_results") would silently poison the cache for a later
+    # caller requesting the full default whitelist for the *same* source
+    # (as P1-01 does) -- returning a frame with 3x fewer rows than
+    # expected, with no error. Caught for real running P1-01 and P1-02
+    # back to back; this pins the fix.
+    monkeypatch.setattr(frame_mod, "_CACHE_DIR", tmp_path)
+    monkeypatch.setattr(dd, "load_eval_results", lambda revision=None: _fake_wide_frame())
+
+    narrow = frame_mod.build_frame(source="eval_results", metrics=("primary_metric",))
+    full = frame_mod.build_frame(source="eval_results", metrics=frame_mod.METRIC_WHITELIST)
+
+    assert narrow.height != full.height
+    assert set(narrow["metric_name"].unique().to_list()) == {"primary_metric"}
+    assert set(full["metric_name"].unique().to_list()) == set(frame_mod.METRIC_WHITELIST)
+    assert len(list(tmp_path.glob("frame_eval_results__*.parquet"))) == 2
 
 
 # ---------------------------------------------------------------------------
