@@ -851,3 +851,72 @@ over -- reported here, not adjusted to fit the prediction.
 **Decided by:** Agent, while executing task P1-06, reading the actual
 `ratio_vs_compute` table before writing STATUS.md rather than assuming
 the plan's stated direction would hold.
+
+---
+
+## 2026-09-04 — P1-07 plug-in bound: scheme choice, sandwich estimator scope, and undefined-ratio handling
+
+**Context:** `plan/02-phase1-datadecide.md` P1-07 asks for the marginal
+and pairwise-difference bound forms, an analytic delta-method `v_k(C)` as
+a cross-check against P1-06's bootstrap `v_hat_k`, and a Monte-Carlo
+estimate of the actual selection error compared to both bound forms as a
+tightness ratio.
+
+**Decision 1 -- the Monte-Carlo selection-error simulation uses the
+seed-bootstrap scheme only, not both P1-06 schemes.** P1-06 runs two
+resampling schemes (seed and parametric) as a cross-check against each
+other; P1-07's Monte-Carlo asks a different question (does the actual
+`argmax` selection procedure pick `k*`?), and running it under both
+schemes would double an already-expensive (`B=500` x full grid) computation
+for a question that doesn't need the comparison. Seed bootstrap was
+chosen as canonical because it resamples real observed values with no
+distributional assumption, closest in spirit to what P1-02's ground truth
+and P1-03's reproduction are themselves built from.
+
+**Decision 2 -- the analytic `v_k` is reported as a cross-check, not
+substituted into the bound actually used.** The reported
+`bound_marginal`/`bound_pairwise` values use P1-06's bootstrap
+`v_hat`/`bias_hat` throughout (the same source `sigma2_extrap_hat` comes
+from -- there is no purely-analytic `sigma2_extrap`, only a bootstrap
+one, so mixing an analytic `v_k` into that formula would compare
+quantities estimated two different ways within the same sum). The
+per-recipe `analytic_v_k` values are reported alongside for direct
+comparison against P1-06's `v_hat`, which is the cross-check the plan
+actually asks for ("agreement validates the analytic machinery...
+disagreement is a finding") -- not a request to change which number
+feeds the bound.
+
+**Decision 3 -- the sandwich covariance is the basic (HC0) estimator, no
+small-sample correction.** `sandwich_covariance()` uses raw squared
+residuals as the "meat," not an `n/(n-p)`-scaled variant (HC1) or similar.
+The plan says "the sandwich covariance of the fit" without specifying a
+correction; HC0 is the standard default meaning of "sandwich covariance"
+in the literature, and with `n` (10-12 fitted scales) not much larger
+than `p` (2-7 parameters) for some fitters, a correction would matter
+somewhat -- flagged here as a real scoping choice, not the only
+defensible one, should someone want a tighter analytic-vs-bootstrap
+agreement check later.
+
+**Decision 4 -- an undefined tightness ratio (empirical error rate
+exactly 0) is reported as `null`, not infinity.** When a Monte-Carlo
+simulation finds zero errors across `B=500` replicates, `bound /
+empirical_error` is mathematically undefined (division by zero), and the
+bound is trivially satisfied regardless of its value (any non-negative
+bound holds against zero observed error). Rather than reporting `Infinity`
+(not valid JSON) or an arbitrarily large sentinel, `tightness_ratio_*` is
+`null` in this case, with `empirical_error_rate: 0.0` still visible so a
+reader can see why.
+
+**A property discovered while testing `sandwich_covariance()`/`analytic_v_k()`
+(not a bug):** `PowerLawN`'s delta-method variance *saturates* rather than
+diverging as the target scale moves further past the fitted range --
+because the model's own prediction converges to a constant ceiling `E` as
+`N -> infinity`, its jacobian converges to a fixed vector, and so does the
+propagated variance. `LogLinear`, whose jacobian entry `d(prediction)/d(b)
+= log(N)` grows unboundedly, does not share this property. Worth knowing
+before reading too much into any one fitter's `analytic_v_k` trend versus
+extrapolation distance -- it is model-form-dependent, not a general fact
+about extrapolation uncertainty. See `tests/test_bound.py`'s two paired
+tests for both properties checked directly.
+
+**Decided by:** Agent, while executing task P1-07.
