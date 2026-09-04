@@ -920,3 +920,78 @@ about extrapolation uncertainty. See `tests/test_bound.py`'s two paired
 tests for both properties checked directly.
 
 **Decided by:** Agent, while executing task P1-07.
+
+---
+
+## 2026-09-04 — P1-08: the plug-in bound, taken literally as an accuracy predictor, is vacuous -- and what that reveals
+
+**Context:** `plan/02-phase1-datadecide.md` P1-08 calls itself "the paper's
+money question" -- plug P1-05/P1-06's estimates into the bound to get a
+*predicted* decision accuracy, compare against P1-03/04's *observed*
+accuracy, and run a `sigma2_extrap = 0` counterfactual.
+
+**Decision 1 -- "predicted accuracy" is `max(0, 1 - bound_pairwise)`, not
+`1 - bound_pairwise`.** `bound_pairwise` is a sum of `exp(...)` terms, one
+per non-winning recipe (up to 24 per task) -- a union bound, which can
+(and, checked directly before writing any code around it, *does*)
+exceed 1 when many terms are individually large. P1-07 already found
+`bound_pairwise > 1` in **all 396 of 396 cells** (min 1.16, median
+17.08, max 23.36) -- not an edge case, the norm. This traces directly to
+P1-02: 9 of 11 tasks have no statistically resolvable winner at 1B, so
+most of a task's 24 comparisons against `k*` are near-ties, each
+contributing a term close to 1, and 24 such terms trivially sum past 1. A
+probability bound that overshoots 1 means "no informative lower bound on
+accuracy" -- reading it as literally negative (an early run produced
+"predicted accuracy: -1889%" before this fix) is not meaningful; clipping
+at 0 is the standard, correct way to read it.
+
+**Consequence, reported plainly rather than engineered around: predicted
+accuracy (clipped) is 0.0% for every single (fitter, design) cell.** The
+bound, while never *violated* (P1-07: ratio >= 1 everywhere) and while
+demonstrably tighter in its pairwise form than its marginal form, is too
+loose at these gap sizes to make any informative quantitative accuracy
+prediction at all. This is a real finding about the practical usefulness
+of the bound as currently scaled, distinct from (and consistent with, not
+contradicting) P1-07's own "the bound holds, loose by a constant factor"
+result -- "loose by a constant factor" turns out to mean "loose enough to
+be vacuous once summed over ~24 mostly-tied comparisons," which is worth
+stating as plainly as the plan's own P1-06 definition-of-done language
+asks ("stating plainly whether `sigma2_extrap` is large, small, or
+task-dependent") -- extended here to the bound's own usefulness, not
+smoothed into "the theory roughly works."
+
+**Decision 2 -- the `sigma2_extrap = 0` counterfactual is reported against
+TWO baselines, not one.** The plan's literal wording ("recompute the
+predicted extrapolation accuracy... if the prediction then exceeds
+single-scale") is ambiguous about which "single-scale" -- its real
+(bias-included) predicted accuracy, or its own bias-free counterfactual.
+Both are computed and reported:
+- **vs. single-scale's real predicted accuracy (0.0% everywhere, per
+  Decision 1):** 5 of 15 (fitter, design) pairs "flip" to beating it --
+  but this is close to trivial, since *any* positive counterfactual value
+  beats a floor of exactly 0.
+- **vs. single-scale's OWN bias-free counterfactual** (ConstantExtrapolator
+  also carries substantial removable bias -- it "never corrects for scale
+  at all", per its own docstring -- so zeroing bias moves its own
+  predicted accuracy up to 20.8%-37.0%, not 0%): only **1 of 15** pairs
+  still beats it -- `LogLinear` at the `<=530M` design (37.7% vs 20.8%).
+  This is the honest, apples-to-apples version of "if neither method had
+  bias, who wins on variance alone" -- and the answer is: almost nobody,
+  and the one exception is the *deliberately misspecified* model, whose
+  advantage here is having very little bias left to remove in the first
+  place is beside the point -- what's left is its comparatively small
+  variance, which is exactly what the theory says should matter once bias
+  is controlled for.
+
+**How to apply:** when this counterfactual result is quoted (P1-11's
+figures, the paper draft), cite the apples-to-apples comparison (1/15),
+not the raw 5/15 -- the wider number is an artifact of comparing against
+a degenerate baseline, not a real 5-way vindication of the
+extrapolation-bias explanation.
+
+**Decided by:** Agent, while executing task P1-08. The vacuous-bound
+finding was caught by inspecting the raw (unclipped) numbers before
+trusting the first run's console output, which had already produced
+nonsensical negative percentages -- a signal something was wrong with the
+*interpretation*, not (as first suspected) a bug in P1-06/07's actual
+computed values, both of which were re-checked and confirmed correct.
