@@ -1182,3 +1182,51 @@ conclusive enough), then repeating after each change until the render
 matched expectations -- the same "read the actual output, don't trust
 the code" discipline this project has applied to every prior task's
 results files, applied here to a visual artifact instead of a number.
+
+---
+
+## 2026-09-05 — P1-12: Phase 1 memo, and pushing to the HF dataset repo without letting it clobber the dataset card
+
+**Context:** `plan/02-phase1-datadecide.md` P1-12 asks for two things: the
+Phase 1 memo (`docs/findings/phase1_memo.md`, see that file for the
+findings synthesis and the framing recommendation), and a push of the
+Phase 1 derived tables to the HF dataset repo from P0-08
+(`Parth4105/pdt-datadecide-analysis`). The memo needed no permission and
+was written and PR'd first (PR #21); the HF push is an external,
+publicly-consequential action (the repo is private, but a Hub push is
+still a real, hard-to-undo side effect on a third-party service), so it
+was held for explicit PI confirmation before running, per this project's
+standing practice all session of never touching HF without asking --
+confirmed via `AskUserQuestion`, then executed the same session.
+
+**Decision -- `push_results()` was called on a filtered copy of
+`results/`, not `results/` itself.** `src/pdt/hub.py`'s `push_results(local_dir,
+repo_id, revision_msg)` uploads *every* file under `local_dir` to the
+repo root. `results/` contains its own `README.md` (a 4-line "machine-written
+JSON only" note for the *code* repo) alongside the 11 result JSON files
+-- pushing `results/` directly would have silently overwritten the HF
+repo's actual dataset card (a much longer, hand-written description of
+what the repo is and what's in it) with that unrelated 4-line note.
+Caught by reading `push_results()`'s implementation (it wraps
+`huggingface_hub.upload_folder(folder_path=local_dir, ...)` with no
+`path_in_repo` or ignore-pattern support) before calling it, not
+discovered after the fact. Fixed by staging a copy of just the 11 JSON
+files in a scratch directory and pushing that, leaving `results/README.md`
+untouched both locally and on the Hub. The dataset card itself was then
+updated separately (`huggingface_hub.upload_file`, not routed through
+`push_results()`, since a dataset card isn't a provenance-stamped result
+and validating it as one would only fail) with a table documenting every
+one of the 11 files' purpose and top-level `data` schema, built by
+actually loading each file and reading its real top-level keys rather
+than describing them from memory.
+
+**Push result:** 11/11 files passed `provenance.validate()` (all
+`git_dirty: false`, traceable to commit `c33f53b60a1a863ef48ad7d047ad603555f17725`).
+Commits: `7f3bd6e0fcb3e88e270c2e1b368ac3a7956ab8ee` (the 11 result files)
+and `71f659e1a21f980c86f4bf940d7baf33d719985e` (the updated card).
+
+**Decided by:** Agent, while executing task P1-12, after the PI answered
+"Yes, push results/ now" to an explicit `AskUserQuestion` prompt
+describing exactly what would be pushed (the 11 already-provenance-validated
+result files plus an updated dataset card) before any Hub-side action was
+taken.
