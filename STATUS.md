@@ -2,12 +2,12 @@
 
 Update this file at the end of **every** session (protocol step 11).
 
-Last updated: 2026-09-05 | Session: 13
+Last updated: 2026-09-11 | Session: 13
 
 States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
 ## Open GATEs
-- (none currently blocking) — GATE-1 cleared 2026-09-03: PI said "continue to P1-05". Next gate is GATE-T, after Phase 2's theorems (P2-05).
+- **GATE-T** (opened 2026-09-11, after P2-05): proof drafts (setup + all 4 theorems, `paper/sections/`) ready for a human co-author's review. 4 `\needshuman` steps flagged, none faked as mechanical; numerical certificates (18 tests across `tests/theory/`) all pass, 0 violations, after catching and fixing 2 real bugs along the way (Theorem 1's originally-stated bound formula, Theorem 4's certificate round-cap). Full summary posted to the PI in-session; per `plan/03-phase2-theory.md`'s own instruction, not idling on this -- continuing directly to Phase 3 (algorithm implementation) in parallel, per protocol Rule 4 / `plan/09-review-gates.md` §7 (Phase 2 and Phase 3 are independent). No further Phase 2 theory PRs (P2-06 onward) until this resolves.
 
 ## Blocked
 - (none)
@@ -55,8 +55,8 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 | P2-02 | Theorem 1: extrapolation-aware error bound | DONE | [#23](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/23) | **numerical certificate caught a real bug in the plan's own draft formula**: the literally-stated additive bound is not a valid worst-case bound (497/5000 simulated instances violated it, several severely) -- corrected to a gap-reduction form including both compared arms' bias/variance; corrected certificate: 0 violations across all 5000 instances (1801 MC-checkable at a 20000-trial budget, tightness ratio min 1.0/median 7.1); P1-07/08's already-reported numbers are unaffected (their real-data bound values were always vacuous >=1 either way) -- see docs/decisions.md |
 | P2-03 | Theorem 2: lower bound and impossibility | DONE | [#24](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/24) | Part A (change-of-measure lower bound, Fisher-information-shaped per-pull rate) proved mechanically; Part B (impossibility) `\needshuman`-flagged per the plan with a fully worked, numerically-verified candidate construction -- sup-norm class: gap-independent sufficient condition; Holder-alpha class: genuine phase transition in the gap via a bump function that provably saturates the Holder budget exactly; caught and fixed a random-sampling gotcha (naive verification under-reported the true modulus by 4-15%, a measure-zero tight point random sampling misses) -- see docs/decisions.md |
 | P2-04 | Theorem 3: identifiability and minimax rate | DONE | [#25](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/25) | rank/spacing condition with rank-deficiency vs. ill-conditioning distinguished explicitly; minimax rate proved by direct reuse of Theorem 2's Fisher-information machinery; **worked power-law spacing example found a genuine, verified, non-monotone (U-shaped) result** -- optimal second-scale placement is neither maximally clustered nor maximally close to the target, contradicting the naive "spread scales out" intuition -- see docs/decisions.md |
-| P2-05 | Theorem 4: algorithm correctness | TODO | | |
-| **GATE-T** | **Hand proofs to a human co-author** | TODO | | |
+| P2-05 | Theorem 4: algorithm correctness | DONE | [#26](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/26) | algorithm defined precisely (Certified/Abstain stopping rule, structural fix for the "never stops with a bias floor" subtlety); delta-correctness proved mechanically from Theorem 1; **graceful abstention proved as a direct corollary of Theorem 2 Part B's own construction**, not a separate argument -- ties the whole theory section together; asymptotic optimality needshuman-flagged (mechanical in structure, not written out line-by-line); certificate caught and fixed a real round-cap bug before trusting "0 violations" -- see docs/decisions.md |
+| **GATE-T** | **Hand proofs to a human co-author** | **OPEN** | | opened 2026-09-11; see "Open GATEs" above and the in-session summary posted to the PI |
 | P2-06 | Revise theory against Phase 1 evidence | TODO | | |
 | P2-07 | Related-theory positioning | TODO | | |
 | P2-08 | Integrate the verified proofs | TODO | | |
