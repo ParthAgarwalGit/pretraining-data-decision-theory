@@ -1330,3 +1330,61 @@ anticipates ("A theorem that fails its numerical check is wrong, and finding tha
 now is worth more than a month of proof-writing"), now applied to a formula already
 relied on by two merged-into-the-open-PR-stack tasks (P1-07, P1-08), not just a fresh
 draft.
+
+---
+
+## 2026-09-10 — Theorem 2 Part B: a concrete impossibility construction, and a sampling gotcha in verifying it
+
+**Context:** `plan/03-phase2-theory.md` P2-03 asks for a change-of-measure lower bound
+(Part A, "genuinely tractable") and an impossibility result (Part B, explicitly flagged
+as needing `\needshuman` for the construction itself: "give the human a fully worked
+*candidate* construction plus the numerical evidence that it works").
+
+**Part A decision -- adapt Kaufmann/Capp\'e/Garivier's transportation lemma with a
+Fisher-information-shaped per-pull rate, not a per-arm KL.** Since no scale `s < s*`
+directly observes `mu_k(s*)`, the per-pull information is governed by how much a pull
+shrinks the Fisher information matrix around `theta_k`, propagated to `s*` through the
+Jacobian. The resulting per-arm rate, `Delta_k^2 / (J^T I_k(w)^-1 J)`, comes from a
+standard D-optimal-design identity (`min{x^T A x : b^T x = c} = c^2/(b^T A^-1 b)`,
+Lagrange multipliers) applied to "the cheapest parameter perturbation that flips the
+gap at `s*`" -- concavity of the overall `sup_w min_k (...)` program follows from the
+same "infimum of affine-in-w functions is concave" argument the classical (non-parametric)
+BAI literature uses, not from a separate check of the closed-form's own convexity
+(which is a genuinely different, and non-obviously-true, question -- e.g. `1/f` is not
+concave for every positive convex `f`, so the safer route is the general argument, not
+the specific closed form).
+
+**Part B decision -- a Holder-ball-vs-sup-norm construction, with an explicit,
+saturating bump function.** Two instances that agree exactly on every fitting scale but
+flip the winner at `s*`: `h_1 = 0`, `h_2(s) = eta * phi((s-s_max)/g)` for a bump `phi`
+supported on `[s_max, s*]`. For a pure sup-norm-bounded `H` (no smoothness), any `eta >=
+Delta_min/2` suffices, independent of the gap `g = s*-s_max`. For a Holder-alpha ball,
+using `phi(x)=clip(x,0,1)^alpha` (a textbook alpha-Holder function with constant
+exactly 1) gives a construction that *exactly saturates* a Holder(alpha, eta_budget)
+budget, achieving maximum amplitude `eta_budget * g^alpha` at `s*` -- so the sufficient
+condition for impossibility is `eta_budget * g^alpha >= Delta_min/2`, a genuine phase
+transition in the gap `g` (unlike the sup-norm case). Whether this is also *necessary*
+(i.e. a tight characterization, not just a sufficient one) for general `H` is the part
+left `\needshuman`, per the plan's own instruction.
+
+**A numerical-verification gotcha, caught before it was trusted.**
+`tests/theory/test_theorem2.py`'s first version verified the Holder construction's
+realized modulus by sampling random pairs `(s, s')` and taking the empirical max of
+`|h(s)-h(s')|/|s-s'|^alpha`. This under-reported the true constant by 4-15% across
+random instances, because the textbook bound `|x^alpha-y^alpha| <= |x-y|^alpha` is
+tight *exactly* at `y=0` -- a single point with Lebesgue measure zero, which uniform
+random sampling essentially never lands on. Fixed by adding deliberate pairs anchored
+at the construction's own breakpoints (`s_max`, `s_max+g`) alongside the random ones.
+The same class of mistake as P1-11's F5 legend placement or P2-02's Monte-Carlo
+resolution floor: a numerical check that looks like it passed (or, here, looked like it
+was failing the *real* thing) for a reason that turns out to be about the *verification
+method's* own blind spot, not the claim being checked -- caught by asking *why* a
+result looked slightly off instead of loosening a tolerance until it passed.
+
+**Deferred, not skipped:** the plan also asks to "verify T* computed numerically
+matches the achieved sample complexity of the P3 algorithm in the solvable regime" --
+impossible before Phase 3's algorithm exists. Noted explicitly in both the `.tex` and
+the test file rather than silently dropped; P3-04's simulation study should close this
+loop.
+
+**Decided by:** Agent, while executing task P2-03.
