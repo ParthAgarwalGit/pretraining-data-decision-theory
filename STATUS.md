@@ -52,7 +52,7 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 | Task | Title | State | PR | Notes |
 |---|---|---|---|---|
 | P2-01 | Formal setup and assumptions | DONE | [#22](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/22) | `paper/sections/setup.tex` + `docs/notation.md`; every symbol mapped to a real code identifier, not described from memory; corrected the plan's own draft assumption that noise decreases with scale (P1-05 found no such trend) rather than silently carrying a falsified premise into later theorems |
-| P2-02 | Theorem 1: extrapolation-aware error bound | TODO | | |
+| P2-02 | Theorem 1: extrapolation-aware error bound | DONE | [#23](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/23) | **numerical certificate caught a real bug in the plan's own draft formula**: the literally-stated additive bound is not a valid worst-case bound (497/5000 simulated instances violated it, several severely) -- corrected to a gap-reduction form including both compared arms' bias/variance; corrected certificate: 0 violations across all 5000 instances (1801 MC-checkable at a 20000-trial budget, tightness ratio min 1.0/median 7.1); P1-07/08's already-reported numbers are unaffected (their real-data bound values were always vacuous >=1 either way) -- see docs/decisions.md |
 | P2-03 | Theorem 2: lower bound and impossibility | TODO | | |
 | P2-04 | Theorem 3: identifiability and minimax rate | TODO | | |
 | P2-05 | Theorem 4: algorithm correctness | TODO | | |
