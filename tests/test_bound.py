@@ -74,6 +74,83 @@ def test_marginal_bound_empty_is_zero():
 
 
 # ---------------------------------------------------------------------------
+# _worst_case_bound_term / worst_case_marginal_bound_term / _bound (P2-02
+# correction -- see docs/decisions.md, 2026-09-10, and
+# paper/sections/theorem1_bound.tex)
+# ---------------------------------------------------------------------------
+
+
+def test_worst_case_bound_term_matches_hand_computation():
+    import math
+
+    result = bound._worst_case_bound_term(delta_k=0.5, bias_budget=0.2, total_variance=0.01)
+    expected = math.exp(-((0.5 - 0.2) ** 2) / (2 * 0.01))
+    assert result == pytest.approx(expected)
+
+
+def test_worst_case_bound_term_bias_at_least_gap_is_vacuous():
+    # sqrt(sigma2_extrap) >= Delta_k: an adversary could plausibly wipe out
+    # the whole true gap, so no non-trivial guarantee is possible -- the
+    # bound must honestly say 1.0 (vacuous), not something misleadingly
+    # small.
+    assert bound._worst_case_bound_term(delta_k=0.5, bias_budget=0.5, total_variance=0.01) == 1.0
+    assert bound._worst_case_bound_term(delta_k=0.5, bias_budget=0.9, total_variance=0.01) == 1.0
+
+
+def test_worst_case_bound_term_zero_variance_zero_gap_is_one():
+    assert bound._worst_case_bound_term(delta_k=0.1, bias_budget=0.1, total_variance=0.0) == 1.0
+
+
+def test_worst_case_bound_term_zero_variance_positive_gap_is_zero():
+    assert bound._worst_case_bound_term(delta_k=0.5, bias_budget=0.1, total_variance=0.0) == 0.0
+
+
+def test_worst_case_marginal_bound_term_includes_both_arms():
+    # bias_budget = sqrt(sigma2_extrap_k) + sqrt(sigma2_extrap_kstar);
+    # total_variance = v_k + v_kstar -- both arms' own quantities, not
+    # just k's.
+    result = bound.worst_case_marginal_bound_term(
+        delta_k=0.5, sigma2_extrap_k=0.04, v_k=0.01, sigma2_extrap_kstar=0.01, v_kstar=0.02
+    )
+    expected = bound._worst_case_bound_term(delta_k=0.5, bias_budget=0.2 + 0.1, total_variance=0.03)
+    assert result == pytest.approx(expected)
+
+
+def test_worst_case_marginal_bound_sums_all_terms():
+    terms = [(0.5, 0.04, 0.01), (0.3, 0.01, 0.02)]
+    expected = sum(bound.worst_case_marginal_bound_term(*t, 0.02, 0.01) for t in terms)
+    assert bound.worst_case_marginal_bound(terms, 0.02, 0.01) == pytest.approx(expected)
+
+
+def test_worst_case_marginal_bound_empty_is_zero():
+    assert bound.worst_case_marginal_bound([], sigma2_extrap_kstar=0.01, v_kstar=0.01) == 0.0
+
+
+def test_worst_case_form_corrects_a_real_violation_of_the_additive_form():
+    # The concrete adversarial instance that first exposed the bug: arm k
+    # has a large, effectively-fixed bias (sqrt(sigma2_extrap_k)=10) and
+    # tiny variance (0.01); k* is bias-free and noise-free. The true
+    # error probability is ~1 (the fixed bias alone dwarfs the gap of 5).
+    # marginal_bound_term (additive, current plug-in form) claims ~0.88 --
+    # a real violation, not a rounding error. worst_case_marginal_bound_term
+    # (gap-reduction form) correctly reports 1.0 (vacuous / no guarantee
+    # possible), which is honest given the bias alone can flip the gap.
+    delta_k = 5.0
+    sigma2_extrap_k = 10.0**2
+    v_k = 0.01
+
+    additive_claim = bound.marginal_bound_term(delta_k, sigma2_extrap_k, v_k)
+    assert additive_claim == pytest.approx(0.8825079327617985, rel=1e-9)
+    # (kept as a fixed reference value, not re-derived, precisely so a
+    # future change to marginal_bound_term's formula is caught here.)
+
+    corrected = bound.worst_case_marginal_bound_term(
+        delta_k, sigma2_extrap_k, v_k, sigma2_extrap_kstar=0.0, v_kstar=0.0
+    )
+    assert corrected == 1.0
+
+
+# ---------------------------------------------------------------------------
 # sandwich_covariance() / analytic_v_k()
 # ---------------------------------------------------------------------------
 

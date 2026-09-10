@@ -1230,3 +1230,103 @@ and `71f659e1a21f980c86f4bf940d7baf33d719985e` (the updated card).
 describing exactly what would be pushed (the 11 already-provenance-validated
 result files plus an updated dataset card) before any Hub-side action was
 taken.
+
+---
+
+## 2026-09-10 — Theorem 1's marginal bound needed a real correction, found by its own numerical certificate
+
+**Context:** `plan/03-phase2-theory.md` task P2-02 asks for Theorem 1's bound, proved,
+plus a numerical certificate (`tests/theory/test_theorem1.py`) that simulates 5000
+random instances with known ground truth and checks the bound is never violated --
+"a single violation fails the test suite... A theorem that fails its numerical check is
+wrong, and finding that out now is worth more than a month of proof-writing." The
+plan's own draft text states the bound as
+`P[k_hat != k*] <= sum_{k!=k*} exp(-Delta_k^2 / (2*(sigma2_extrap_k + v_k)))` -- the
+same additive structure already implemented as `marginal_bound_term` in
+`src/pdt/theory/bound.py` and used throughout P1-07/P1-08's analysis.
+
+**What the certificate found.** The first version of the certificate, built to test
+exactly this additive formula, found large, unambiguous violations (497 of 5000
+instances, several with the claimed bound near 0 against an empirical error rate above
+0.8) -- not marginal, noise-explainable near-misses. A minimal hand-built
+counter-example confirms it directly: an arm with a fixed bias of 10, noise variance
+0.01, <!-- NUMBER-OK: hand-chosen illustrative counter-example, not a reported result --> competing against a bias-free, noise-free `k*` with a true gap of 5. The true
+selection-error probability here is essentially 1 (the fixed bias alone dwarfs the
+gap). The additive formula claims a bound of `exp(-5^2/(2*(10^2+0.01))) ~= 0.88` <!-- NUMBER-OK: same hand-chosen counter-example --> -- a
+real violation, reproduced exactly in `tests/test_bound.py::test_worst_case_form_corrects_a_real_violation_of_the_additive_form`.
+
+**Why the additive form fails, and what the correct form is.** The additive form treats
+`sigma2_extrap_k` as if it were a *random, zero-mean* contribution to variance --
+valid if bias were itself drawn from a zero-mean distribution across instances. But
+this project's own `delta`-correctness definition (`paper/sections/setup.tex`
+Definition 3, `P[k_hat != k*] <= delta` for *every* instance in the class, uniformly)
+requires a worst-case guarantee over a *fixed, unknown-sign, magnitude-bounded* bias --
+the instance-by-instance framing `h_k in H` with `sup|h_k| <= eta` already commits to
+in `paper/sections/setup.tex` Assumption 4. Under that framing, the correct treatment
+of a Chernoff/Gaussian tail bound with an adversarial fixed-sign bias *subtracts* the
+bias magnitude from the gap (`(Delta_k - sqrt(sigma2_extrap_k))_+` in the numerator),
+not adds the bias squared to the variance in the denominator -- confirmed independently
+three ways: (1) a from-scratch worst-case-Chernoff derivation, (2) the hand-built
+counter-example above (the corrected form correctly reports a vacuous bound of 1.0,
+honestly reflecting that no guarantee is possible when the bias alone can exceed the
+gap), (3) the full numerical certificate, which finds 0 violations with the corrected
+form across all 5000 instances once restricted to the regime Monte Carlo can actually
+resolve (see below).
+
+A second, independent gap in the additive form: it uses only arm `k`'s own
+`(sigma2_extrap, v)`, omitting `k*`'s. Since the comparison is
+`mu_hat_k(s*) >= mu_hat_{k*}(s*)`, both sides are noisy estimates, and `k*`'s own bias
+and variance must enter the bound symmetrically -- the corrected form's
+`total_variance = v_k + v_{k*}` and `bias_budget = sqrt(sigma2_extrap_k) +
+sqrt(sigma2_extrap_{k*})` fix this. `src/pdt/theory/bound.py` now has
+`worst_case_marginal_bound_term`/`worst_case_marginal_bound` implementing the corrected
+form, alongside (not replacing) the original `marginal_bound_term`/`pairwise_bound_term`.
+
+**Why P1-07's "0 violations on 396 real cells" finding is not contradicted by this.**
+Every one of the 396 real DataDecide cells P1-07 checked had a bound value `>= 1`
+(vacuous -- see `docs/decisions.md`, 2026-09-04, P1-07 entry: tightness ratio minimums
+of 1.71 and 4.44 mean the *bound itself* was always comfortably above 1). A bound that
+is vacuous either way cannot distinguish a correct formula from an incorrect one --
+both say "no guarantee, but also never technically violated," because a probability is
+always `<= 1` regardless of what the (much larger) claimed bound says. The additive
+form's flaw only shows up once gaps get small relative to bias, a regime real
+DataDecide data's own near-tie structure (P1-02: 9/11 tasks ambiguous) never let the
+formula's numeric *value* fall into. This is a real, if fortunate, gap in what P1-07's
+empirical check was structurally able to catch -- not a flaw in what P1-07 reported,
+which remains an accurate description of that specific formula's real-data behaviour.
+
+**A remaining subtlety the certificate also surfaced: Monte Carlo has a resolution
+floor.** After the correction, an initial rerun (1000 MC trials/instance,
+Clopper-Pearson alpha=1e-6) still showed 35/5000 "violations," but every one had only
+1-4 raw error events out of 1000 trials -- far too sparse to statistically distinguish
+a true rate of 5e-5 from 3e-4 at any reasonable alpha. This is a limit of empirical
+verification, not evidence against the theorem: instances whose claimed bound is very
+small are covered by the closed-form Gaussian-tail argument directly (exact for the
+certificate's linear-in-theta family), not by simulation. Raising the budget to 20000
+MC trials/instance and excluding instances below a resolution floor (bound `< 20 /
+n_mc`, ensuring an expected raw-event count of at least 20) gives a clean, honest
+result: 1801/5000 instances fell within Monte Carlo's resolution and were checked
+directly (0 violations, tightness ratio min 1.0, median 7.1, max 2.0e4); the remaining
+3199 were not empirically checkable at this budget and are covered by the proof
+instead. This mirrors P1-06/07/08's own repeated experience this project: a numerical
+check needs its own sensitivity analysis before its "0 violations" result can be
+trusted, the same discipline applied to P1-09's Bonferroni correction and P1-07's own
+Monte-Carlo replicate-count choice.
+
+**What this changes going forward:** `paper/sections/theorem1_bound.tex` states and
+proves the corrected (worst-case, both-arms) form as Theorem 1, with a prominent remark
+explaining the discrepancy from both the plan's draft text and the already-shipped
+`bound.py` functions. Phase 3's algorithm (P3-02 onward) should build its own
+delta-correctness guarantee on `worst_case_marginal_bound_term`, not
+`marginal_bound_term` -- the latter stays in the codebase unchanged (P1-07/P1-08's
+reported numbers remain correct descriptions of that formula) but should not be
+presented as a proven worst-case bound without this caveat if it is ever cited that way
+in the paper.
+
+**Decided by:** Agent, while executing task P2-02. Caught entirely by the numerical
+certificate the task itself asked for, before any theorem statement was finalized or
+presented as proven -- the exact scenario `plan/03-phase2-theory.md`'s introduction
+anticipates ("A theorem that fails its numerical check is wrong, and finding that out
+now is worth more than a month of proof-writing"), now applied to a formula already
+relied on by two merged-into-the-open-PR-stack tasks (P1-07, P1-08), not just a fresh
+draft.

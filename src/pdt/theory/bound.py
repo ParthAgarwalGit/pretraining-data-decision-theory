@@ -5,6 +5,27 @@ per-arm structure, `exp(-Delta_k^2 / (2 * total_variance))`, differing
 only in which variance quantity is plugged in -- `_bound_term` implements
 that shared structure once; `marginal_bound_term`/`pairwise_bound_term`
 just name which variance goes where the plan asks.
+
+**These two forms are empirical/plug-in diagnostics, not a proven
+worst-case selection-error bound.** P1-07 found them never violated on
+396 real DataDecide cells; P2-02's numerical certificate
+(`tests/theory/test_theorem1.py`) found that this specific additive
+"bias-squared plus variance in the denominator" structure *can* be
+violated -- badly, not marginally -- once gaps get small enough relative
+to bias for the distinction to matter, which real DataDecide data never
+exercised (every real cell's bound was vacuous, `>= 1`, so a false-but-
+vacuous bound is indistinguishable from a true one there). See
+`docs/decisions.md`, 2026-09-10. `worst_case_marginal_bound_term` /
+`worst_case_marginal_bound` below implement the corrected, numerically
+verified form (bias enters as a gap reduction, not an added variance,
+and the *winning* arm's own bias/variance is included) --
+`paper/sections/theorem1_bound.tex` states and proves that version.
+Phase 3's algorithm should build its own delta-correctness guarantee on
+the worst-case functions, not the plug-in ones above; the plug-in ones
+stay as-is here because P1-07/P1-08's already-reported numbers are
+correct descriptions of what *this specific formula* produces on real
+data, which remains a legitimate (if not fully rigorously justified)
+empirical fact worth keeping.
 """
 
 from __future__ import annotations
@@ -64,6 +85,56 @@ def pairwise_bound(terms: list[tuple[float, float, float]]) -> float:
     `terms` is `[(delta_k, bias_d_k, v_d_k), ...]`, one per non-winning
     recipe."""
     return sum(pairwise_bound_term(d, b, v) for d, b, v in terms)
+
+
+def _worst_case_bound_term(delta_k: float, bias_budget: float, total_variance: float) -> float:
+    """`exp(-max(0, delta_k - bias_budget)^2 / (2 * total_variance))`.
+
+    The mathematically correct worst-case Chernoff bound for a *fixed*
+    (not zero-mean-random) bias of unknown sign, bounded in magnitude by
+    `bias_budget`: the adversary picks the sign that shrinks the
+    effective gap as much as possible, so the bias subtracts from the gap
+    rather than adding to the variance. See
+    `paper/sections/theorem1_bound.tex` Theorem 1 for the full derivation
+    and `docs/decisions.md` (2026-09-10) for how the additive form above
+    was found not to be a valid bound in general.
+    """
+    gap_adjusted = max(0.0, delta_k - bias_budget)
+    if total_variance <= 0:
+        return 1.0 if gap_adjusted == 0 else 0.0
+    return math.exp(-(gap_adjusted**2) / (2 * total_variance))
+
+
+def worst_case_marginal_bound_term(
+    delta_k: float,
+    sigma2_extrap_k: float,
+    v_k: float,
+    sigma2_extrap_kstar: float,
+    v_kstar: float,
+) -> float:
+    """Corrected marginal-form bound term (Theorem 1): unlike
+    `marginal_bound_term`, this includes the *winning* arm k*'s own bias
+    and variance (the comparison `mu_hat_k(s*) >= mu_hat_{k*}(s*)`
+    depends on both arms' noise, not just arm k's), and treats each
+    arm's bias as an unknown-sign quantity bounded in magnitude by
+    `sqrt(sigma2_extrap)`, combined via `_worst_case_bound_term` rather
+    than added into the variance.
+    """
+    bias_budget = math.sqrt(max(sigma2_extrap_k, 0.0)) + math.sqrt(max(sigma2_extrap_kstar, 0.0))
+    return _worst_case_bound_term(delta_k, bias_budget, v_k + v_kstar)
+
+
+def worst_case_marginal_bound(
+    terms: list[tuple[float, float, float]], sigma2_extrap_kstar: float, v_kstar: float
+) -> float:
+    """`sum over k != k* of worst_case_marginal_bound_term(...)`. `terms`
+    is `[(delta_k, sigma2_extrap_k, v_k), ...]`, one per non-winning
+    recipe; k*'s own `(sigma2_extrap, v)` is passed once since there is
+    only one k* shared across every term in the union bound.
+    """
+    return sum(
+        worst_case_marginal_bound_term(d, s, v, sigma2_extrap_kstar, v_kstar) for d, s, v in terms
+    )
 
 
 def sandwich_covariance(
