@@ -1434,3 +1434,59 @@ numerical solver.
 numerically (a grid search over the second scale's position) before being written into
 the theorem as a claimed finding, not assumed from the "spread scales out" intuition
 that motivated looking at this in the first place.
+
+---
+
+## 2026-09-11 — Theorem 4: the algorithm's stopping rule is defined, not just its guarantee
+
+**Context:** `plan/03-phase2-theory.md` P2-05 asks for the Extrapolation-Track-and-Stop
+algorithm's correctness guarantee, with an explicit subtlety flagged: a naive
+Track-and-Stop threshold never stops once a bias floor is present, because the GLR
+statistic converges to a finite limit instead of diverging. The plan recommends route
+(b) -- condition delta-correctness on a known/estimated `eta` -- over route (a)
+(inflating the confidence level), calling it "more honest and more useful."
+
+**Decision -- write the algorithm's stopping/abstention rule out precisely enough to
+prove things about, since P3-03 needs a spec, not just a guarantee statement.**
+`Certified_k(t)` compares a *shrinking* confidence radius `c_k(t,delta)` against a
+*fixed* bias floor `eta_khat + eta_k` subtracted from the estimated gap -- the fix for
+the "never stops" problem is structural (the threshold doesn't grow, so it's always
+reachable in the solvable regime), not just a bigger confidence level.
+`Abstain_k(t)` triggers on the *same* two quantities from the opposite direction:
+once `c_k(t,delta)` has shrunk below a small fixed tolerance but the (now precisely
+known) point estimate is still inside the "could be flipped by bias alone" band, no
+more compute at this design can help, and the algorithm should say so rather than run
+forever.
+
+**The abstention proof is a direct corollary of Theorem 2 Part B's own construction,
+not a separate argument.** Since `nu_1` and `nu_2` (Theorem 2's impossibility pair)
+produce identical data below `s*`, the estimator's limiting value is identical under
+both -- the algorithm literally cannot tell which instance it's in, and the construction
+is built so that limit sits inside the eta-band under (at least) one of them. This
+ties the whole theory section together: the same bias/variance decomposition (P1-06),
+the same corrected worst-case bound (Theorem 1), the same impossibility construction
+(Theorem 2 Part B) all feed directly into why the algorithm gives up gracefully instead
+of hanging.
+
+**A real bug in the certificate itself, caught by an explicit guard test.** The first
+version of `tests/theory/test_theorem4.py` capped simulated replicate counts at
+`2^20 ~= 1e6` and got "undecided" (neither certified nor abstained) in 500/500 runs of
+the impossible-regime check -- not because abstention was broken, but because
+`c_k(t,delta)` never actually crossed the fixed `epsilon_0=1e-4` tolerance within that
+round budget for the specific `(fit_scales, s*, sigma)` used, so the test was checking
+nothing. Fixed by extending the round cap (to `2^32`, a purely synthetic replicate
+count -- no real experiment runs this many reps, but this is a unit-level check of the
+stopping-rule *logic*, not a physical simulation) and adding a standing guard test
+(`test_epsilon_0_is_reachable_within_the_round_cap`) that fails loudly if a future
+change to the instance parameters makes the round cap insufficient again, rather than
+silently producing "undecided" everywhere and passing for the wrong reason.
+
+**Scoping decision:** the certificate tests the `Certified`/`Abstain` stopping logic in
+isolation (fixed design, increasing replicates) -- not the full adaptive C-tracking
+algorithm, which needs P3-02's `T*` solver. Asymptotic optimality (the second of
+Theorem 4's three claims) is marked `\needshuman` for the same reason as elsewhere:
+adapting Garivier & Kaufmann's classical tracking-convergence proof to this project's
+M-estimator setting (rather than per-arm sample means) is mechanical in structure but
+was not written out line-by-line.
+
+**Decided by:** Agent, while executing task P2-05.
