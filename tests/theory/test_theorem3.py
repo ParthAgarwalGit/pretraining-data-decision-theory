@@ -69,10 +69,28 @@ def test_det_x_is_zero_exactly_at_coincident_scales():
 
 
 def test_powerlawn_variance_grows_as_scales_cluster():
-    # Real production fitter, real analytic_v_k -- not the reduced 2-param
-    # toy -- fit on a fixed set of scales that are either well-spread
-    # (geometric) or clustered, same N_min/N_max envelope, same true
-    # underlying curve and noise.
+    # Real production Jacobian/sandwich_covariance/analytic_v_k -- not the
+    # reduced 2-param toy -- evaluated at a FIXED, directly-set theta
+    # (bypassing .fit()'s nonlinear optimizer entirely) on scales that are
+    # either well-spread (geometric) or clustered, same true curve and
+    # noise realization.
+    #
+    # Deliberately not fit(): an earlier version of this test called
+    # PowerLawN.fit() on noisy data from each design and compared the
+    # RESULTING analytic_v_k. That passed locally and in an earlier CI run,
+    # then failed on a later CI run with the ILL-CONDITIONED clustered
+    # design landing in a different (also locally-optimal, since
+    # multi_start_fit's objective is genuinely near-flat there) region of
+    # parameter space than the well-conditioned spread design did --
+    # platform-level floating-point differences (Windows vs. CI's Linux)
+    # tipped scipy's optimizer into a different basin. That is a real
+    # property of ill-conditioned nonlinear least squares, not a bug, but
+    # it makes "fit, then measure variance" the wrong tool for testing THIS
+    # claim: the claim is about how Sigma_theta = J^T(...)J responds to
+    # design conditioning at a GIVEN theta, not about optimizer robustness
+    # (already covered separately by the p+1 identifiability tests below).
+    # Setting theta directly removes the optimizer from the picture,
+    # making the comparison exact and platform-independent.
     rng = np.random.default_rng(_SEED + 1)
     true_e, true_a, true_alpha = 0.7, -3.0, 0.25
     n_min, n_max, n_star = 1e6, 1e9, 1e10
@@ -85,15 +103,18 @@ def test_powerlawn_variance_grows_as_scales_cluster():
         [np.geomspace(n_min, n_min * 1.01, 5), [n_max]]
     )  # 5 nearly-identical points + 1 far one: formally 6 scales, p+1=4 satisfied,
     # but severely ill-conditioned relative to the spread design.
+    shared_noise = rng.normal(0, 0.005, size=6)  # same realization for both
+    # designs, so the comparison isn't confounded by which noise was drawn.
 
-    def fit_and_get_v(ns):
-        ys = [true_curve(n) + rng.normal(0, 0.005) for n in ns]
+    def get_v(ns):
+        ys = [true_curve(n) + eps for n, eps in zip(ns, shared_noise, strict=True)]
         scales = [Scale(n=n, d=20 * n) for n in ns]
-        model = PowerLawN(rng=np.random.default_rng(0)).fit(scales, ys)
+        model = PowerLawN()
+        model._theta = np.array([true_e, true_a, true_alpha])  # bypass .fit()
         return analytic_v_k(model, scales, ys, Scale(n=n_star, d=20 * n_star))
 
-    v_spread = fit_and_get_v(spread_ns)
-    v_clustered = fit_and_get_v(clustered_ns)
+    v_spread = get_v(spread_ns)
+    v_clustered = get_v(clustered_ns)
 
     assert v_clustered > v_spread, (
         f"clustered design should have much larger extrapolation variance: "
