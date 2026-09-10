@@ -51,7 +51,7 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
 | Task | Title | State | PR | Notes |
 |---|---|---|---|---|
-| P2-01 | Formal setup and assumptions | TODO | | |
+| P2-01 | Formal setup and assumptions | DONE | [#22](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/22) | `paper/sections/setup.tex` + `docs/notation.md`; every symbol mapped to a real code identifier, not described from memory; corrected the plan's own draft assumption that noise decreases with scale (P1-05 found no such trend) rather than silently carrying a falsified premise into later theorems |
 | P2-02 | Theorem 1: extrapolation-aware error bound | TODO | | |
 | P2-03 | Theorem 2: lower bound and impossibility | TODO | | |
 | P2-04 | Theorem 3: identifiability and minimax rate | TODO | | |
