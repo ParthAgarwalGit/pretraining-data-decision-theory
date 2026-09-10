@@ -237,9 +237,9 @@ def test_theorem1_v_k_shrinks_with_replicates():
     replicate_counts = [1, 10, 100, 1000, 10000]
     v_values = [(sigma**2 / n) * float(j_star @ xtx_inv @ j_star) for n in replicate_counts]
 
-    assert all(
-        v_values[i] > v_values[i + 1] for i in range(len(v_values) - 1)
-    ), f"v_k must be strictly decreasing in n_replicates (hence in C): {v_values}"
+    assert all(v_values[i] > v_values[i + 1] for i in range(len(v_values) - 1)), (
+        f"v_k must be strictly decreasing in n_replicates (hence in C): {v_values}"
+    )
     assert v_values[-1] <= 1e-4 * v_values[0] * (1 + 1e-9), (
         f"v_k should shrink by orders of magnitude as C grows 10000x, got "
         f"{v_values[0]} -> {v_values[-1]}"
