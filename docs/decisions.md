@@ -1388,3 +1388,49 @@ the test file rather than silently dropped; P3-04's simulation study should clos
 loop.
 
 **Decided by:** Agent, while executing task P2-03.
+
+---
+
+## 2026-09-11 — Theorem 3: optimal scale placement is not "spread out as much as possible"
+
+**Context:** `plan/03-phase2-theory.md` P2-04 asks for the rank/spacing identifiability
+condition, a minimax rate, and a worked design-dependence corollary for the power-law
+family specifically ("Derive it, at least for the power-law family").
+
+**Decision -- reuse Theorem 2's Fisher-information machinery for the minimax lower
+bound, rather than re-deriving Le Cam's method from scratch.** Le Cam's two-point
+method and the change-of-measure BAI lower bound are the same underlying technique
+(both ask "how well can C observations distinguish nearby parameter values"); the
+minimax estimation-risk lower bound for `mu_hat_k(s*)` and Theorem 2 Part A's
+selection-error lower bound share the identical `J^T I_k(w)^-1 J` rate. Presenting
+Theorem 3's lower bound as a direct reuse (not a parallel derivation) keeps the theory
+section internally consistent and is honest about how little new machinery this
+specific result actually needs.
+
+**A real, verified, non-obvious finding: optimal second-scale placement is U-shaped,
+not monotone.** Before writing the "spread scales out" intuition into the paper as
+fact, it was checked numerically for the reduced 2-parameter power law (`A*N^-alpha`,
+`PowerLawN` minus its ceiling `E`) at a concrete instance (`A=2.0, alpha=0.3, N*=1e9,
+N1=1e6`): `v(N*)` is **not monotone** in the second scale's position. It falls sharply
+as the two scales separate (from `~1.5e4` at a near-clustered ratio of 1.01, <!-- NUMBER-OK: computed grid-search value, see tests/theory/test_theorem3.py --> to a
+minimum of `~0.52` around ratio 30), but then **rises again** toward `~0.97` as the
+second scale approaches the target itself (ratio 900) -- placing a design point as
+close as possible to the target is *not* optimal for the variance at the target, even
+though it minimizes that point's own extrapolation distance. This is a genuine feature
+of extrapolation design (as opposed to interpolation design), not an artifact of the
+specific numbers chosen -- confirmed by reproducing the exact table in
+`tests/theory/test_theorem3.py` and checking the curve is interior-minimized (strictly
+decreasing then strictly increasing), not just eyeballing a plot.
+
+**Scoping decision:** the fully general version of this problem (m scales, the full
+3-or-more-parameter families, compute-cost-weighted, not just 2 points and 2
+parameters) has no simple closed form we found, and is exactly the `T*(nu)` program
+Theorem 2 Part A already defines. Rather than force a general derivation, the worked
+2-point example stands as a concrete, fully-verified illustration of *why* spacing is a
+real, nontrivial trade-off, with the general case explicitly hedged to P3-02's
+numerical solver.
+
+**Decided by:** Agent, while executing task P2-04. The non-monotonicity was checked
+numerically (a grid search over the second scale's position) before being written into
+the theorem as a claimed finding, not assumed from the "spread scales out" intuition
+that motivated looking at this in the first place.
