@@ -1490,3 +1490,48 @@ M-estimator setting (rather than per-arm sample means) is mechanical in structur
 was not written out line-by-line.
 
 **Decided by:** Agent, while executing task P2-05.
+
+---
+
+## 2026-09-11 — P3-01: the oracle interface, and the 6ND approximation checks out against DataDecide's own compute column
+
+**Context:** `plan/04-phase3-algorithm.md` P3-01 asks for `PullOracle` and its first two
+implementations, with an explicit definition-of-done item: "`cost()` verified against
+the `compute` column already present in DataDecide's table (a good independent check of
+our `6ND` accounting)."
+
+**Finding: the `6ND` approximation matches DataDecide's own logged compute closely, with
+known per-size scatter.** Comparing `Scale(n, d).compute` (`6*N*D`, used everywhere in
+this project -- the cost model in `setup.tex` Assumption 3, every Phase 1/2 "matched
+compute" comparison) against the real `compute` column in `results` from
+`build_frame(source="macro_avg")`, across all 14 distinct sizes: ratio min 0.85, median
+0.999, mean 0.991, max 1.10. <!-- NUMBER-OK: computed directly by tests/test_oracle.py::test_datadecide_cost_matches_6nd_to_within_measured_tolerance, reproducible from that test, not stored in a results/*.json file --> The two are **not exactly equal** (DataDecide evidently
+accounts for FLOPs slightly differently per size -- plausibly embedding parameters or
+attention-FLOPs specifics the textbook `6ND` heuristic elides), but agree to within 15%
+at the extremes and under 0.1% in the median. Decision: keep `cost()` == `Scale.compute`
+(the `6ND` form), for consistency with the cost model already used throughout Phase 1
+and Phase 2's theory, rather than switching `DataDecideOracle` to the table's own
+column -- switching would make "compute spent" not comparable between the synthetic/
+theoretical analysis and the real-data replay, the opposite of what P3-05 needs. The
+discrepancy is now a measured, tested fact (`tests/test_oracle.py`
+`test_datadecide_cost_matches_6nd_to_within_measured_tolerance`), not an unstated
+assumption.
+
+**`SyntheticOracle` calibration is read from the real P1-05/P1-06 numbers, not
+guessed.** Noise variance range (5e-5 to 2e-4) comes directly from
+`results/p1_05_noise.json`'s `noise_vs_scale_summary` (median `sigma2_seed` around 1e-4
+across sizes/tasks); <!-- NUMBER-OK: hand-chosen SyntheticOracle._BIAS_MAGNITUDE_RANGE, a design constant, not a result --> bias-magnitude range (0.03 to 0.20) comes from
+`results/p1_06_decomposition.json`'s `ratio_vs_compute` (`median_sigma2_extrap_hat`
+0.0023 to 0.030 across 6 fitters x 3 designs, i.e. bias magnitude ~0.048 to ~0.17,
+widened slightly at both ends to cover cells P1-06 didn't report exactly). Both
+verified against the actual committed result files before being written into the
+oracle's constructor, not recalled from memory of earlier sessions' summaries.
+
+**`DataDecideOracle`'s pull() determinism relies on discovering seed labels per
+(recipe, scale), not a fixed list** -- directly re-using P0-06's finding
+("small aux 2/3" below 1B, "large aux 2/3" at 1B) rather than re-litigating it;
+`tests/test_oracle.py::test_datadecide_seed_labels_are_discovered_not_hardcoded`
+confirms the label *sets* genuinely differ at the smallest vs. largest scale in the
+real cached data, so this isn't a hypothetical the code merely tolerates.
+
+**Decided by:** Agent, while executing task P3-01.
