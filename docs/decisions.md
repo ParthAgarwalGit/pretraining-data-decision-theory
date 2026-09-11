@@ -1961,3 +1961,57 @@ under-estimation danger and honestly-flagged open-compute-budget results for the
 not silently marked fully resolved.
 
 **Decided by:** Agent, while executing task P3-06.
+
+## 2026-09-11 — P3-07: figures F6-F8, and "as delta varies" is a real BAI-notation clarification, not a scope cut
+
+**Context:** `plan/04-phase3-algorithm.md` P3-07 asks for three figures: F6 (compute to a
+correct decision, by method, on the DataDecide replay), F7 (the shape of the optimal
+allocation across scales, "as delta varies"), F8 (error/abstention rate against
+misspecification, ours vs. baselines, showing where baselines become confidently wrong).
+
+**F7's literal framing needed a real correction, not a workaround.** `solve_allocation`
+(Theorem 2 Part A's T*(nu) program) takes no `delta` (confidence level) argument at all --
+only the per-challenger gaps `Delta_k` (`deltas` in the code, a different `delta` than the
+confidence level; the plan's own prose runs the two together, a standard but real BAI
+notational collision). This is not an implementation gap: Track-and-Stop's classical
+result (Garivier & Kaufmann, 2016) is that the *optimal allocation shape* `w*(nu)` is
+provably delta-independent -- only the *total* required compute scales, via `T*(nu) *
+log(1/delta)`, at a *fixed* shape. `experiments/p3_07_allocation_shape.py` reports this
+correctly: the shape is swept across gap regimes (`well_separated`, `close_top_two`,
+`both_close`), and the genuinely delta-dependent quantity (`T* log(1/delta)`) is shown
+separately, at one fixed shape, rather than mislabeling the gap sweep as a "delta sweep."
+
+**F6 and F8 both reuse existing pilot results rather than re-running expensive adaptive
+experiments**, and both show P3-05/P3-06's already-honestly-reported limitations directly
+in the figure rather than smoothing them into a cleaner-looking plot:
+- **F6** (`results/p3_05_replay.json`): ETS's bar is drawn hatched and distinctly colored
+  in every task panel, since it never reached a genuine decision in P3-05's pilot (all 4
+  tasks round-cap-exhausted) -- a reader cannot mistake it for a real compute-to-decision
+  number by looking at the figure alone.
+- **F8** (`results/p3_06_eta_sensitivity.json` for ETS,
+  a new `results/p3_07_baseline_vs_misspecification.json` for baselines): two panels with
+  deliberately different x-axes (baselines have no `eta` input at all, so what varies for
+  them is the *true* bias magnitude; ETS's panel sweeps its *assumed* eta at a fixed true
+  bias) rather than forcing both onto one axis that would misrepresent one side. The
+  baseline panel shows a clean, striking crossing point (100% accuracy below the bias
+  threshold where the true winner flips, 0% above it -- baselines never adapt). The ETS
+  panel marks every non-zero-eta point as "round-cap exhausted" (an `x`, not a data point
+  on the error-rate curve), rather than plotting round-cap-exhausted runs as if they were
+  genuine `0` error-rate observations, which would overstate what P3-06 actually showed.
+
+**A new, cheap experiment for F8's baseline half**
+(`experiments/p3_07_baseline_vs_misspecification.py`): unlike every ETS-side sweep this
+session (P3-04/05/06, each tens of minutes), sweeping baselines' accuracy against the true
+bias magnitude costs seconds, since baselines have no adaptive loop at all. All four
+baselines behave identically in this 2-arm instance (their lines exactly overlap in the
+figure) -- a real, if minor, observation, not a rendering bug.
+
+**Figures rendered and visually checked** (not just "ran without error") by reading the
+saved PDFs directly: all three are legible, correctly colored/labelled, and match the
+underlying data.
+
+**Definition of done (from the plan):** F6, F7, F8 delivered, `build_all.py` regenerates
+all eight figures (F1-F8) with no manual steps, and none of the three figures overstate
+what the underlying experiments actually established.
+
+**Decided by:** Agent, while executing task P3-07.
