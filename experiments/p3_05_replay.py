@@ -250,6 +250,17 @@ def _run_task(
             "compute_spent": ets_res.compute_spent,
             "n_pulls": ets_res.n_pulls,
             "wall_seconds": ets_elapsed,
+            # "abstained" conflates two very different events -- a genuine
+            # bias-floor abstention (theorem4_algorithm.tex's Abstain
+            # event actually triggered) vs. simply running out of
+            # max_rounds without resolving either way. certificate_reason
+            # disambiguates them; hit_round_cap is the derived flag this
+            # script's own summary numbers should be read alongside (see
+            # docs/decisions.md -- an early version of this script didn't
+            # capture this and its "100% abstention" headline number was
+            # ambiguous between the two for that reason).
+            "certificate_reason": ets_res.certificate.get("reason"),
+            "hit_round_cap": ets_res.certificate.get("reason", "").startswith("max_rounds"),
             "note": "single real-data run, no bootstrap -- see module docstring",
         },
     }
@@ -282,18 +293,26 @@ def main() -> None:
 
     reversal_heavy_cells = [r for r in results if r["reversal_heavy"]]
     stable_cells = [r for r in results if not r["reversal_heavy"]]
-    ets_abstention_reversal_heavy = (
-        sum(1 for r in reversal_heavy_cells if r["ets_single_run"]["outcome"] == "abstained")
-        / len(reversal_heavy_cells)
-        if reversal_heavy_cells
-        else None
-    )
-    ets_abstention_stable = (
-        sum(1 for r in stable_cells if r["ets_single_run"]["outcome"] == "abstained")
-        / len(stable_cells)
-        if stable_cells
-        else None
-    )
+
+    def _genuine_abstention_rate(cells: list[dict]) -> float | None:
+        if not cells:
+            return None
+        return sum(
+            1
+            for r in cells
+            if r["ets_single_run"]["outcome"] == "abstained"
+            and not r["ets_single_run"]["hit_round_cap"]
+        ) / len(cells)
+
+    def _round_cap_rate(cells: list[dict]) -> float | None:
+        if not cells:
+            return None
+        return sum(1 for r in cells if r["ets_single_run"]["hit_round_cap"]) / len(cells)
+
+    ets_abstention_reversal_heavy = _genuine_abstention_rate(reversal_heavy_cells)
+    ets_abstention_stable = _genuine_abstention_rate(stable_cells)
+    ets_round_cap_rate_reversal_heavy = _round_cap_rate(reversal_heavy_cells)
+    ets_round_cap_rate_stable = _round_cap_rate(stable_cells)
 
     headline = []
     for r in results:
@@ -302,6 +321,7 @@ def main() -> None:
             row[name] = {"accuracy": b["accuracy"], "mean_compute": b["mean_compute"]}
         row["ExtrapolationTrackAndStop"] = {
             "outcome": r["ets_single_run"]["outcome"],
+            "hit_round_cap": r["ets_single_run"]["hit_round_cap"],
             "correct": r["ets_single_run"]["correct"],
             "compute": r["ets_single_run"]["compute_spent"],
         }
@@ -319,8 +339,16 @@ def main() -> None:
         "n_bootstrap_baselines_only": args.n_bootstrap,
         "cells": results,
         "headline_table": headline,
+        # "abstention rate" here means a *genuine* Theorem-4 Abstain event
+        # (the bias-floor condition actually triggered), excluding runs
+        # that simply exhausted max_rounds without resolving either way
+        # -- see ets_round_cap_rate_* for that separate, important-to-
+        # not-conflate number, and docs/decisions.md for why this
+        # distinction matters for reading these results honestly.
         "ets_abstention_rate_reversal_heavy_tasks": ets_abstention_reversal_heavy,
         "ets_abstention_rate_stable_tasks": ets_abstention_stable,
+        "ets_round_cap_rate_reversal_heavy_tasks": ets_round_cap_rate_reversal_heavy,
+        "ets_round_cap_rate_stable_tasks": ets_round_cap_rate_stable,
     }
 
     provenance.write_result(
@@ -336,8 +364,12 @@ def main() -> None:
         },
     )
     print(f"wrote {args.out}")
-    print(f"ETS abstention rate, reversal-heavy tasks: {ets_abstention_reversal_heavy}")
-    print(f"ETS abstention rate, stable tasks: {ets_abstention_stable}")
+    print(f"ETS genuine abstention rate, reversal-heavy tasks: {ets_abstention_reversal_heavy}")
+    print(f"ETS genuine abstention rate, stable tasks: {ets_abstention_stable}")
+    print(
+        f"ETS round-cap-exhausted rate, reversal-heavy tasks: {ets_round_cap_rate_reversal_heavy}"
+    )
+    print(f"ETS round-cap-exhausted rate, stable tasks: {ets_round_cap_rate_stable}")
 
 
 if __name__ == "__main__":
