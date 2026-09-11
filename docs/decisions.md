@@ -1690,3 +1690,105 @@ enough scale coverage for their own extrapolation to be valid.
 rules -- 19 tests, 100% coverage on `src/pdt/bai/ets.py`.
 
 **Decided by:** Agent, while executing task P3-03.
+
+## 2026-09-11 — P3-04: a real, honest scope reduction, two instance-construction bugs, and a genuine finite-sample gap in Theorem 4's guarantee
+
+**Context:** `plan/04-phase3-algorithm.md` P3-04 asks for a simulation study sweeping `K in
+{5,10,25} x delta in {0.05,0.1,0.2} x eta_level in {0,small,medium,large} x gap_structure
+in {well-separated, close top-two, reversing}`, >= 200 runs per cell (108 cells, 21,600+
+runs total), checking three claims about error rate, compute-to-stop, and abstention
+behavior in the impossible regime.
+
+**Scope decision, stated up front rather than silently cut down.** `extrapolation_track_and_stop`
+refits every recipe's extrapolator and re-solves P3-02's T* program every adaptive round;
+a single run can take seconds to (for hard instances) several minutes. The literal
+21,600-run grid was not feasible on a laptop within this session's time budget.
+`experiments/p3_04_simulation.py` runs a smaller but genuinely real pilot instead
+(`K=3`, `delta in {0.05, 0.2}`, `eta_level in {none, large}`, `gap_structure in
+{well_separated, reversing}`, 15 runs/cell -- 8 cells, 120 runs, ~36 minutes wall time),
+with every parameter overridable via CLI so the literal grid can be run later given more
+compute. This is a stated limitation of *this pilot's results*, not a claim that the full
+grid was run.
+
+**Bug 1 found and fixed: "well_separated" instances weren't reliably separated.** The
+first version drew each recipe's ceiling `e` independently from `Uniform(0.5, 0.85)` --
+for `K=3` this can, by chance, place the top two ceilings arbitrarily close together
+(the same "unlucky sampling looks like a real problem" class of gotcha as earlier
+sessions' findings). This produced a misleadingly high apparent certified-error rate in
+what was supposed to be the easy, well-specified regime, with nothing to do with the
+algorithm. Fixed by spacing ceilings evenly (`np.linspace`) with jitter capped well below
+the guaranteed minimum gap.
+
+**Bug 2 found and fixed: the "reversing" (rank-reversal) construction could demand
+fit parameters `PowerLawN` cannot represent.** The construction solves for the trailing
+recipe's own `a` parameter so its curve crosses the apparent leader's at a chosen scale --
+an early version allowed the crossover point to land anywhere between the fit ladder and
+the target, which for a crossover close to the target requires huge `|a|` (tens to ~100)
+to make up the gap over a short remaining distance. `PowerLawN`'s own fit bounds cap `a`
+at +-10 (`src/pdt/scaling/fitters.py`) -- a demanded `a` outside that range is a curve the
+fitter cannot even represent, not a genuinely hard-but-fittable extrapolation. Traced by
+comparing a large-sample probe fit's fitted `theta` against the true one: the fit was
+pinned exactly at the `a=-10` boundary. Fixed by placing the crossover close to the fit
+boundary (needs less catching-up, keeps `|a|` representable in roughly half of draws) with
+a bounded retry (including redrawing the base curve entirely if 200 inner attempts fail on
+an unlucky draw).
+
+**Finding, not a bug -- a genuine finite-sample gap in Theorem 4's guarantee, found while
+diagnosing what looked at first like a third bug.** After fixing both constructions above,
+the "reversing" cells still showed `ets_error_rate_given_certified = 1.0` (every certified
+decision wrong) in early testing. Direct inspection of one such run: it certified after
+only 12 pulls -- the bare warm-up (`min_pulls_per_pair=1`, one pull per (recipe, scale)
+pair, as specified) -- with a reported `delta_hat` of 0.28 against a *true* gap of 0.0014.
+Root cause: with exactly `n_params+1` distinct scales and one pull each, a 3-parameter
+`PowerLawN` fit has essentially zero residual degrees of freedom, and the HC0 sandwich
+variance estimate (`analytic_v_k`) computed from that fit can report an implausibly small
+`v_hat` purely by chance -- the same small-sample HC0 artifact already documented for
+P3-03 (a `c_t` that *rises* before it falls), but here manifesting as **false certification
+at round 1**, not just slow convergence. This is a concrete instance of exactly the caveat
+`theorem4_algorithm.tex`'s own asymptotic-optimality proof sketch flags but does not
+resolve (the "nonlinear-g M-estimator concentration" issue, `\needshuman`-marked there):
+Theorem 4's delta-correctness proof is mechanical *given* Theorem 1's M-estimator
+concentration result, but that concentration is an asymptotic statement, and asymptotic
+normality is a poor approximation at 1 residual degree of freedom.
+
+**Mitigation, tested directly, not just assumed.** Raising `min_pulls_per_pair` (an
+existing ETS parameter, added in P3-03 as a test-speed convenience, now given a real
+safety justification) from 1 to 8 changed a `K=3` reversing-instance diagnostic from
+100% wrong-when-certified with mostly-fast-but-wrong certifications, to 18/20 correctly
+abstaining and only 2/20 certifying (both of those two still wrong, but from a sample far
+too small to say whether this exceeds delta's budget or is within it). `min_pulls_per_pair=8`
+is this script's default, documented in its own module constant.
+**This residual uncertainty is reported as an open question, not resolved** -- a proper
+answer needs many more certified-outcome samples than this session's time budget allowed,
+and is a natural target for a follow-up run (or for P3-06's eta-sensitivity study, which
+touches the same underlying mechanism from a different angle).
+
+**Pilot results (`results/p3_04_simulation.json`, 8 cells x 15 runs):**
+- **Claim 1 (error rate respects delta in the well-specified regime): holds.** Both
+  `well_separated`/`eta=none` cells: 0/15 wrong at both `delta=0.05` and `delta=0.2`.
+- **Claim 2 (compute-to-stop approaches `T*log(1/delta)` as delta shrinks): not
+  meaningfully testable at this pilot's scale.** Mean compute-to-stop for certified runs
+  was *identical* between `delta=0.05` and `delta=0.2` in the well-separated cells
+  (2.9088e18 both times) -- because the gaps there are so large that every one of the
+  15 runs at *both* delta values certified immediately after the forced-exploration
+  warm-up, before a single adaptive round ran. The warm-up cost dominates total compute
+  at this instance difficulty, not the delta-dependent stopping threshold -- a real
+  limitation of this reduced pilot's chosen instance difficulty, not evidence against the
+  claim. A future run needs a harder well-specified regime (or a smaller warm-up) to
+  actually exercise the delta-dependent term.
+- **Claim 3 (reversing regime: ETS abstains, baselines confidently wrong): mostly holds.**
+  ETS abstained in 80-93% of reversing-regime runs across the 4 (delta, eta_level) cells
+  -- the desired, cautious behavior. Baselines were correct 0% of the time in 6 of 8
+  (delta, eta_level) x baseline combinations checked, confirming the intended contrast;
+  `SuccessiveHalvingOverScales` (the one baseline that also extrapolates, per P3-03's own
+  "visit every rung" fix) got it right in 2 of 4 reversing sub-cells, inconsistent rather
+  than reliable. The residual false-certification rate noted above (small sample, open
+  question) is the one qualifying caveat on an otherwise clean result.
+
+**Definition of done (from the plan):** for the pilot scale actually run, error rates,
+mean compute, and abstention rate recorded per cell; all three claims checked and reported
+honestly, including the one (claim 2) not meaningfully testable at this scale and the one
+(claim 3) with an open residual-uncertainty caveat, rather than being marked done without
+qualification.
+
+**Decided by:** Agent, while executing task P3-04.
