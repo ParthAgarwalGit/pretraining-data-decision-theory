@@ -125,6 +125,47 @@ def test_uniform_allocation_runs_to_completion():
     assert res.compute_spent >= budget
 
 
+def test_uniform_allocation_covers_every_recipe_even_with_few_expensive_scales():
+    # Regression test, pinning the exact scenario that broke while
+    # building P3-05's real DataDecide replay: many recipes (25, like
+    # real DataDecide) plus a scale ladder whose priciest scale costs
+    # orders of magnitude more than the cheapest. Two compounding
+    # mistakes were found there (see docs/decisions.md): the calling
+    # code sized `compute_budget` as a small fixed multiple of *one*
+    # recipe's own ladder cost rather than scaling it with the number of
+    # recipes ("equal compute per arm" needs a per-arm-scaled budget, or
+    # there just isn't enough to go around regardless of pull order --
+    # fixed here by using `len(many_recipes) * ...`); and, separately,
+    # `uniform_allocation`'s own (recipe, scale) pull order used to be
+    # recipe-major, which for a too-small budget left every later recipe
+    # with zero pulls at all (not just incomplete ones) while the first
+    # few recipes used up the whole budget on their own ladders --
+    # `_fit_recipe` then raised `FitFailure` instead of a usable result.
+    # Now scale-major, cheapest-first: this test checks the fixed
+    # function actually completes end-to-end on the real configuration
+    # that used to raise.
+    many_recipes = [f"r{i}" for i in range(25)]
+    rng = np.random.default_rng(0)
+    oracle = SyntheticOracle(
+        recipes=many_recipes, scales=_FIT_SCALES, target_scale=_TARGET, rng=rng
+    )
+    skewed_scales = [
+        Scale(n=1e6, d=2e7),
+        Scale(n=1e7, d=2e8),
+        Scale(n=1e8, d=2e9),
+        Scale(n=1e9, d=4e11),  # far off the Chinchilla-optimal D/N ratio,
+        # deliberately: this one scale costs orders of magnitude more
+        # than the other three, matching what made this a real bug on
+        # real DataDecide data (some of its real (N, D) pairs are
+        # similarly far from compute-optimal).
+    ]
+    budget = 6 * len(many_recipes) * sum(s.compute for s in skewed_scales)
+    res = uniform_allocation(oracle, many_recipes, skewed_scales, _TARGET, compute_budget=budget)
+    assert res.outcome == "decided"
+    assert res.recipe in many_recipes
+    assert set(res.certificate["predictions"]) == set(many_recipes)
+
+
 def test_fixed_ladder_extrapolation_runs_to_completion():
     oracle = _make_synthetic(seed=3)
     res = fixed_ladder_extrapolation(oracle, _RECIPES, _FIT_SCALES, _TARGET, n_replicates=2)

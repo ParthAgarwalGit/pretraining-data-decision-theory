@@ -178,14 +178,30 @@ def uniform_allocation(
     pull at a time until `compute_budget` is spent, then fits and
     extrapolates each recipe to `target_scale` and ranks by the
     prediction. No statistical guarantee is claimed (`outcome=
-    "decided"`, matching the other baselines)."""
+    "decided"`, matching the other baselines).
+
+    `pairs` cycles every recipe once at the *cheapest* scale before
+    moving to the next-cheapest, not every scale for one recipe before
+    the next recipe -- found to matter in practice, not just in theory:
+    an early (recipe-major) version could exhaust `compute_budget`
+    partway through the *first* recipe's own scale ladder on a real,
+    many-recipe instance whose few largest scales are individually
+    expensive (P3-05's real DataDecide replay, 25 recipes, one scale
+    costing a large fraction of a `6x`-scale-cost budget on its own),
+    leaving every later recipe with zero pulls and no way to be fit at
+    all -- a real correctness bug, not just an inefficiency, since
+    `_fit_recipe` then raises rather than silently returning a bad but
+    plausible answer. Cycling scale-major, cheapest first, guarantees
+    every recipe gets at least the cheap end of the ladder before any
+    recipe gets a second pull, for *any* positive budget."""
     scales_data: dict[str, list[Scale]] = {r: [] for r in recipes}
     values_data: dict[str, list[float]] = {r: [] for r in recipes}
     compute_spent = 0.0
     n_pulls = 0
     seed_counters: dict[tuple[str, float], int] = {}
 
-    pairs = [(r, s) for r in recipes for s in candidate_scales]
+    scales_by_cost = sorted(candidate_scales, key=cost)
+    pairs = [(r, s) for s in scales_by_cost for r in recipes]
     i = 0
     while compute_spent < compute_budget:
         recipe, scale = pairs[i % len(pairs)]

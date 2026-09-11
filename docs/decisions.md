@@ -1690,3 +1690,32 @@ enough scale coverage for their own extrapolation to be valid.
 rules -- 19 tests, 100% coverage on `src/pdt/bai/ets.py`.
 
 **Decided by:** Agent, while executing task P3-03.
+
+## 2026-09-11 — `uniform_allocation` follow-up fix: recipe-major pull order silently starved late recipes
+
+**Context:** found while building P3-05's real DataDecide replay (25 recipes, a scale
+ladder with one scale costing orders of magnitude more than the others -- some real
+DataDecide `(N, D)` pairs sit far off the Chinchilla-optimal ratio). `uniform_allocation`'s
+`pairs = [(r, s) for r in recipes for s in candidate_scales]` cycles every scale for one
+recipe before moving to the next recipe. With a `compute_budget` that cannot afford a full
+lap for every recipe (a real, not hypothetical, situation: a budget sized to be
+"reasonable" relative to total ladder cost can still be far short of `n_recipes x` that
+cost), this order exhausts the budget partway through the *first* recipe's own ladder,
+leaving every later recipe with **zero** pulls -- not just incomplete data, no data at all
+-- and `_fit_recipe` then raises `FitFailure` rather than `uniform_allocation` returning a
+usable (if compute-starved) answer.
+
+**Fix:** cycle scale-major, cheapest scale first (`pairs = [(r, s) for s in
+sorted(candidate_scales, key=cost) for r in recipes]`) -- every recipe gets at least the
+cheap end of the ladder before any recipe gets a second pull, for any positive budget.
+This does not, by itself, guarantee every recipe reaches full identifiability under a too-
+small budget (that requires the budget to actually afford a full lap, a separate, correct
+requirement -- see the P3-05 entry below for the matching calling-code fix, "equal compute
+per arm" needs a budget that scales with the number of arms); what it fixes is a real
+correctness cliff where an insufficient budget failed some recipes completely rather than
+partially. Regression test added:
+`tests/test_ets.py::test_uniform_allocation_covers_every_recipe_even_with_few_expensive_scales`,
+pinning the exact 25-recipe, skewed-cost configuration that raised before this fix.
+
+**Decided by:** Agent, while executing task P3-05 (fix applied on `phase3/track-and-stop`
+and merged forward, per this project's no-rebase discipline).
