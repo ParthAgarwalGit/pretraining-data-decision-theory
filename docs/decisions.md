@@ -1610,3 +1610,83 @@ which handles 1M+ samples in a few seconds -- necessary for it to actually get r
 check rather than skipped for being too slow.
 
 **Decided by:** Agent, while executing task P3-02.
+
+## 2026-09-11 — P3-03: Extrapolation-Track-and-Stop, a real gap the theorem leaves open, and a genuine small-sample HC0 slowdown
+
+**Context:** `plan/04-phase3-algorithm.md` P3-03 asks for `src/pdt/bai/ets.py`
+implementing Extrapolation-Track-and-Stop exactly as specified in
+`paper/sections/theorem4_algorithm.tex` (tracking, stopping, abstention), plus four
+baselines (`UniformAllocation`, `SingleScale`, `SuccessiveHalvingOverScales`,
+`FixedLadderExtrapolation`) sharing the same `PullOracle`.
+
+**Finding: Theorem 4's tracking rule as written cannot be run literally, because
+Theorem 2's T*(nu) program (P3-02) has no term for k*'s own allocation.** The
+change-of-measure construction (`theorem2_lower_bound.tex` Step 2) perturbs only a
+challenger's distribution, holding k*'s fixed -- so `solve_allocation`'s returned
+`weights` dict has entries only for challenger arms, by design, not an oversight (see
+P3-02's own module docstring). A literal `argmin_{k,s} N_k(s,t)/pi(k,s)` tracking rule
+is undefined for k* itself. This is a real gap between the theorem (whose entire point
+is the change-of-measure argument, which genuinely doesn't need k*'s own allocation)
+and a runnable algorithm (which still needs to keep observing k* to know
+`mu_hat_{k_hat}(s*)` at all, and to re-identify its extrapolator as the leader
+potentially changes across rounds). Resolved with an explicit, documented heuristic:
+reserve a fixed fraction `kstar_reserve_frac` (default `1/(n_challengers+1)`, i.e.
+"treat k* like one more arm") of the tracking weight for the current leader, spread
+uniformly across its own candidate scales. Not tuned or claimed optimal -- flagged in
+`extrapolation_track_and_stop`'s own docstring as a real addition Theorem 4 does not
+specify.
+
+**Finding: the Theorem 3 identifiability check needed for `_assert_design_identified` had
+to be about the *design*, not about one particular converged fit's numerical Jacobian.**
+The first version fit each recipe's model, then asserted
+`matrix_rank(jacobian at each distinct scale) == n_params`. This failed on a genuinely
+well-designed test run (4 distinct scales, more than enough for `PowerLawN`'s 3
+parameters) because the multi-start nonlinear fit had converged to a numerically
+near-degenerate point (`alpha` saturating near its bound made the `d/d(alpha)` and
+`d/d(a)` directions collinear at every observed scale) -- a property of *that particular
+converged theta*, not of whether the scales pulled were enough to identify the model in
+principle. Fixed by checking the number of distinct scales pulled (`>= n_params+1`)
+directly, which is what forced exploration actually guarantees and is what Theorem 3's
+condition is really about.
+
+**Finding: a real, sensible-once-understood small-sample slowdown in the stopping
+statistic, found while building a fast test for the abstention path.** With the
+literal single-pull-per-round tracking rule, `c_t` (the confidence radius) does not
+monotonically shrink from round 1 -- it *rises* for hundreds to thousands of rounds
+before its asymptotic `1/sqrt(n)` decay dominates, because the HC0 sandwich variance
+estimator (`analytic_v_k`) is itself noisy with very few residual degrees of freedom
+(a handful of pulls per scale), and can report an artificially tiny variance early on
+purely by chance. This is expected, textbook small-sample behavior of a
+heteroscedasticity-consistent covariance estimator, not a bug in the tracking logic
+(confirmed by direct instrumentation of the round-by-round trace) -- but it means a
+literal "run until it naturally abstains" test on a close-gap instance needed several
+thousand adaptive rounds to converge in some configurations, far too slow for a unit
+test. Rather than accept a multi-minute test suite, added a `min_pulls_per_pair`
+parameter (default 1, matching the theorem's own minimal forced-exploration floor) so
+a caller -- including a test -- can front-load more initial replicates and skip past
+this small-sample regime; the abstention tests use `min_pulls_per_pair=150` to
+converge in under a tenth of a second while still exercising the real Certified/Abstain
+logic, not a shortcut around it.
+
+**Also found and removed: a dead defensive branch.** An early version handled
+`total_w <= 0` (all challenger weights summing to zero) as a degenerate case, falling
+back to uniform tracking. `solve_allocation`'s own `with_floor` interior-point
+regularization guarantees every returned weight is strictly positive regardless of how
+small the plug-in deltas are, so `total_w > 0` always holds in practice -- the branch
+was unreachable and has been removed rather than kept as untested, unreachable
+"just in case" code, per this project's own stated preference for no defensive
+handling of scenarios that cannot happen.
+
+**Baselines:** `SuccessiveHalvingOverScales` needed one correction after its first
+version: eliminating survivors is about the *recipe pool*, not the *scale ladder* --
+the original version stopped visiting further rungs as soon as only one recipe
+remained, which (with few recipes and a longer ladder) can leave the eventual winner
+with too few distinct scales to be identified at all. Fixed by always visiting every
+rung regardless of how many recipes remain, so the final survivor(s) still accumulate
+enough scale coverage for their own extrapolation to be valid.
+
+**Definition of done (from the plan):** all five methods run to completion on the
+(real, calibrated) `SyntheticOracle`; unit tests cover the stopping and abstention
+rules -- 19 tests, 100% coverage on `src/pdt/bai/ets.py`.
+
+**Decided by:** Agent, while executing task P3-03.
