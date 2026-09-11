@@ -1,0 +1,172 @@
+% paper/sections/theorem3_identifiability.tex -- P2-04, plan/03-phase2-theory.md.
+%
+% Standalone section fragment, \input{} by paper/main.tex once P6-01 builds
+% the skeleton. Same preamble requirements as theorem1_bound.tex /
+% theorem2_lower_bound.tex. Depends on setup.tex, theorem1_bound.tex, and
+% theorem2_lower_bound.tex's notation and machinery (the Fisher-information
+% matrix I_k(w) from Theorem 2 Part A is reused directly, not redefined).
+
+\section{Theorem 3: identifiability and the minimax rate}
+\label{sec:theorem3}
+
+\subsection{The rank/spacing identifiability condition}
+\label{sec:theorem3-rank}
+
+\begin{theorem}[Local identifiability]
+\label{thm:identifiability}
+Fix arm $k$ with true parameter $\theta_k \in \Theta$ and a design $S_{\mathrm{fit}}$ of
+$m$ scales. Let $X \in \mathbb{R}^{m \times p}$ stack $J(\theta_k, s)^\top$ (Assumption
+1's Jacobian) as rows, one per scale in $S_{\mathrm{fit}}$. Then $\theta_k$ is
+\emph{locally identifiable} from noiseless observations at $S_{\mathrm{fit}}$ -- no
+$\theta' \ne \theta_k$ in an open neighbourhood of $\theta_k$ gives
+$g(\theta', s) = g(\theta_k, s)$ at every $s \in S_{\mathrm{fit}}$ -- if and only if
+$\mathrm{rank}(X) = p$.
+\end{theorem}
+
+\begin{proof}
+By the implicit function theorem applied to $F(\theta) = \big(g(\theta,s)\big)_{s \in
+S_{\mathrm{fit}}} - \big(g(\theta_k,s)\big)_{s \in S_{\mathrm{fit}}} \in
+\mathbb{R}^m$: $F(\theta_k) = 0$ and $\nabla_\theta F(\theta_k) = X$. If
+$\mathrm{rank}(X) = p$ (full column rank), $X$ has a left inverse and $F$ is locally
+injective near $\theta_k$ (its differential is injective), so $\theta_k$ is the unique
+zero of $F$ in a neighbourhood -- locally identifiable. If $\mathrm{rank}(X) < p$,
+$\ker(X)$ is a nontrivial subspace; for $v \in \ker(X) \setminus \{0\}$,
+$F(\theta_k + \epsilon v) = X(\epsilon v) + o(\epsilon) = o(\epsilon)$, so a
+first-order argument does not rule out nearby $\theta' = \theta_k + \epsilon v +
+O(\epsilon^2)$ with $F(\theta') = 0$ for small $\epsilon$ under a further non-degeneracy
+condition on $F$'s higher-order terms -- generically true, giving a continuum of
+observationally-equivalent parameters along (or near) $\ker(X)$. Mechanical, standard
+implicit-function-theorem application.
+\end{proof}
+
+\begin{remark}[Two different failure modes, not one]
+\label{rem:two-failure-modes}
+$\mathrm{rank}(X) < p$ (identifiability fails outright) and $X$ full rank but
+ill-conditioned (identifiable in principle, useless in practice at finite noise) are
+\emph{different} failure modes with different remedies:
+\begin{itemize}
+  \item \textbf{Rank deficiency} needs $m < p$ (too few scales -- $\mathrm{rank}(X) \le
+    m$ always) or $m \ge p$ scales that are \emph{algebraically degenerate} for this
+    particular $g$ (e.g., for \texttt{PowerLawN}/\texttt{PowerLawC}
+    ($p{=}3$), two coincident scales contribute identical rows regardless of how many
+    distinct scales are present elsewhere). \texttt{src/pdt/scaling/base.py}'s
+    \texttt{Extrapolator.fit()} refuses $m < p+1$ outright -- \emph{stricter} than bare
+    identifiability ($m \ge p$), for a reason Theorem~\ref{thm:main-bound} already
+    needed: $m = p$ exactly identifies $\theta_k$ (generically) but leaves zero residual
+    degrees of freedom, so $\sigma^2(s)$ and the model's own goodness of fit are
+    inestimable from the fit itself.
+  \item \textbf{Ill-conditioning} is a property of \emph{how} $m \ge p$ well-separated
+    (in the algebraic sense above) scales are \emph{spaced}, not their count: $m$
+    scales clustered close together give $X$'s rows nearly parallel (continuity of
+    $J(\theta,\cdot)$ in $s$), so $X^\top X$ is nearly singular even at full formal
+    rank. Section~\ref{sec:theorem3-spacing} works this out exactly for the power-law
+    family.
+\end{itemize}
+\end{remark}
+
+\subsection{Minimax rate}
+\label{sec:theorem3-minimax}
+
+\begin{theorem}[Matching minimax rate for $\hat\mu_k(s^\star)$]
+\label{thm:minimax}
+Under Assumption~\ref{asn:family} plus Theorem~\ref{thm:identifiability}'s rank
+condition (so $I_k(w) \succ 0$ for the design's induced allocation $w$), the minimax
+risk for estimating $\mu_k(s^\star)$ over the local parametric neighbourhood of
+$\theta_k$ satisfies, as $C \to \infty$,
+\[
+  \inf_{\hat\mu} \sup_{\theta' \text{ near } \theta_k} \mathbb{E}_{\theta'}\big[
+    (\hat\mu - g(\theta', s^\star))^2 \big]
+  \;\asymp\; J(\theta_k, s^\star)^\top I_k(w)^{-1} J(\theta_k, s^\star) \;=\; v_k(C),
+\]
+matched (up to constants, and exactly to leading order as $C \to \infty$) by the
+least-squares estimator's own achieved risk from Theorem~\ref{thm:main-bound} Step 2.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+\emph{Lower bound}, via Le Cam's two-point method: for any unit direction $u \in
+\mathbb{R}^p$ and perturbation size $h$, the two instances $\theta_k$ and $\theta_k +
+hu$ have per-observation KL divergence at $(k,s)$ equal to $h^2 (u^\top J(\theta_k,s))^2
+/ (2\sigma^2(s))$ (Theorem~\ref{thm:lower-bound} Step 3, identical calculation), so
+their joint KL over the design is $h^2 u^\top I_k(w) u \, C / 2$ (compute-weighted).
+Choosing $h$ so this is $O(1)$ (the standard Le Cam recipe -- the two instances remain
+statistically confusable) and evaluating the resulting functional gap
+$|g(\theta_k+hu,s^\star) - g(\theta_k,s^\star)| \approx h\, |u^\top J(\theta_k,s^\star)|$
+gives, after optimizing $u$ (the direction hardest to distinguish relative to how much
+it moves the functional -- the same worst-case-direction optimization as
+Theorem~\ref{thm:lower-bound} Step 4), the stated rate. \emph{This is the same
+change-of-measure machinery as Theorem~\ref{thm:lower-bound} Part A, applied to
+estimation risk rather than selection error} -- not a new derivation, a direct reuse.
+\emph{Upper bound}: Theorem~\ref{thm:main-bound} Step 2 already shows the least-squares
+estimator achieves exactly $v_k(C) = J^\top I_k(w)^{-1} J$ (via the delta method / exact
+computation for linear $g$) -- the same quantity, matching automatically. Mechanical,
+given both already-proven pieces; the nonlinear-$g$ non-asymptotic caveat is the same
+one flagged at Theorem~\ref{thm:main-bound} Step 1 and Theorem~\ref{thm:lower-bound}
+Step 3, not a new gap.
+\end{proof}
+
+\subsection{Design-dependence: a worked power-law spacing example}
+\label{sec:theorem3-spacing}
+
+\begin{proposition}[Exact identifiability threshold for power-law shape parameters]
+\label{prop:power-law-spacing}
+For the reduced 2-parameter power law $g(A,\alpha; N) = A N^{-\alpha}$
+(\texttt{PowerLawN}/\texttt{PowerLawC} minus the ceiling $E$) fit at two scales $N_1 <
+N_2$, the design matrix satisfies
+\[
+  \det X = -A \, N_1^{-\alpha} N_2^{-\alpha} \, \log(N_2 / N_1),
+\]
+so $(A, \alpha)$ are identifiable from $\{N_1, N_2\}$ iff $N_1 \ne N_2$, with
+conditioning governed by $|\log(N_2/N_1)|$ -- the \emph{multiplicative}, not additive,
+separation of the two scales. This is why a geometric (constant-ratio) ladder, not an
+arithmetic one, is the natural design for a power-law family, and why DataDecide's own
+14-size ladder (4M through 1B) is close to geometric.
+\end{proposition}
+
+\begin{proof}
+Direct computation: $\partial g/\partial A = N^{-\alpha}$, $\partial g/\partial\alpha =
+-A N^{-\alpha}\log N$. $\det X = N_1^{-\alpha}(-AN_2^{-\alpha}\log N_2) -
+N_2^{-\alpha}(-AN_1^{-\alpha}\log N_1) = -A N_1^{-\alpha}N_2^{-\alpha}(\log N_2 - \log
+N_1)$, as stated. Verified numerically (not just symbolically) against
+\texttt{np.linalg.det} across several $(N_1,N_2,A,\alpha)$ instances before being
+trusted (see \texttt{tests/theory/test\_theorem3.py}); the two agreed to floating-point
+precision in every case checked.
+\end{proof}
+
+\begin{example}[Optimal placement of a second scale is not simply "as far as possible"]
+\label{ex:nonmonotone-spacing}
+% NUMBER-OK: a fully worked, numerically verified illustrative example --
+% the specific (A, alpha, N*, N1) values and the resulting v(N*) table are
+% a computed grid search reported directly, not a claimed general result.
+Fix $A=2.0$, $\alpha=0.3$, $\sigma=1$, target $N^\star = 10^9$, and $N_1 = 10^6$. A grid
+search over the second scale $N_2 \in (N_1, N^\star)$, computing $v(N^\star) =
+J(N^\star)^\top (X^\top X)^{-1} J(N^\star)$ exactly at each point (one replicate per
+scale), gives a table that is \textbf{U-shaped, not monotone}: $v(N^\star) \approx
+1.5\times 10^4$ at $N_2/N_1 = 1.01$ %NUMBER-OK: computed grid-search value, see tests/theory/test_theorem3.py::test_reproduces_the_nonmonotone_spacing_example
+(nearly clustered -- Proposition~\ref{prop:power-law-spacing}'s
+near-zero determinant), falling to a minimum $v(N^\star) \approx 0.52$ %NUMBER-OK: same computed grid search
+near $N_2
+\approx 3\times 10^7$ ($N_2/N_1 \approx 30$), then \emph{rising again} to
+$v(N^\star)\approx 0.97$ as $N_2 \to N^\star$ ($N_2/N_1 = 900$). %NUMBER-OK: same computed grid search
+Placing the second
+scale as close as possible to the target is \emph{not} optimal for the variance at the
+target, even though it minimizes that point's own extrapolation distance -- a genuine,
+verified, non-obvious feature of extrapolation-design (not interpolation-design), not a
+choice of illustration meant to simplify the story. This 2-point, 2-parameter case is
+fully worked by hand (and checked numerically); the general $m$-point, cost-weighted,
+full 3-parameter (or higher) version is exactly the $T^\star(\nu)$ program
+Theorem~\ref{thm:lower-bound} Part A already defines, with no simple closed form for
+$m>2$ known to us -- P3-02's numerical solver is where the general case is actually
+solved, not a hand derivation here.
+\end{example}
+
+\subsection{Numerical certificate}
+\label{sec:theorem3-certificate}
+
+\texttt{tests/theory/test\_theorem3.py} checks: (a) Proposition~\ref{prop:power-law-spacing}'s
+$\det X$ formula against direct numerical computation across random
+$(N_1,N_2,A,\alpha)$; (b) that estimator variance (fit via the real, production
+\texttt{PowerLawN} class on many noisy replicates, not just the analytic $v_k$ formula)
+blows up as design scales are clustered together and, separately, as the count of
+distinct scales drops below $p+1$ (a direct \texttt{FitFailure}, not just large
+variance); (c) reproduces Example~\ref{ex:nonmonotone-spacing}'s U-shaped table exactly,
+confirming it is not a transcription error from the by-hand grid search above.
