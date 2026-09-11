@@ -1897,3 +1897,67 @@ open, for a follow-up run with substantially more compute for the adaptive algor
 specifically.
 
 **Decided by:** Agent, while executing task P3-05.
+
+## 2026-09-11 — P3-06: under-estimated eta is confirmed dangerous (clean, unambiguous result); the safe side hits the same compute-budget wall as P3-04/P3-05
+
+**Context:** `plan/04-phase3-algorithm.md` P3-06 asks to sweep the assumed `eta` from 0 to
+3x a true bias magnitude, contrast under- vs. over-estimation, and propose and test a
+practical eta plug-in estimated from residuals.
+
+**Design bug found and fixed before the real run.** The first instance construction gave
+the "true winner" arm a bias bump of exactly `_TRUE_BIAS` while making the *other* arm's
+fit-scale-observed advantage also exactly `_TRUE_BIAS` -- at `eta=0` the two arms turned
+out to be **exactly tied** at the target, not a case where under-estimating `eta` could
+produce a confident *wrong* answer at all (the whole point of testing under-estimation).
+Fixed by separating the two quantities: `leader` is ahead by a fixed, smaller
+`_OBSERVED_GAP=0.05` on every scale ever observed; `underdog` carries an invisible
+Theorem-2-Part-B bump of `_TRUE_BIAS=0.1` (`_TRUE_BIAS > _OBSERVED_GAP`), so `underdog` is
+the *genuine* winner at the target despite trailing everywhere observable -- exactly the
+configuration needed to demonstrate the danger.
+
+**Clean, unambiguous, and the headline result of this task: at `eta=0` (complete
+ignorance of bias), `extrapolation_track_and_stop` certified confidently in 20/20 trials,
+and was wrong 20/20 times (`error_rate_given_certified = 1.0`).** This result needs no
+"genuine vs. round-cap" caveat -- `outcome=="certified"` is unambiguous (it is never the
+round-cap fallback's outcome string), so this is a real, clean demonstration of exactly
+what the plan asked to show: under-estimating the bias-floor input is the dangerous
+direction, producing overconfident wrong answers, not merely reduced power.
+
+**The safe side (`multiplier >= 0.25`) hit the identical compute-budget wall already found
+in P3-05, now a third independent confirmation of the same systemic finding.** All 5
+non-zero multipliers showed `outcomes={"abstained": 20}` with *identical* mean compute
+across every multiplier -- a red flag investigated directly (the same discipline applied
+in P3-05, not trusted at face value) via one instrumented trial: `certificate={"reason":
+"max_rounds exhausted without certifying or abstaining", ...}`. **`round_cap_exhausted_rate
+= 1.0` and `genuine_abstention_rate = 0.0` at every non-zero multiplier tested, including
+`eta=3x` the true bias -- comfortably enough budget that a well-calibrated run should
+abstain quickly and cheaply, yet it never once reached that conclusion within
+`max_rounds=300`.** This is now a recurring, well-established pattern across P3-04 (claim
+2, warm-up-dominated compute), P3-05 (0% genuine abstention across all 4 real tasks), and
+P3-06 (0% genuine abstention across all 5 non-zero-eta cells): the shipped
+`solve_allocation`/tracking combination, at the round budgets this session's compute
+allowed, reliably avoids *false* certification but does not reliably reach a *genuine*
+resolution (certified or abstained) either, within an affordable number of rounds, once
+the instance is not comfortably easy. The `eta=0` result above is not affected by this --
+certification is unambiguous -- but the "over-estimation is merely wasteful, not
+dangerous" half of the claim is not demonstrated as *resolved*, only as *not falsely
+certifying*, which is a weaker (though still meaningful) statement.
+
+**The practical plug-in** (`eta_hat = rmse(residuals) * sqrt(n/(n-p))`, a one-time pre-fit
+estimate, not adaptive per round) produced `eta_hat` around 0.042 (leader) / 0.051
+(underdog) -- both comfortably below `_TRUE_BIAS=0.1`, i.e. **the plug-in itself
+under-estimates the true bias in this instance** (residual RMSE on fit-scale data cannot
+see a bump that is, by construction, invisible on every fit scale -- an expected,
+structural limitation of any residual-based estimator, not a bug in the correction
+formula). Despite under-estimating, the plug-in run abstained (round-cap-exhausted, same
+caveat as above) rather than falsely certifying in this instance -- but given the `eta=0`
+result above, under-estimation *can* cause false certification in general, so this
+plug-in's safety here should not be read as a general guarantee; it reflects this specific
+instance's margin, not a property of the estimator proven to hold generally.
+
+**Definition of done (from the plan):** the sweep, the under- vs. over-estimation
+contrast, and the practical plug-in are all delivered, with genuine, clean results for the
+under-estimation danger and honestly-flagged open-compute-budget results for the rest --
+not silently marked fully resolved.
+
+**Decided by:** Agent, while executing task P3-06.
