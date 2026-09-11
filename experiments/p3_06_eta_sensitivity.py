@@ -166,6 +166,7 @@ def _run_trials(
 ) -> dict:
     outcomes: Counter[str] = Counter()
     n_correct_given_certified = 0
+    n_hit_round_cap = 0
     compute_all = []
     compute_certified = []
     for run_idx in range(n_runs):
@@ -192,6 +193,12 @@ def _run_trials(
             compute_certified.append(res.compute_spent)
             if res.recipe == "underdog":
                 n_correct_given_certified += 1
+        # "abstained" conflates a genuine Theorem-4 Abstain event with
+        # simply running out of max_rounds -- found to matter a great
+        # deal in practice for P3-05, and it matters here too: see
+        # docs/decisions.md.
+        if res.certificate.get("reason", "").startswith("max_rounds"):
+            n_hit_round_cap += 1
 
     n_certified = outcomes["certified"]
     return {
@@ -202,6 +209,8 @@ def _run_trials(
             1.0 - n_correct_given_certified / n_certified if n_certified > 0 else None
         ),
         "abstention_rate": outcomes["abstained"] / n_runs,
+        "genuine_abstention_rate": (outcomes["abstained"] - n_hit_round_cap) / n_runs,
+        "round_cap_exhausted_rate": n_hit_round_cap / n_runs,
         "mean_compute_given_certified": (
             float(np.mean(compute_certified)) if compute_certified else None
         ),
@@ -239,7 +248,9 @@ def main() -> None:
         print(
             f"[{i + 1}/{len(args.multipliers)}] multiplier={mult} eta={mult * _TRUE_BIAS:.4f} "
             f"-> outcomes={cell['outcomes']} error_given_certified="
-            f"{cell['error_rate_given_certified']} elapsed={elapsed:.0f}s"
+            f"{cell['error_rate_given_certified']} genuine_abstain="
+            f"{cell['genuine_abstention_rate']} round_cap={cell['round_cap_exhausted_rate']} "
+            f"elapsed={elapsed:.0f}s"
         )
 
     # The practical plug-in: estimate eta_hat once per trial (a fresh
@@ -248,6 +259,7 @@ def main() -> None:
     plugin_eta_estimates = {"leader": [], "underdog": []}
     plugin_outcomes: Counter[str] = Counter()
     plugin_n_correct_given_certified = 0
+    plugin_n_hit_round_cap = 0
     plugin_compute_certified = []
     plugin_compute_all = []
     for run_idx in range(args.n_runs):
@@ -280,6 +292,8 @@ def main() -> None:
             plugin_compute_certified.append(res.compute_spent)
             if res.recipe == "underdog":
                 plugin_n_correct_given_certified += 1
+        if res.certificate.get("reason", "").startswith("max_rounds"):
+            plugin_n_hit_round_cap += 1
 
     plugin_n_certified = plugin_outcomes["certified"]
     plugin_result = {
@@ -294,6 +308,9 @@ def main() -> None:
             else None
         ),
         "abstention_rate": plugin_outcomes["abstained"] / args.n_runs,
+        "genuine_abstention_rate": (plugin_outcomes["abstained"] - plugin_n_hit_round_cap)
+        / args.n_runs,
+        "round_cap_exhausted_rate": plugin_n_hit_round_cap / args.n_runs,
         "mean_compute_given_certified": (
             float(np.mean(plugin_compute_certified)) if plugin_compute_certified else None
         ),
