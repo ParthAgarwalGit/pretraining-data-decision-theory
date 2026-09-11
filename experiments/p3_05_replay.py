@@ -101,6 +101,44 @@ class _ReseededOracle:
         return self._inner.available_scales()
 
 
+class _CyclingOracle:
+    """Wraps a (guarded) oracle and cycles back through the 3 real
+    seeds once a (recipe, scale) pair's replicate pool -- real seeds
+    plus `DataDecideOracle`'s own pseudo-replicate fallback -- is
+    exhausted.
+
+    Found necessary running ETS's *adaptive* tracking against real
+    DataDecide data: unlike `SyntheticOracle`, which can draw
+    unboundedly many fresh replicates, `DataDecideOracle` raises
+    `IndexError` past its fixed real+pseudo pool (`tests/test_oracle.py`
+    confirms 3 real seeds everywhere, plus a small pseudo pool). A
+    heavily adaptive tracking rule can and did legitimately exhaust a
+    single (recipe, scale) pair's pool during a real 60-round run (the
+    tracking rule concentrates repeatedly on whichever pair is most
+    under-sampled relative to the current plan, and real data has no
+    "keep drawing forever" escape hatch a synthetic oracle has).
+    Repeating an already-observed real value past that point is a
+    genuine, explicitly documented limitation, not a fabrication -- see
+    docs/decisions.md -- and is preferable to the replay crashing
+    partway through a real run."""
+
+    def __init__(self, inner, n_real_seeds: int = _N_REAL_SEEDS):
+        self._inner = inner
+        self._n_real_seeds = n_real_seeds
+
+    def pull(self, recipe: str, scale: Scale, seed: int) -> float:
+        try:
+            return self._inner.pull(recipe, scale, seed)
+        except IndexError:
+            return self._inner.pull(recipe, scale, seed % self._n_real_seeds)
+
+    def cost(self, scale: Scale) -> float:
+        return self._inner.cost(scale)
+
+    def available_scales(self) -> list[Scale]:
+        return self._inner.available_scales()
+
+
 def _true_winner(task: str) -> tuple[str, dict[str, float], Scale, list[str]]:
     """The real 1B-scale winner, computed via a *separate*, unguarded
     oracle instance used only here, for scoring -- never handed to any
@@ -182,7 +220,7 @@ def _run_task(
 
     t0 = time.time()
     ets_res = extrapolation_track_and_stop(
-        guarded,
+        _CyclingOracle(guarded),
         recipes,
         fit_scales,
         target,
