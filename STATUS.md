@@ -67,7 +67,7 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 | Task | Title | State | PR | Notes |
 |---|---|---|---|---|
 | P3-01 | Simulator and oracle interface | DONE | [#27](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/27) | `PullOracle` protocol + `SyntheticOracle` (calibrated to real P1-05/P1-06 numbers, not guessed) + `DataDecideOracle` (deterministic table lookup, seed labels discovered per (recipe,scale) not hardcoded) + `LiveTrainingOracle` stub; **verified `cost()` (6ND) against DataDecide's own compute column: ratio min 0.85/median 0.999/max 1.10** -- kept 6ND for consistency with the rest of the project rather than switching; 21 tests, 100% coverage -- see docs/decisions.md |
-| P3-02 | Solve the optimal-allocation program | TODO | | |
+| P3-02 | Solve the optimal-allocation program | DONE | [#28](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/28) | Projected subgradient ascent with an exact closed-form gradient, after two scipy.optimize routes (SLSQP, trust-constr) proved unreliable near rank-deficient Fisher information; **known, documented limitation: reliably reaches a locally max-min-consistent point, not verified globally optimal** (brute_force_allocation, vectorized for practicality, found a better point on a real instance) -- shipped honestly rather than hidden, `n_restarts` is the mitigation; 19 tests, 100% coverage -- see docs/decisions.md |
 | P3-03 | Extrapolation-Track-and-Stop + baselines | TODO | | |
 | P3-04 | Simulation study | TODO | | |
 | P3-05 | Offline replay on DataDecide (free real-data result) | TODO | | high value |
