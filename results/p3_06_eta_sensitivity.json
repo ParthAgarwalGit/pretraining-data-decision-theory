@@ -1,0 +1,197 @@
+{
+  "provenance": {
+    "git_sha": "d86ca82850b326820b5d7b5ef42a8637dbd14abb",
+    "git_dirty": false,
+    "utc_timestamp": "2026-09-11T20:44:26.576548+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "P3-06",
+      "multipliers": [
+        0.0,
+        0.25,
+        0.5,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "n_runs": 20,
+      "max_rounds": 300,
+      "solver_n_iter": 30,
+      "min_pulls_per_pair": 8,
+      "plugin_n_replicates": 8
+    }
+  },
+  "data": {
+    "true_bias": 0.1,
+    "true_bias_source": "representative point in P1-06's real measured range (bias magnitude ~0.048-0.17, results/p1_06_decomposition.json) -- see module docstring",
+    "delta": 0.1,
+    "sweep": [
+      {
+        "eta_assumed": {
+          "leader": 0.0,
+          "underdog": 0.0
+        },
+        "n_runs": 20,
+        "outcomes": {
+          "certified": 20
+        },
+        "error_rate_given_certified": 1.0,
+        "abstention_rate": 0.0,
+        "genuine_abstention_rate": 0.0,
+        "round_cap_exhausted_rate": 0.0,
+        "mean_compute_given_certified": 2.112e+17,
+        "mean_compute_overall": 2.112e+17,
+        "multiplier": 0.0,
+        "under_estimated": true
+      },
+      {
+        "eta_assumed": {
+          "leader": 0.025,
+          "underdog": 0.025
+        },
+        "n_runs": 20,
+        "outcomes": {
+          "abstained": 20
+        },
+        "error_rate_given_certified": null,
+        "abstention_rate": 1.0,
+        "genuine_abstention_rate": 0.0,
+        "round_cap_exhausted_rate": 1.0,
+        "mean_compute_given_certified": null,
+        "mean_compute_overall": 1.16028e+18,
+        "multiplier": 0.25,
+        "under_estimated": true
+      },
+      {
+        "eta_assumed": {
+          "leader": 0.05,
+          "underdog": 0.05
+        },
+        "n_runs": 20,
+        "outcomes": {
+          "abstained": 20
+        },
+        "error_rate_given_certified": null,
+        "abstention_rate": 1.0,
+        "genuine_abstention_rate": 0.0,
+        "round_cap_exhausted_rate": 1.0,
+        "mean_compute_given_certified": null,
+        "mean_compute_overall": 1.16028e+18,
+        "multiplier": 0.5,
+        "under_estimated": true
+      },
+      {
+        "eta_assumed": {
+          "leader": 0.1,
+          "underdog": 0.1
+        },
+        "n_runs": 20,
+        "outcomes": {
+          "abstained": 20
+        },
+        "error_rate_given_certified": null,
+        "abstention_rate": 1.0,
+        "genuine_abstention_rate": 0.0,
+        "round_cap_exhausted_rate": 1.0,
+        "mean_compute_given_certified": null,
+        "mean_compute_overall": 1.16028e+18,
+        "multiplier": 1.0,
+        "under_estimated": false
+      },
+      {
+        "eta_assumed": {
+          "leader": 0.2,
+          "underdog": 0.2
+        },
+        "n_runs": 20,
+        "outcomes": {
+          "abstained": 20
+        },
+        "error_rate_given_certified": null,
+        "abstention_rate": 1.0,
+        "genuine_abstention_rate": 0.0,
+        "round_cap_exhausted_rate": 1.0,
+        "mean_compute_given_certified": null,
+        "mean_compute_overall": 1.16028e+18,
+        "multiplier": 2.0,
+        "under_estimated": false
+      },
+      {
+        "eta_assumed": {
+          "leader": 0.30000000000000004,
+          "underdog": 0.30000000000000004
+        },
+        "n_runs": 20,
+        "outcomes": {
+          "abstained": 20
+        },
+        "error_rate_given_certified": null,
+        "abstention_rate": 1.0,
+        "genuine_abstention_rate": 0.0,
+        "round_cap_exhausted_rate": 1.0,
+        "mean_compute_given_certified": null,
+        "mean_compute_overall": 1.16028e+18,
+        "multiplier": 3.0,
+        "under_estimated": false
+      }
+    ],
+    "plugin": {
+      "n_runs": 20,
+      "eta_hat_mean": {
+        "leader": 0.04207552584962325,
+        "underdog": 0.05093235865890504
+      },
+      "eta_hat_std": {
+        "leader": 0.0,
+        "underdog": 1.3877787807814457e-17
+      },
+      "true_bias": {
+        "leader": 0.0,
+        "underdog": 0.1
+      },
+      "outcomes": {
+        "abstained": 20
+      },
+      "error_rate_given_certified": null,
+      "abstention_rate": 1.0,
+      "genuine_abstention_rate": 0.0,
+      "round_cap_exhausted_rate": 1.0,
+      "mean_compute_given_certified": null
+    },
+    "under_estimation_causes_violations": true,
+    "under_estimation_violations": [
+      {
+        "eta_assumed": {
+          "leader": 0.0,
+          "underdog": 0.0
+        },
+        "n_runs": 20,
+        "outcomes": {
+          "certified": 20
+        },
+        "error_rate_given_certified": 1.0,
+        "abstention_rate": 0.0,
+        "genuine_abstention_rate": 0.0,
+        "round_cap_exhausted_rate": 0.0,
+        "mean_compute_given_certified": 2.112e+17,
+        "mean_compute_overall": 2.112e+17,
+        "multiplier": 0.0,
+        "under_estimated": true
+      }
+    ],
+    "well_specified_regime_holds": true,
+    "well_specified_regime_violations": []
+  }
+}
