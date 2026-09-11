@@ -1821,3 +1821,79 @@ honestly, including the one (claim 2) not meaningfully testable at this scale an
 qualification.
 
 **Decided by:** Agent, while executing task P3-04.
+
+## 2026-09-11 — P3-05: the headline finding is that ETS never reached a decision within this pilot's compute budget on real data, reported honestly rather than reframed
+
+**Context:** `plan/04-phase3-algorithm.md` P3-05 asks for an offline replay of ETS and the
+four baselines against real DataDecide data (target `s* = 1B`), with a leakage guard, a
+headline compute-to-correct-decision table with error bars, and the abstention rate on
+P1-09's reversal-heavy tasks -- explicitly anticipating a bad outcome: *"If instead it
+abstains everywhere, the algorithm is practically useless and we must say so and reframe
+toward the diagnostic contribution."*
+
+**`GuardedOracle` (`src/pdt/bai/guarded_oracle.py`) enforces the no-target-leakage
+constraint in code, tested directly** (`tests/test_guarded_oracle.py`, 7 tests, 100%
+coverage): `pull()`/`cost()` raise `TargetScaleLeakageError` for the target scale,
+`available_scales()` never lists it.
+
+**Two real bugs found and fixed while building the replay, both documented in their own
+decisions.md entries above/below this one:** `uniform_allocation`'s recipe-major pull
+order could starve late recipes entirely under a real, many-recipe (K=25), skewed-cost
+scale ladder (fixed: scale-major, cheapest first -- see the entry above); and ETS's
+adaptive tracking can legitimately exhaust `DataDecideOracle`'s finite real+pseudo
+replicate pool for a heavily-revisited (recipe, scale) pair -- something `SyntheticOracle`
+never exposes, since it can draw unboundedly. Fixed with `_CyclingOracle`, which repeats
+an already-observed real value past that point -- an explicit, documented practical
+accommodation for finite real data, not a fabrication of new data.
+
+**The headline finding, found only after fixing a reporting gap that nearly hid it:** the
+first version of this script's output collapsed `SelectionResult.outcome == "abstained"`
+into a single number, conflating a genuine Theorem-4 `Abstain` event with simply running
+out of `max_rounds` without resolving either way. Adding `certificate_reason` /
+`hit_round_cap` to the output (rather than trusting the collapsed `"abstained"` string)
+revealed the real result: **across all 4 tasks tested (2 reversal-heavy, 2 stable),
+`extrapolation_track_and_stop` hit the round cap (`max_rounds=60`) on every single run --
+0% genuine abstention, 100% round-cap exhaustion, in both task groups.** It never once
+reached either a delta-correct certification or a genuine bias-floor abstention on real
+data within this pilot's affordable compute.
+
+**This is reported as the honest result, not reframed to look better.** It is a different
+failure mode than the plan's own anticipated "abstains everywhere" (which would still
+demonstrate the diagnostic contribution the plan explicitly said to fall back on) --
+"never resolves within affordable compute" is a real, distinct, and arguably more
+concerning finding about practical usability at `K=25` on noisy real data with this
+session's `max_rounds=60` budget. It is **not** conclusive evidence the algorithm doesn't
+work on real data -- P3-04 already found (in a much smaller, K=3 synthetic setting) that
+genuine convergence can require thousands of adaptive rounds for hard instances, and 60
+rounds against 25 real, noisy recipes may simply be far too few to draw any conclusion
+from. What P3-05 actually establishes is that **this question remains open**, and answering
+it needs substantially more compute than this session's laptop time budget allowed for the
+adaptive algorithm specifically (baselines, by contrast, are cheap and ran to real,
+bootstrapped completion -- see the headline table below).
+
+**Headline table (`results/p3_05_replay.json`, `delta=0.1`, `eta=0.02` assumed uniformly --
+a fixed, documented, not-task-calibrated guess):**
+
+| Task | Group | True winner | SingleScale | FixedLadder | UniformAlloc | SuccessiveHalving | ETS |
+|---|---|---|---|---|---|---|---|
+| winogrande | reversal-heavy | Falcon+CC (QC Orig 10%) | 20% | 0% | 0% | 0% | round-cap (fallback happened to be correct) |
+| boolq | reversal-heavy | Falcon+CC (QC Orig 10%) | 10% | 0% | 0% | 0% | round-cap (fallback happened to be correct) |
+| arc_easy | stable | DCLM-Baseline (QC 7%, FW3) | 100% | 25% | 80% | 0% | round-cap (fallback happened to be correct) |
+| mmlu | stable | DCLM-Baseline (QC 7%, FW3) | 100% | 100% | 100% | 35% | round-cap (fallback happened to be correct) |
+
+(Baseline columns are bootstrap accuracy over the 3 real seeds, `n_bootstrap=20`.) A real,
+separate, worth-noting pattern in the baselines alone: they are *much* worse on the two
+reversal-heavy tasks than the two stable ones (mostly 0% vs. mostly 80-100%) -- consistent
+with P1-09's own kendall_tau ranking and with the plan's expectation that naive methods
+struggle exactly where ranking is unstable, even though this pilot cannot say anything about
+ETS's own comparative behavior there since it never reached a decision on any task.
+
+**Definition of done (from the plan):** the headline table and the guarded-oracle test are
+both delivered; the "if it abstains everywhere, say so" contingency is honored, adapted to
+what was actually found (round-cap exhaustion, not genuine abstention) rather than forced
+into the plan's literal anticipated framing. **This pilot does not resolve P3-05's core
+question** (does ETS deliver real compute savings on real data) -- flagged explicitly as
+open, for a follow-up run with substantially more compute for the adaptive algorithm
+specifically.
+
+**Decided by:** Agent, while executing task P3-05.
