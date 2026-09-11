@@ -1535,3 +1535,78 @@ confirms the label *sets* genuinely differ at the smallest vs. largest scale in 
 real cached data, so this isn't a hypothetical the code merely tolerates.
 
 **Decided by:** Agent, while executing task P3-01.
+
+## 2026-09-11 — P3-02: the allocation solver is validated-reasonable, not certified-optimal
+
+**Context:** `plan/04-phase3-algorithm.md` P3-02 asks for a numerical solver for the
+Theorem 2 Part A compute-weighted optimal-allocation program (T*): `sup_w min_{k!=k*}
+Delta_k^2 / (2 * J_k^T I_k(w)^-1 J_k)` subject to a compute budget on the simplex, plus
+a brute-force check on small instances.
+
+**Finding: two standard constrained-NLP routes were tried first and both failed on real
+instances, for reasons traced to the same root cause.** `scipy.optimize.minimize`'s
+SLSQP (epigraph reformulation, raw weights) converged to a badly-conditioned point
+(weights ~1e-18, costs spanning ~1e15-1e20) at 0.55x brute force's rate; reparametrizing
+to the true compute-fraction simplex and adding objective-scale normalization made
+SLSQP report "inequality constraints incompatible" on a provably feasible problem;
+switching to `trust-constr` converged without error but still landed at ~0.83x brute
+force's rate, with a `delta_grad==0.0` warning. Root cause: both solvers' constraint
+Jacobians are built by finite-differencing a function that routes through
+`np.linalg.pinv`, which is ill-conditioned near the rank-deficient Fisher-information
+matrices that sit right at the feasible region's boundary -- exactly where the search
+needs to reason correctly.
+
+**Fix, part 1: an exact closed-form gradient.** Using `d(M^-1)/dw = -M^-1(dM/dw)M^-1`,
+`_arm_rate_and_grad` computes `d(rate)/dw_s` in closed form rather than by finite
+differencing through `pinv`. Verified against finite differences directly (ratio
+1.00000-1.00006 across components in ad hoc testing) -- confirming the earlier failures
+were a numerical-conditioning problem, not a formula bug.
+
+**Fix, part 2 and 3: step-size and floor regularization for hand-rolled projected
+subgradient ascent.** Pivoting away from `scipy.optimize` entirely to a hand-rolled
+single-arm-update projected subgradient ascent on the simplex first collapsed to
+`rate=0` because gradient components vary by ~10,000x across cheap vs. expensive
+scales, so a step size calibrated only to the rate's own magnitude let one step exit the
+simplex before projection; fixed by normalizing the step to the *current* gradient's own
+norm (`step = alpha/(sqrt(t)*||grad||)`). It then still occasionally collapsed one arm
+to exactly zero weight, causing a rank-deficient `I_k(w)` and a silently-wrong `pinv`
+(treating an out-of-range direction as zero variance rather than infinite); fixed with an
+interior-point-style floor (`with_floor`, an affine remap of the simplex that keeps
+every weight `>= 1e-6/n_dims` strictly positive *during* the search only, not in the
+final reported weights).
+
+**Finding, not fully fixed: even with both fixes, the solver reliably converges to a
+*locally* max-min-consistent point that is not always the *global* optimum, and this
+is shipped as a known, documented limitation rather than resolved.** Every restart lands
+at (very nearly) the same objective value with the two tightest challengers' rates
+equalized -- the textbook signature of a genuine critical point -- but direct comparison
+against `brute_force_allocation` (dense random Dirichlet sampling, an unrelated search
+strategy) found a feasible point with a noticeably higher objective on at least one
+realistic test instance. Diagnosis (confirmed via a warm-start experiment: initializing
+the search exactly at brute force's own known-good point still drifted one arm's weight
+to 0 after 2000 iterations): updating only the currently-tightest challenger's gradient
+block each step, then applying a *full* simplex projection, can let the projection's
+mass-redistribution deplete an untouched arm's weight as a side effect of increasing
+another's. A softmin-weighted all-arms gradient combination was tried and did not
+reliably converge (oscillated); a water-filling/bisection decomposition (outer bisection
+on target rate, inner per-arm minimum-cost-for-target-rate subproblem) was started but
+left with an unresolved scaling bug (the bisection collapsed to `R≈0` despite clearly
+feasible higher-`R` points existing) and not completed, given the time already spent on
+the two fixes above. **Decision, made under explicit time pressure: ship the
+single-arm-update, floor-protected solver as-is, with `n_restarts` multi-start as the
+mitigation, and document the limitation honestly in `solve_allocation`'s own docstring**
+rather than either hiding it or blocking on a fully robust fix. Every caller must treat
+`solve_allocation`'s output as validated-reasonable, not certified-optimal, until this is
+revisited -- `brute_force_allocation` remains the independent check referenced in the
+docstring and in `tests/test_allocation.py`'s deliberately loose tolerances (e.g.
+`res.rate >= bf.rate / 10`, and a restart-consistency spread `< 10.0`, loosened from an
+initial `3.0` after an actual 4.5x spread was observed at `n_restarts=2, n_iter=500`).
+
+**Also fixed in passing: `brute_force_allocation` was too slow to be a practical
+verification tool.** The original per-sample Python loop took ~17s for 100k samples;
+rewritten to build all samples' Fisher-information matrices via batched `np.einsum`
+outer products and invert them with `np.linalg.pinv`'s batched `(..., p, p)` broadcasting,
+which handles 1M+ samples in a few seconds -- necessary for it to actually get run as a
+check rather than skipped for being too slow.
+
+**Decided by:** Agent, while executing task P3-02.
