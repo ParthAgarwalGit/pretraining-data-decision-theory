@@ -246,7 +246,9 @@ def fixed_ladder_extrapolation(
     scale for *every* recipe, nothing adaptive), then fit and
     extrapolate each recipe and rank. Distinct from `UniformAllocation`
     in that the design is fixed by scale coverage rather than by a
-    total compute budget."""
+    total compute budget. **No statistical guarantee is claimed** --
+    `outcome` is always `"decided"`; there is no bias budget, no
+    confidence level, and no possibility of abstaining."""
     compute_spent = 0.0
     n_pulls = 0
     predictions: dict[str, float] = {}
@@ -295,7 +297,10 @@ def successive_halving_over_scales(
     has narrowed to one -- what makes its own extrapolation valid.
     Survivors of the last rung are extrapolated (using every point they
     accumulated across all rungs) and ranked -- ties in the elimination
-    step are broken by recipe name for determinism."""
+    step are broken by recipe name for determinism. **No statistical
+    guarantee is claimed** -- `outcome` is always `"decided"`; a
+    recipe eliminated at an early rung is never reconsidered even if
+    it would have won given more scales."""
     scales_sorted = sorted(candidate_scales, key=lambda s: s.n)
     survivors = list(recipes)
     scales_data: dict[str, list[Scale]] = {r: [] for r in recipes}
@@ -350,13 +355,37 @@ def extrapolation_track_and_stop(
     min_pulls_per_pair: int = 1,
     rng: np.random.Generator | None = None,
 ) -> SelectionResult:
-    """Extrapolation-Track-and-Stop, exactly as specified in
-    paper/sections/theorem4_algorithm.tex: at each round, refit every
-    recipe's extrapolator on data so far, recompute the plug-in T*(nu)
-    weights from `solve_allocation` using the current fits as the
-    "instance", track the most-under-sampled (recipe, scale) pair
-    relative to that plug-in design (plus the reserved leader share --
-    see module docstring), and check Certified/Abstain after every pull.
+    """Extrapolation-Track-and-Stop: an active compute-allocation
+    algorithm for best-arm identification when the target-scale reward
+    is never observed, only extrapolated.
+
+    **The guarantee, and its conditions (Theorem 4, paper/sections/
+    theorem4_algorithm.tex):** if `eta[k] >= sqrt(sigma2_extrap_k)` for
+    every recipe `k` (i.e. `eta` is a *valid upper bound* on each
+    recipe's true extrapolation-bias magnitude at `target_scale` -- not
+    discovered by this function, supplied by the caller, possibly via
+    `docs/when_to_trust_extrapolation.md`'s plug-in estimator), then
+    **whenever this function returns `outcome="certified"`, `P[recipe !=
+    the true best recipe] <= delta`.** If `eta` under-estimates the true
+    bias for some recipe, this guarantee does **not** hold -- Theorem 4
+    is conditional, not unconditional, and P3-06's own sensitivity sweep
+    (`experiments/p3_06_eta_sensitivity.py`, `results/
+    p3_06_eta_sensitivity.json`) found under-estimating `eta` to 0
+    produces confident, wrong certifications 100% of the time in a
+    controlled instance -- this is the single most important thing a
+    caller must get right. `outcome="abstained"` carries no correctness
+    claim either way -- it means the algorithm could not certify (either
+    genuinely, via the bias-floor condition, or because `max_rounds` was
+    reached first; `certificate["reason"]` distinguishes the two) and
+    falls back to `recipe` chosen by a plain single-scale comparison at
+    the largest scale observed.
+
+    **Mechanics:** at each round, refit every recipe's extrapolator on
+    data so far, recompute the plug-in T*(nu) weights from
+    `solve_allocation` using the current fits as the "instance", track
+    the most-under-sampled (recipe, scale) pair relative to that plug-in
+    design (plus the reserved leader share -- see module docstring), and
+    check Certified/Abstain after every pull.
 
     `eta` is an *input* (an assumed upper bound on each recipe's bias
     magnitude, `eta_k >= sqrt(sigma2_extrap_k)`), per P2-05's decision

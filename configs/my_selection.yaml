@@ -1,0 +1,50 @@
+# Example config for `pdt select --config configs/my_selection.yaml`.
+# See plan/04-phase3-algorithm.md P3-08 and src/pdt/cli.py.
+#
+# This example uses the built-in `synthetic` oracle (no real data or
+# network access needed) so it runs out of the box; swap `oracle.type`
+# to `datadecide` (with `oracle.task: <a DataDecide task name>`) to
+# replay against real cached DataDecide data instead. For any other
+# data source, call `extrapolation_track_and_stop` directly from Python
+# with your own PullOracle -- see the README quickstart and this file's
+# module docstring in src/pdt/cli.py.
+
+recipes: [recipe_a, recipe_b, recipe_c]
+
+oracle:
+  type: synthetic
+  fit_scales:
+    - {n: 1.0e+6, d: 2.0e+7}
+    - {n: 3.0e+6, d: 6.0e+7}
+    - {n: 1.0e+7, d: 2.0e+8}
+    - {n: 3.0e+7, d: 6.0e+8}
+
+candidate_scales:
+  - {n: 1.0e+6, d: 2.0e+7}
+  - {n: 3.0e+6, d: 6.0e+7}
+  - {n: 1.0e+7, d: 2.0e+8}
+  - {n: 3.0e+7, d: 6.0e+8}
+
+target_scale: {n: 1.0e+9, d: 2.0e+10}
+
+# Confidence level: certify only if P[wrong recipe] <= delta.
+delta: 0.1
+
+# Assumed upper bound on each recipe's extrapolation-bias magnitude at
+# target_scale -- a single number here applies uniformly to every
+# recipe; use a mapping ({recipe_a: 0.05, ...}) for per-recipe values.
+# THIS MUST BE A VALID UPPER BOUND for the delta-correctness guarantee
+# to hold -- see docs/when_to_trust_extrapolation.md for how to
+# estimate it, and src/pdt/bai/ets.py's own docstring for what happens
+# if it's wrong (under-estimating eta can cause confident, wrong
+# certifications).
+eta: 0.03
+
+# Per-pull noise variance (accuracy^2 units) -- a planning-time input to
+# the T* allocation solver, not assumed to equal the stopping rule's own
+# (data-estimated) variance.
+sigma2: 0.0001
+
+model: PowerLawN
+max_rounds: 2000
+seed: 0

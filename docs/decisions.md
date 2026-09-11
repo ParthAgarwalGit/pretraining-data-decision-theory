@@ -2015,3 +2015,45 @@ all eight figures (F1-F8) with no manual steps, and none of the three figures ov
 what the underlying experiments actually established.
 
 **Decided by:** Agent, while executing task P3-07.
+
+## 2026-09-11 — P3-08: reference implementation polish, and a real PyYAML gotcha found by testing the example config
+
+**Context:** `plan/04-phase3-algorithm.md` P3-08 asks for a quickstart, a `pdt select` CLI,
+docstrings stating the guarantee and its conditions, and
+`docs/when_to_trust_extrapolation.md`.
+
+**Delivered:** `src/pdt/cli.py` (`pdt select --config configs/my_selection.yaml`, wired via
+`[project.scripts]`), `configs/my_selection.yaml` (a runnable example using the built-in
+`synthetic` oracle, no network access needed), a README quickstart (Python API + CLI),
+`docs/when_to_trust_extrapolation.md`, and explicit guarantee/condition statements added
+to `extrapolation_track_and_stop`'s, `fixed_ladder_extrapolation`'s, and
+`successive_halving_over_scales`'s docstrings (the other three already had them from
+P3-01/03).
+
+**A real bug found by testing the CLI against its own example config, not by inspection.**
+`configs/my_selection.yaml`'s first draft used `1.0e6`-style scientific notation for scale
+values. PyYAML's default (1.1) resolver does **not** recognize scientific notation without
+an explicit exponent sign -- `1.0e6` parses as the *string* `"1.0e6"`, not the float
+`1000000.0` (`1.0e+6` or plain `1000000.0` both work). This produced a `TypeError` deep in
+`PowerLawN`'s prediction formula (`scale.n ** (-alpha)` with a string `scale.n`), not an
+obvious config-parsing error at the point of the actual mistake. Fixed two ways: the
+example config now uses unambiguous `1.0e+N` notation, and (more importantly)
+`src/pdt/cli.py`'s own config parsing now explicitly coerces every numeric field via
+`float(...)` rather than trusting YAML's type inference at all -- Python's `float()`
+parses `"1.0e6"` correctly, so this is strictly more permissive than requiring users to
+know YAML's specific float grammar, and protects every future user of this CLI from
+hitting the same easy mistake, not just this one example file.
+
+**Also fixed in passing:** the README's own `Status: Phase 0` line, stale since Phase 0
+(this project is now well into Phase 3) -- updated to point at `STATUS.md` as the live
+source of truth rather than repeating a number that will go stale again.
+
+**Definition of done (from the plan):** quickstart, CLI, docstrings, and the
+practitioner-facing diagnostic doc all delivered; `docs/when_to_trust_extrapolation.md`
+states the under-estimation danger (citing P3-06's 20/20 result directly), the residual
+plug-in's own known limitation (citing the same finding), when to skip extrapolation
+entirely (citing Phase 1's F1 result), and the current round-cap-exhaustion limitation
+(citing P3-04/05/06) -- honest advice grounded in this project's own findings, not generic
+best-practice text. 9 new tests, 100% coverage on `src/pdt/cli.py`.
+
+**Decided by:** Agent, while executing task P3-08.

@@ -40,9 +40,17 @@ dev = [
     "mypy>=1.11",
     "pre-commit>=3.8",
 ]
+# The `pdt select` CLI (src/pdt/cli.py, P3-08) -- YAML config parsing on
+# top of `core` (already needed for the oracle/algorithm machinery).
+cli = [
+    "pyyaml>=6.0",
+]
 # NOTE: no `train` extra yet. Torch and the training stack are added in
 # task P4-01, deliberately kept out of the default environment until then --
 # see plan/05-phase4-training.md.
+
+[project.scripts]
+pdt = "pdt.cli:main"
 
 [build-system]
 requires = ["hatchling"]
