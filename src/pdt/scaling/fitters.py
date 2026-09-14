@@ -24,8 +24,21 @@ class ConstantExtrapolator(Extrapolator):
     n_params = 1
 
     def _fit_theta(self, scales, values, weights):
-        idx = max(range(len(scales)), key=lambda i: scales[i].n)
-        theta = np.array([values[idx]])
+        # Average every observation *at* the largest scale, not just the
+        # first one in the input order -- a real bug found by external
+        # review: the interface accepts repeated scales (a replicate
+        # history, e.g. several seeds at the same size), and callers
+        # throughout this project pass exactly that. Taking `values[idx]`
+        # for whichever row happens to be first at the max scale made the
+        # prediction depend on input order (reproduced: scales
+        # [(1,1),(2,1),(2,1)], y=[0,0.1,0.9] predicted 0.1, not the mean
+        # 0.5, and reordering the last two rows changed the answer) --
+        # see docs/decisions.md.
+        n_max = max(s.n for s in scales)
+        w = _weights_or_ones(values, weights)
+        largest_values = [v for s, v in zip(scales, values, strict=True) if s.n == n_max]
+        largest_weights = [wi for s, wi in zip(scales, w, strict=True) if s.n == n_max]
+        theta = np.array([float(np.average(largest_values, weights=largest_weights))])
         diagnostics = {
             "n_restarts": 1,
             "n_converged": 1,
@@ -54,7 +67,9 @@ class PowerLawN(Extrapolator):
             e, a, alpha = theta
             return w * ((e + a * ns ** (-alpha)) - ys)
 
-        return multi_start_fit(residual, self.n_params, self._bounds, self._rng)
+        return multi_start_fit(
+            residual, self.n_params, self._bounds, self._rng, log_uniform_dims=(2,)
+        )
 
     def _predict_from_theta(self, theta, scale):
         e, a, alpha = theta
@@ -77,7 +92,9 @@ class PowerLawC(Extrapolator):
             e, a, alpha = theta
             return w * ((e + a * cs ** (-alpha)) - ys)
 
-        return multi_start_fit(residual, self.n_params, self._bounds, self._rng)
+        return multi_start_fit(
+            residual, self.n_params, self._bounds, self._rng, log_uniform_dims=(2,)
+        )
 
     def _predict_from_theta(self, theta, scale):
         e, a, alpha = theta
@@ -114,7 +131,9 @@ class ChinchillaND(Extrapolator):
             pred = e - a * ns ** (-alpha) - b * ds ** (-beta)
             return w * (pred - ys)
 
-        return multi_start_fit(residual, self.n_params, self._bounds, self._rng)
+        return multi_start_fit(
+            residual, self.n_params, self._bounds, self._rng, log_uniform_dims=(2, 4)
+        )
 
     def _predict_from_theta(self, theta, scale):
         e, a, alpha, b, beta = theta
@@ -185,7 +204,9 @@ class TwoStepLadder(Extrapolator):
             e1, a1, alpha1 = theta
             return w * ((e1 + a1 * cs ** (-alpha1)) - ys)
 
-        step1_theta, step1_diag = multi_start_fit(step1_residual, 3, self._step1_bounds, self._rng)
+        step1_theta, step1_diag = multi_start_fit(
+            step1_residual, 3, self._step1_bounds, self._rng, log_uniform_dims=(2,)
+        )
         e1, a1, alpha1 = step1_theta
         proxy = e1 + a1 * cs ** (-alpha1)
 
