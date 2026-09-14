@@ -397,3 +397,54 @@ decisions.md entry for the regenerated numbers.
 
 **Decided by:** Agent, addressing PR #12's review. Full suite: 136 passed, 100%
 coverage on `src/pdt/scaling/base.py` and `src/pdt/scaling/fitters.py`.
+
+## 2026-09-14 — P1-04 results regenerated with both fixes: headline finding unchanged, individual fitter accuracies shift
+
+**Context:** follow-up to the entry immediately above. `results/p1_04_extrapolation.json`
+regenerated via `PDT_OVERWRITE=1 uv run python experiments/p1_04_extrapolation_baselines.py`
+on a clean tree with both scaling-law bugs fixed.
+
+**Headline finding is unchanged:** still 0/18 (fitter, design) combinations beat
+single-scale training at matched compute. `summary.n_beat_single_scale_at_matched_compute`
+is `0` both before and after, same as `summary.winners == []`. The consistency check
+(`ConstantExtrapolator`'s predictions matching P1-03's own reported numbers) still
+passes.
+
+**Individual accuracies moved, in the direction the bug predicts.** Every fitter with a
+decay-rate exponent parameter (the ones the `log_uniform_dims` fix touches) changed;
+`ConstantExtrapolator` and `LogLinear` (no exponent parameter, untouched by the fix) are
+bit-for-bit identical before and after, which is itself a useful sanity check that the
+fix is scoped correctly. Macro-averaged decision accuracy (including ties), by fitter
+and design:
+
+| fitter | design | before | after |
+|---|---|---|---|
+| PowerLawN | S_fit≤150M | 0.6452 | 0.7376 |
+| PowerLawN | S_fit≤300M | 0.6006 | 0.8097 |
+| PowerLawN | S_fit≤530M | 0.6891 | 0.8273 |
+| PowerLawC | S_fit≤150M | 0.6973 | 0.7358 |
+| PowerLawC | S_fit≤300M | 0.6915 | 0.7645 |
+| PowerLawC | S_fit≤530M | 0.7164 | 0.8179 |
+| ChinchillaND | S_fit≤150M | 0.7203 | 0.7624 |
+| ChinchillaND | S_fit≤300M | 0.7497 | 0.8148 |
+| ChinchillaND | S_fit≤530M | 0.7858 | 0.8482 |
+| TwoStepLadder | S_fit≤150M | 0.6942 | 0.5979 |
+| TwoStepLadder | S_fit≤300M | 0.7082 | 0.6197 |
+| TwoStepLadder | S_fit≤530M | 0.7697 | 0.6773 |
+| ConstantExtrapolator | (all 3) | 0.7627 / 0.8252 / 0.8509 | unchanged |
+| LogLinear | (all 3) | 0.7639 / 0.8148 / 0.8494 | unchanged |
+
+`PowerLawN`, `PowerLawC`, and `ChinchillaND` all got *more* accurate after the fix (by
+4-21 points) -- the old buggy initialization was landing genuine fits in the numerically
+flat high-alpha region often enough to measurably drag down decision accuracy, not just
+occasionally. `TwoStepLadder` moved the other way, *down* by 9-11 points: its step 1 also
+fits an `alpha`-like exponent, and the old bug's flat-region fits apparently happened to
+produce extrapolations that agreed with the true ranking more often than the genuinely
+optimal fits now do. Neither direction is surprising once the mechanism is understood --
+the old numbers weren't measuring "how good is this functional form", they were partly
+measuring "how did this particular numerical failure mode happen to land" -- but it means
+any pre-fix conclusion about `TwoStepLadder` specifically (e.g. "it's the best of the
+exponent-based fitters") should be treated as an artifact of the bug, not a real result.
+
+**Decided by:** Agent. Regeneration run completed cleanly (`git_dirty: false` in the
+written provenance); no code changes in this entry, data only.
