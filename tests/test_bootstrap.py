@@ -149,7 +149,7 @@ def test_bias_variance_decomposition_matches_hand_computation():
     mean_pred = sum(preds) / 4
     v_hat = sum((p - mean_pred) ** 2 for p in preds) / 3
     bias_hat = mean_pred - mu_true
-    expected_sigma2_extrap = max(0.0, bias_hat**2 - v_hat / 4 - sigma2_target)
+    expected_sigma2_extrap = max(0.0, bias_hat**2 - v_hat - v_hat / 4 - sigma2_target)
 
     assert result["mean_prediction"] == pytest.approx(mean_pred)
     assert result["v_hat"] == pytest.approx(v_hat)
@@ -173,6 +173,22 @@ def test_bias_variance_decomposition_large_consistent_bias_survives_the_floor():
     preds = [0.9] * 50  # zero replicate variance, huge bias
     result = bs.bias_variance_decomposition(preds, mu_true=0.5, sigma2_target=1e-6)
     assert result["sigma2_extrap_hat"] == pytest.approx(0.4**2, abs=1e-4)
+
+
+def test_bias_variance_decomposition_subtracts_v_hat_not_just_v_hat_over_b():
+    # Regression for the squared-bias correction bug: an earlier version
+    # only subtracted v_hat/B (finite-bootstrap Monte Carlo noise around
+    # mu_hat_orig), leaving mu_hat_orig's OWN sampling variance (~v_hat)
+    # baked into sigma2_extrap_hat even when there is no true structural
+    # bias. bias_hat^2=0.01 here sits strictly between v_hat/B (~0.0002)
+    # and v_hat (~0.04) -- the old formula (subtracting only v_hat/B)
+    # would report a spurious ~0.0098 of "extrapolation bias"; the
+    # corrected formula (subtracting v_hat too) floors it at 0.
+    preds = [0.3, 0.7] * 100  # B=200, mean_pred=0.5, v_hat ~ 0.04
+    result = bs.bias_variance_decomposition(preds, mu_true=0.4, sigma2_target=0.0)
+    assert result["v_hat"] > 0.01  # sanity: the per-replicate variance is real
+    assert result["bias_hat"] == pytest.approx(0.1)
+    assert result["sigma2_extrap_hat"] == pytest.approx(0.0, abs=1e-6)
 
 
 def test_bias_variance_decomposition_rejects_too_few_replicates():
