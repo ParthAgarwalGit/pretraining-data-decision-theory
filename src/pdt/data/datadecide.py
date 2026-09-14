@@ -15,8 +15,18 @@ the analysis this feeds. Three repos are used:
   P0-06 actually needs (a human-readable table of what each of the 25
   named recipes is made of) lives in that repo's README.md as a markdown
   table, which is the only file this module ever fetches from it.
-  ``allenai/DataDecide-eval-instances`` (~123GB) is similarly never
-  touched -- per the plan, Phase 1 does not need it.
+- ``allenai/DataDecide-eval-instances`` (~123GB total, 226 files): also
+  never downloaded as a snapshot -- the 123GB is per-instance model
+  predictions (`requests/*.jsonl.gz`, `models/*.tar.gz`,
+  `sample-evals/**`), none of which P1-05 needs. It does need one thing
+  from this repo: how many eval instances each task has, for the
+  `p(1-p)/n_instances` eval-sampling-noise term. That number lives in a
+  single 269MB root-level file, ``summary-metrics.jsonl`` (one row per
+  (task, model, size, seed, step), each carrying a `num_instances` field
+  that's the same for every row sharing a task -- confirmed, not assumed;
+  see `load_eval_instance_counts` below), fetched the same targeted way as
+  the recipes README: one named file via `download_file`, never a
+  snapshot of the whole repo.
 
 Two things about ``allenai/DataDecide-eval-results`` that the plan's
 author did not know before this module was written, found by inspecting
@@ -58,6 +68,7 @@ _CACHE_DIR = Path("data/cache/datadecide")
 _EVAL_RESULTS_REPO = "allenai/DataDecide-eval-results"
 _PPL_RESULTS_REPO = "allenai/DataDecide-ppl-results"
 _DATA_RECIPES_REPO = "allenai/DataDecide-data-recipes"
+_EVAL_INSTANCES_REPO = "allenai/DataDecide-eval-instances"
 
 _PARAMS_RE = re.compile(r"^(\d+(?:\.\d+)?)([MB])$")
 _PARAMS_MULTIPLIER = {"M": 1_000_000, "B": 1_000_000_000}
@@ -365,3 +376,46 @@ def load_recipes(revision: str | None = None) -> pl.DataFrame:
         return df, pinned
 
     return _cached_or_build("recipes", build)  # pragma: no cover -- see resolve_revision
+
+
+def _parse_eval_instance_counts(raw: pl.DataFrame) -> pl.DataFrame:
+    """Collapse `summary-metrics.jsonl`'s (task, num_instances) columns
+    (one row per (task, model, size, seed, step)) to one row per task.
+
+    Raises if `num_instances` isn't constant across every row for some
+    task -- callers rely on "one eval-set size per task, regardless of
+    which model was evaluated" being true, and this is checked, not
+    assumed.
+    """
+    per_task = raw.group_by("task").agg(
+        pl.col("num_instances").n_unique().alias("_n_unique"),
+        pl.col("num_instances").first().alias("num_instances"),
+    )
+    inconsistent = per_task.filter(pl.col("_n_unique") != 1)
+    if inconsistent.height > 0:
+        raise RuntimeError(
+            "num_instances is not constant across rows for task(s) "
+            f"{inconsistent['task'].to_list()} -- the 'one eval-set size per task' "
+            "assumption this loader relies on doesn't hold; investigate before "
+            "trusting any sigma^2_eval figure downstream."
+        )
+    return per_task.drop("_n_unique").sort("task")
+
+
+def load_eval_instance_counts(revision: str | None = None) -> pl.DataFrame:
+    """Per-task number of evaluation instances (`task`, `num_instances`),
+    parsed from the single `summary-metrics.jsonl` file in the
+    eval-instances repo -- see the module docstring for why this is one
+    269MB file, not a snapshot of that 123GB repo.
+    """
+
+    def build() -> tuple[pl.DataFrame, str]:  # pragma: no cover -- see download_*
+        path, pinned = download_file(
+            _EVAL_INSTANCES_REPO, "summary-metrics.jsonl", revision=revision
+        )
+        raw = pl.scan_ndjson(path).select(["task", "num_instances"]).collect()
+        return _parse_eval_instance_counts(raw), pinned
+
+    return _cached_or_build(
+        "eval_instance_counts", build
+    )  # pragma: no cover -- see resolve_revision
