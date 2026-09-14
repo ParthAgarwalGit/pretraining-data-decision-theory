@@ -342,3 +342,58 @@ independent clean full runs (see Decision 2) and a hard consistency check
 in the script itself: `ConstantExtrapolator`'s per-design accuracy must
 exactly equal (not approximately) the matching P1-03 single-scale point,
 since it is the same computation by construction; this passed on both runs.
+
+---
+
+## 2026-09-14 — Two real bugs found by external review, fixed, results regenerated
+
+**Context:** PR #12's reviewer found two real correctness bugs in `src/pdt/scaling/`,
+both with concrete, executable reproductions, and flagged that the resulting
+mis-fits/mis-predictions propagate through every downstream task that fits a scaling
+law (essentially all of Phase 1 onward) since PowerLawN/ConstantExtrapolator are used
+throughout.
+
+**Bug 1 (P1): `multi_start_fit`'s uniform-random restart initialization can silently
+converge to the wrong answer with all restarts agreeing.** `x0 = rng.uniform(bounds[0],
+bounds[1])` samples an exponent parameter like `alpha` linearly over `[1e-3, 10]` --
+almost all of that mass lands on `alpha >~ 1`, where `N^-alpha` and its derivatives
+underflow to numerically zero for the parameter counts this project fits over
+(1e6-1e9): a flat region with no gradient signal. `scipy.optimize.least_squares` can
+report `success=True` there anyway (it stops on step size, not residual, going to
+zero), so **every one of the default 8 restarts can land in that flat region and agree
+with each other** -- passing the function's own `objective_spread`-based multi-start
+sanity check while still being badly wrong. Reproduced exactly as the reviewer gave it:
+`PowerLawN(rng=np.random.default_rng(1))` fit to a noiseless `y = 0.9 - 2*N^-0.1` curve
+(`N` from 1e6 to 1.5e8) predicted 0.504 at the target scale instead of the true 0.648,
+with all 8 restarts converging to the identical wrong point (`objective_spread` ~1e-18).
+
+**Fix:** `multi_start_fit` gained a `log_uniform_dims` parameter naming which parameter
+indices are decay-rate exponents; those are now drawn log-uniformly over their own
+bounds instead of linearly, concentrating restarts in the region where the fit's
+gradient signal actually exists. Applied to every fitter with an exponent parameter:
+`PowerLawN`, `PowerLawC` (`alpha`, index 2), `ChinchillaND` (`alpha` and `beta`,
+indices 2 and 4), `TwoStepLadder`'s step 1 (`alpha1`, index 2). Re-running the exact
+counterexample now recovers the true curve exactly (`theta = [0.9, -2.0, 0.1]`,
+`best_cost ~4.5e-30`). Regression tests added:
+`tests/test_scaling.py::test_power_law_n_recovers_a_small_alpha_noiseless_curve_across_seeds`
+(the exact counterexample, checked across 5 seeds, not just the one reported) and
+`test_multi_start_fit_log_uniform_dims_avoids_the_flat_high_alpha_region` (a direct,
+model-agnostic before/after check of the fix itself).
+
+**Bug 2 (P2): `ConstantExtrapolator` used the first observation at the largest scale,
+not the average of every replicate there.** `values[idx]` for whichever row happened to
+be first at max-`N`, when the interface accepts (and every real caller passes) a
+replicate history -- several seeds at the same size. Reproduced exactly as given:
+scales `[(1,1),(2,1),(2,1)]`, `y=[0,0.1,0.9]` predicted 0.1 (the first n=2 row), not the
+mean 0.5; reordering the last two rows changed the answer.
+
+**Fix:** average every observation at the largest scale (respecting the `weights`
+argument when given), not just the first one encountered. Three regression tests
+added, covering averaging, order-independence, and weighted averaging.
+
+`results/p1_04_extrapolation.json` (and every downstream results file computed from a
+scaling-law fit) needs regenerating with both fixes in place -- see the follow-up
+decisions.md entry for the regenerated numbers.
+
+**Decided by:** Agent, addressing PR #12's review. Full suite: 136 passed, 100%
+coverage on `src/pdt/scaling/base.py` and `src/pdt/scaling/fitters.py`.
