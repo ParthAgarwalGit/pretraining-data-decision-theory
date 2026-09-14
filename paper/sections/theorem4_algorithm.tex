@@ -1,0 +1,199 @@
+% paper/sections/theorem4_algorithm.tex -- P2-05, plan/03-phase2-theory.md.
+%
+% Standalone section fragment, \input{} by paper/main.tex once P6-01 builds
+% the skeleton. Same preamble requirements as the other theoremN files.
+% Depends on setup.tex, theorem1_bound.tex, theorem2_lower_bound.tex,
+% theorem3_identifiability.tex's notation and machinery. This section
+% DEFINES the algorithm P3-03 implements -- P3 should treat this
+% definition as the spec, not re-derive its own.
+
+\section{Theorem 4: correctness of Extrapolation-Track-and-Stop}
+\label{sec:theorem4}
+
+\subsection{The algorithm}
+\label{sec:theorem4-algorithm}
+
+\textbf{Inputs:} $\delta \in (0, 1/2)$, an upper bound $\eta_k \ge \sqrt{\sigma^2_{\mathrm{extrap},k}}$
+on each arm's bias magnitude at the current design shape (estimated via P1-06's
+debiased estimator, Remark~\ref{rem:sigma2-extrap-estimator} -- see
+Section~\ref{sec:theorem4-eta} for why this must be an input, not a discovered
+quantity), a design shape $\pi$ (the relative weighting across scales that
+Theorem~\ref{thm:lower-bound}'s $T^\star(\nu)$ program optimizes; supplied by P3-02's
+solver, plugged in with the current $\hat\theta_k$'s).
+
+\textbf{Tracking (round $t$):} pull $(\arg\min_{k,s} N_k(s,t) / \pi(k,s))$ -- the
+most-under-sampled (arm, scale) pair relative to the target allocation $\pi$, the
+standard "C-tracking" rule (Garivier \& Kaufmann, 2016) applied to $\pi$ instead of a
+per-arm allocation. \emph{Cited, standard}: this specific tracking rule and its
+property (empirical allocation converges to $\pi$) are unchanged from the classical
+literature; nothing here is specific to the parametric setting.
+
+\textbf{Stopping and recommendation (round $t$):} let $\hat{k}(t) = \arg\max_k
+\hat\mu_k(s^\star; t)$ (current leading arm), and for each $k \ne \hat{k}(t)$:
+\[
+  \widehat{\Delta}_k(t) = \hat\mu_{\hat{k}(t)}(s^\star;t) - \hat\mu_k(s^\star;t), \qquad
+  c_k(t, \delta) = \sqrt{2\big(v_{\hat{k}(t)}(t) + v_k(t)\big) \log(1/\beta(t,\delta))}
+\]
+for an anytime-valid threshold $\beta(t,\delta)$ (e.g. the standard
+$\beta(t,\delta) = \delta / (t(t+1))$ union-bound-over-time construction, or a
+law-of-the-iterated-logarithm-type bound -- \emph{cited, standard}: this piece is
+unchanged from classical sequential testing and not re-derived here). Define
+\[
+  \textsc{Certified}_k(t) = \big\{ \widehat{\Delta}_k(t) - \eta_{\hat{k}(t)} - \eta_k
+    \;>\; c_k(t,\delta) \big\}, \qquad
+  \textsc{Abstain}_k(t) = \big\{ c_k(t,\delta) \le \epsilon_0 \ \text{ and }\
+    \widehat{\Delta}_k(t) - \eta_{\hat{k}(t)} - \eta_k \;\le\; c_k(t,\delta) \big\}
+\]
+for a small fixed tolerance $\epsilon_0 > 0$ (a practical "close enough" cutoff for
+"the confidence radius has stopped shrinking usefully"; any fixed $\epsilon_0$ works for
+Theorem~\ref{thm:algorithm-correctness}'s asymptotic claims, since the abstention event
+below is driven by $\eta$, not $\epsilon_0$, as $t \to \infty$).
+\begin{itemize}
+  \item \textbf{Stop and output $\hat{k}(t)$} if $\textsc{Certified}_k(t)$ holds for
+    every $k \ne \hat{k}(t)$.
+  \item \textbf{Abstain, output "cannot certify; recommend $s_{\mathrm{rec}}$"} if
+    $\textsc{Abstain}_k(t)$ holds for any $k \ne \hat{k}(t)$, where $s_{\mathrm{rec}}$ is
+    the single-scale (Corollary~\ref{cor:single-scale}) recommendation at the largest
+    scale actually observed.
+  \item Otherwise, continue tracking.
+\end{itemize}
+
+\subsection{Why a bias floor, not a growing threshold}
+\label{sec:theorem4-eta}
+
+\begin{remark}[The naive Track-and-Stop never stops here]
+Classical Track-and-Stop's GLR statistic is (up to constants) $\widehat{\Delta}_k(t)^2 /
+(2(v_{\hat{k}}(t)+v_k(t)))$, compared against a threshold $\sim \log(t/\delta)$ that
+\emph{grows} with $t$ -- correct when $v_k(t) \to 0$ and $\widehat\Delta_k(t)$ converges
+to the \emph{true} gap $\Delta_k > 0$, since then the statistic diverges and eventually
+crosses any growing threshold. Here, $\widehat\Delta_k(t) \to \Delta_k +
+\mathrm{bias}(D_k)$ (Corollary~\ref{cor:pairwise}), not $\Delta_k$ itself -- if
+$|\mathrm{bias}(D_k)|$ is large enough to matter, the naive statistic converges to a
+\emph{finite} limit and a growing threshold is eventually never crossed: the algorithm
+runs forever. This is exactly why route (b) (condition on a known/estimated $\eta$,
+rather than route (a), inflating the confidence level) is used:
+$\textsc{Certified}_k(t)$'s threshold does \emph{not} grow -- it compares a
+\emph{shrinking} $c_k(t,\delta)$ against a \emph{fixed} bias floor
+$\eta_{\hat{k}}+\eta_k$, so the algorithm correctly recognizes when further compute
+cannot help, rather than chasing a threshold it can never reach.
+\end{remark}
+
+\begin{theorem}[$\delta$-correctness, conditional on $\eta$]
+\label{thm:algorithm-correctness}
+If $\eta_k \ge \sqrt{\sigma^2_{\mathrm{extrap},k}}$ for every $k$ (the inputs are valid
+upper bounds), then whenever the algorithm stops and outputs $\hat{k}$,
+$\mathbb{P}[\hat{k} \ne k^\star] \le \delta$.
+\end{theorem}
+
+\begin{proof}
+Mechanical, directly from Theorem~\ref{thm:main-bound}'s corrected bound and the
+anytime-valid threshold construction: at the (random) stopping time $\tau$,
+$\textsc{Certified}_k(\tau)$ holding for every $k \ne \hat{k}(\tau)$ means
+$\widehat\Delta_k(\tau) - \eta_{\hat{k}(\tau)} - \eta_k > c_k(\tau,\delta)$, i.e. (by the
+same worst-case-bias argument as Theorem~\ref{thm:main-bound}'s Step 3-4, now with $\eta$
+in place of $\sqrt{\sigma^2_{\mathrm{extrap}}}$ since $\eta$ is assumed to \emph{upper
+bound} it) the event $\{\hat{k}(\tau) \ne k^\star\}$ implies some $c_k(\tau,\delta)$-scale
+deviation event whose probability, union-bounded over both $k$ and every possible
+stopping time $\tau$ (the anytime-valid $\beta(t,\delta)$ construction's entire purpose),
+is at most $\delta$. Not re-derived in full here since it is a direct combination of two
+already-proven pieces (Theorem~\ref{thm:main-bound}'s corrected worst-case bound, and the
+standard anytime-valid-threshold union-bound-over-time argument, \emph{cited} from the
+classical sequential-testing literature) rather than new content.
+\end{proof}
+
+\subsection{Asymptotic optimality in the solvable regime}
+\label{sec:theorem4-optimality}
+
+\begin{theorem}[Asymptotic optimality]
+\label{thm:asymptotic-optimality}
+In the solvable regime (Theorem~\ref{thm:impossibility}'s hypothesis fails --
+informally, $\eta_{k^\star} + \eta_k < \Delta_k$ for every $k$, i.e. the true gaps
+exceed the bias floor), tracking allocation $\pi = w^\star(\nu)$ (Theorem
+\ref{thm:lower-bound}'s optimizer) gives
+\[
+  \frac{\mathbb{E}_\nu[C(\tau)]}{\log(1/\delta)} \;\longrightarrow\; T^\star(\nu)
+  \qquad \text{as } \delta \to 0.
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+\needshuman{The upper-bound half is the standard Track-and-Stop asymptotic-optimality
+argument (Garivier \& Kaufmann, 2016, Theorem 14 and its proof technique): C-tracking
+drives the empirical allocation to $\pi$, the anytime-valid threshold is tight enough
+that stopping occurs as soon as $\textsc{Certified}$ triggers (no meaningful
+over-shoot), and in the solvable regime the bias floor $\eta_{\hat{k}}+\eta_k$ is
+eventually dominated by $\Delta_k$, so the stopping condition asymptotically reduces to
+the classical (bias-free) one -- adapting that proof's tracking-convergence and
+stopping-time lemmas to this parametric setting (rather than a per-arm empirical mean)
+is mechanical in structure but has not been written out line-by-line here, and is
+exactly the kind of "mechanical adaptation" that still needs a careful pass to confirm
+no parametric-specific step silently breaks a classical lemma's hypothesis (e.g. the
+tracking-convergence lemma's proof typically uses per-arm sample-mean concentration
+directly; here it needs Theorem~\ref{thm:main-bound} Step 1's M-estimator concentration
+instead, the same nonlinear-$g$ caveat flagged throughout this document). The matching
+lower bound is Theorem~\ref{thm:lower-bound} directly, no new argument.}
+\end{proof}
+
+\subsection{Graceful abstention in the impossible regime}
+\label{sec:theorem4-abstention}
+
+\begin{theorem}[Abstention triggers with high probability in the impossible regime]
+\label{thm:abstention}
+Suppose the current design shape places nonzero weight on scales
+$s < s^\star$ only (Theorem~\ref{thm:impossibility}'s setting) and the true instance
+is one of a pair $\nu_1, \nu_2$ satisfying that theorem's hypothesis with
+$\eta_k \ge |\mathrm{bias}(D_k)|$ under either instance (i.e. the assumed $\eta$'s
+correctly bound \emph{this specific} construction's perturbation). Then, as $t \to
+\infty$ along the tracking rule, $\mathbb{P}[\textsc{Abstain}_k(t) \text{ eventually
+holds for the confusable } k] \to 1$; the algorithm does not run forever without
+resolution.
+\end{theorem}
+
+\begin{proof}
+Since $\nu_1,\nu_2$ agree on every scale $s<s^\star$ (Theorem~\ref{thm:impossibility}'s
+hypothesis), $\hat\theta_{k}(t)$'s distribution -- and hence
+$\widehat\Delta_k(t)$'s -- is identical whether the true instance is $\nu_1$ or $\nu_2$
+(Theorem~\ref{thm:impossibility}'s proof, same argument). C-tracking under either
+instance drives $v_{\hat{k}}(t) + v_k(t) \to 0$ (Theorem~\ref{thm:lower-bound} Step 2,
+unaffected by which instance is true, since it only depends on the design), so
+$c_k(t,\delta) \to 0$ almost surely, eventually falling below any fixed $\epsilon_0$.
+By Theorem~\ref{thm:main-bound} Step 2 (delta-method consistency),
+$\widehat\Delta_k(t) \to D_k^\dagger$ a.s. (the population pairwise difference under
+the true instance). Theorem~\ref{thm:impossibility}'s construction (Section
+\ref{sec:theorem2-construction}) is built exactly so that
+$|D_k^\dagger| \le \eta_{\hat{k}}+\eta_k$ under (at least) one of $\nu_1,\nu_2$ -- by
+hypothesis here, this holds for the true instance. Hence $\widehat\Delta_k(t) -
+\eta_{\hat{k}}-\eta_k \to D_k^\dagger - \eta_{\hat{k}}-\eta_k \le 0 \le c_k(t,\delta)$
+eventually (since $c_k(t,\delta) \ge 0$ always), so both conjuncts of
+$\textsc{Abstain}_k(t)$ hold from some finite (random) time onward almost surely --
+convergence a.s. implies convergence in probability, giving the stated limit. Mechanical,
+given the already-proven pieces cited.
+\end{proof}
+
+\begin{remark}[This is the practically valuable part]
+Theorem~\ref{thm:abstention} is what makes the algorithm a genuine \emph{diagnostic}, not
+just a best-arm-identification routine that happens to sometimes be wrong: rather than
+silently running past its useful horizon (or silently returning an answer with a
+falsely-inflated confidence), it detects -- from the same quantities
+(Theorem~\ref{thm:main-bound}'s bias/variance decomposition) already computed for every
+other purpose in this project -- exactly the situation Theorem~\ref{thm:impossibility}
+proves is hopeless at this design, and falls back to the one baseline
+(Corollary~\ref{cor:single-scale}) that needs no extrapolation assumption at all.
+\end{remark}
+
+\subsection{Numerical certificate}
+\label{sec:theorem4-certificate}
+
+\texttt{tests/theory/test\_theorem4.py} implements the \textsc{Certified}/\textsc{Abstain}
+stopping-and-abstention logic exactly as specified above (not the full adaptive
+C-tracking algorithm, which needs P3-02's $T^\star$ solver and is P3-03's job to build
+and P3-04's to simulate end-to-end) against simulated compute-increasing sequences at a
+\emph{fixed} design shape, using the same linear-in-theta simulation machinery as
+Theorem~\ref{thm:main-bound}'s certificate. Checks: (a) in a solvable instance (true
+gap exceeds the assumed $\eta$ budget), the rule stops and selects $k^\star$ correctly
+in $\ge 1-\delta$ of repeated simulated runs; (b) in an instance built via
+Theorem~\ref{thm:impossibility}'s exact construction (Section
+\ref{sec:theorem2-construction}), the rule abstains (rather than stopping incorrectly,
+or never terminating within a generous compute cap) in effectively every run; (c) the
+algorithm never both stops \emph{and} abstains, and never falsely abstains when the
+true gap comfortably exceeds the $\eta$ budget.
