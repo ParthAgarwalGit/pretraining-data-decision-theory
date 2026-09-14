@@ -1,0 +1,3768 @@
+{
+  "provenance": {
+    "git_sha": "e7a81cd73b6af6d93e2a49d80a1ba49ba4249b8b",
+    "git_dirty": false,
+    "utc_timestamp": "2026-09-03T04:21:42.758327+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "P1-04"
+    }
+  },
+  "data": {
+    "target_scale": "1B",
+    "metric": "primary_metric",
+    "seed_mode": "average",
+    "sizes_ascending": [
+      "4M",
+      "6M",
+      "8M",
+      "10M",
+      "14M",
+      "16M",
+      "20M",
+      "60M",
+      "90M",
+      "150M",
+      "300M",
+      "530M",
+      "750M",
+      "1B"
+    ],
+    "designs": {
+      "S_fit_le_150M": {
+        "sizes": [
+          "4M",
+          "6M",
+          "8M",
+          "10M",
+          "14M",
+          "16M",
+          "20M",
+          "60M",
+          "90M",
+          "150M"
+        ],
+        "compute_cost": 2.1241825591296e+19
+      },
+      "S_fit_le_300M": {
+        "sizes": [
+          "4M",
+          "6M",
+          "8M",
+          "10M",
+          "14M",
+          "16M",
+          "20M",
+          "60M",
+          "90M",
+          "150M",
+          "300M"
+        ],
+        "compute_cost": 7.4325985591296e+19
+      },
+      "S_fit_le_530M": {
+        "sizes": [
+          "4M",
+          "6M",
+          "8M",
+          "10M",
+          "14M",
+          "16M",
+          "20M",
+          "60M",
+          "90M",
+          "150M",
+          "300M",
+          "530M"
+        ],
+        "compute_cost": 2.23856199991296e+20
+      }
+    },
+    "single_scale_frontier": {
+      "source_file": "results/p1_03_single_scale.json",
+      "source_git_sha": "3b212bee8a0e97fb8e0f5155fb0caf78c8ee8722",
+      "source_variant": "primary_metric__average",
+      "points": [
+        {
+          "params_str": "4M",
+          "compute_cost": 9004646400000000.0,
+          "accuracy_including_ties": 0.5293939393939394
+        },
+        {
+          "params_str": "6M",
+          "compute_cost": 2.1663055872e+16,
+          "accuracy_including_ties": 0.5772727272727273
+        },
+        {
+          "params_str": "8M",
+          "compute_cost": 4.1017147392e+16,
+          "accuracy_including_ties": 0.6375757575757576
+        },
+        {
+          "params_str": "10M",
+          "compute_cost": 5.944246272e+16,
+          "accuracy_including_ties": 0.6296969696969698
+        },
+        {
+          "params_str": "14M",
+          "compute_cost": 1.1010048e+17,
+          "accuracy_including_ties": 0.6609090909090909
+        },
+        {
+          "params_str": "16M",
+          "compute_cost": 1.53712852992e+17,
+          "accuracy_including_ties": 0.663030303030303
+        },
+        {
+          "params_str": "20M",
+          "compute_cost": 2.2938648576e+17,
+          "accuracy_including_ties": 0.6533333333333333
+        },
+        {
+          "params_str": "60M",
+          "compute_cost": 2.05556023296e+18,
+          "accuracy_including_ties": 0.7018181818181818
+        },
+        {
+          "params_str": "90M",
+          "compute_cost": 5.2908982272e+18,
+          "accuracy_including_ties": 0.7433333333333333
+        },
+        {
+          "params_str": "150M",
+          "compute_cost": 1.327104e+19,
+          "accuracy_including_ties": 0.7627272727272728
+        },
+        {
+          "params_str": "300M",
+          "compute_cost": 5.308416e+19,
+          "accuracy_including_ties": 0.8251515151515151
+        },
+        {
+          "params_str": "750M",
+          "compute_cost": 1.3934592e+20,
+          "accuracy_including_ties": 0.8306060606060606
+        },
+        {
+          "params_str": "530M",
+          "compute_cost": 1.495302144e+20,
+          "accuracy_including_ties": 0.8509090909090908
+        }
+      ]
+    },
+    "fitters": {
+      "ConstantExtrapolator": {
+        "S_fit_le_150M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.85,
+                "accuracy_excluding_ties": 0.8937728937728938,
+                "kendall_tau": 0.6999999999999998,
+                "kendall_p_value": 6.894808806253613e-08
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.9466666666666667,
+                "accuracy_excluding_ties": 0.9753521126760564,
+                "kendall_tau": 0.8933333333333332,
+                "kendall_p_value": 6.243333678511876e-15
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.6066666666666667,
+                "accuracy_excluding_ties": 0.625,
+                "kendall_tau": 0.2133333333333333,
+                "kendall_p_value": 0.14238229334378744
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.7466666666666667,
+                "accuracy_excluding_ties": 0.7813765182186235,
+                "kendall_tau": 0.4974965196541624,
+                "kendall_p_value": 0.0004998444852466268
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.7133333333333334,
+                "accuracy_excluding_ties": 0.7177700348432056,
+                "kendall_tau": 0.4266666666666666,
+                "kendall_p_value": 0.002397783422611727
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.92,
+                "accuracy_excluding_ties": 0.9363957597173145,
+                "kendall_tau": 0.8399999999999999,
+                "kendall_p_value": 2.4595495011540233e-12
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.83,
+                "accuracy_excluding_ties": 0.8388278388278388,
+                "kendall_tau": 0.6599999999999998,
+                "kendall_p_value": 5.60498691809609e-07
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.8166666666666667,
+                "accuracy_excluding_ties": 0.8622222222222222,
+                "kendall_tau": 0.6465743278167597,
+                "kendall_p_value": 6.421217217694304e-06
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.8333333333333334,
+                "accuracy_excluding_ties": 0.9103139013452914,
+                "kendall_tau": 0.6711194661106487,
+                "kendall_p_value": 2.657870018608815e-06
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.6633333333333333,
+                "accuracy_excluding_ties": 0.7475247524752475,
+                "kendall_tau": 0.33445003104532556,
+                "kendall_p_value": 0.019451053763139294
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.4633333333333333,
+                "accuracy_excluding_ties": 0.4678111587982833,
+                "kendall_tau": -0.06689000620906511,
+                "kendall_p_value": 0.6402463726566907
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.7627272727272728,
+          "macro_avg_accuracy_excluding_ties": 0.7960333811724525,
+          "macro_avg_kendall_tau": 0.5287348792501058,
+          "compute_cost": 2.1241825591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.7839086399281419,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_300M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.9233333333333333,
+                "accuracy_excluding_ties": 0.967032967032967,
+                "kendall_tau": 0.8466666666666665,
+                "kendall_p_value": 1.2753482209484562e-12
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.95,
+                "accuracy_excluding_ties": 0.9788732394366197,
+                "kendall_tau": 0.8999999999999998,
+                "kendall_p_value": 2.5688970213598528e-15
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.6433333333333333,
+                "accuracy_excluding_ties": 0.6979166666666666,
+                "kendall_tau": 0.2904845450329673,
+                "kendall_p_value": 0.04210947392101794
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.8466666666666667,
+                "accuracy_excluding_ties": 0.8947368421052632,
+                "kendall_tau": 0.7068686633462667,
+                "kendall_p_value": 8.14226786562959e-07
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.8633333333333333,
+                "accuracy_excluding_ties": 0.8780487804878049,
+                "kendall_tau": 0.7266666666666666,
+                "kendall_p_value": 1.4525510985667683e-08
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.91,
+                "accuracy_excluding_ties": 0.9399293286219081,
+                "kendall_tau": 0.8199999999999998,
+                "kendall_p_value": 1.5620057682745543e-11
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.86,
+                "accuracy_excluding_ties": 0.8791208791208791,
+                "kendall_tau": 0.7199999999999999,
+                "kendall_p_value": 2.172785608144578e-08
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.82,
+                "accuracy_excluding_ties": 0.8755555555555555,
+                "kendall_tau": 0.6444082435788815,
+                "kendall_p_value": 6.52141653206e-06
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.81,
+                "accuracy_excluding_ties": 0.8565022421524664,
+                "kendall_tau": 0.6243748266800562,
+                "kendall_p_value": 1.2506235033665016e-05
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.75,
+                "accuracy_excluding_ties": 0.8613861386138614,
+                "kendall_tau": 0.5083640471888948,
+                "kendall_p_value": 0.00038247019782253227
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.7,
+                "accuracy_excluding_ties": 0.7381974248927039,
+                "kendall_tau": 0.4120655042562769,
+                "kendall_p_value": 0.004040091338282704
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.8251515151515151,
+          "macro_avg_accuracy_excluding_ties": 0.8697545513351542,
+          "macro_avg_kendall_tau": 0.6545362875833342,
+          "compute_cost": 7.4325985591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.8270538448963465,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_530M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.94,
+                "accuracy_excluding_ties": 0.967032967032967,
+                "kendall_tau": 0.8799999999999999,
+                "kendall_p_value": 3.3090221802436304e-14
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.9666666666666667,
+                "accuracy_excluding_ties": 0.9894366197183099,
+                "kendall_tau": 0.9333333333333331,
+                "kendall_p_value": 1.5136119705950535e-17
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.66,
+                "accuracy_excluding_ties": 0.7083333333333334,
+                "kendall_tau": 0.3199999999999999,
+                "kendall_p_value": 0.025387066467633498
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.85,
+                "accuracy_excluding_ties": 0.8866396761133604,
+                "kendall_tau": 0.7045084942753576,
+                "kendall_p_value": 8.254891548751714e-07
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.9166666666666666,
+                "accuracy_excluding_ties": 0.9337979094076655,
+                "kendall_tau": 0.8333333333333331,
+                "kendall_p_value": 4.644413290051839e-12
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.9533333333333334,
+                "accuracy_excluding_ties": 0.9752650176678446,
+                "kendall_tau": 0.9066666666666665,
+                "kendall_p_value": 1.0151223332037763e-15
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8833333333333333,
+                "accuracy_excluding_ties": 0.9047619047619048,
+                "kendall_tau": 0.7666666666666665,
+                "kendall_p_value": 1.0489572171579035e-09
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.8266666666666667,
+                "accuracy_excluding_ties": 0.8844444444444445,
+                "kendall_tau": 0.666675084121944,
+                "kendall_p_value": 3.296156177232259e-06
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.7833333333333333,
+                "accuracy_excluding_ties": 0.8565022421524664,
+                "kendall_tau": 0.570952381616522,
+                "kendall_p_value": 6.475183361839774e-05
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.7966666666666666,
+                "accuracy_excluding_ties": 0.900990099009901,
+                "kendall_tau": 0.597663604148289,
+                "kendall_p_value": 2.8936310813184233e-05
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 1.0,
+              "mean_objective_spread": 0.0,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.7833333333333333,
+                "accuracy_excluding_ties": 0.8326180257510729,
+                "kendall_tau": 0.5666666666666667,
+                "kendall_p_value": 3.0830988230961115e-05
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.8509090909090908,
+          "macro_avg_accuracy_excluding_ties": 0.8945292944902973,
+          "macro_avg_kendall_tau": 0.7042242028026162,
+          "compute_cost": 2.23856199991296e+20,
+          "matched_single_scale_accuracy_including_ties": null,
+          "matched_compute_out_of_range": true,
+          "beats_single_scale_at_matched_compute": null
+        }
+      },
+      "PowerLawN": {
+        "S_fit_le_150M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0006493214837071079,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.6833333333333333,
+                "accuracy_excluding_ties": 0.706959706959707,
+                "kendall_tau": 0.3666666666666666,
+                "kendall_p_value": 0.009856596254745291
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.007971300787169185,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.72,
+                "accuracy_excluding_ties": 0.7323943661971831,
+                "kendall_tau": 0.43999999999999995,
+                "kendall_p_value": 0.0016947235531532155
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0037781986696989295,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.5833333333333334,
+                "accuracy_excluding_ties": 0.5677083333333334,
+                "kendall_tau": 0.16666666666666663,
+                "kendall_p_value": 0.2553720922559076
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.011761954639664295,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.5566666666666666,
+                "accuracy_excluding_ties": 0.562753036437247,
+                "kendall_tau": 0.1168615985764811,
+                "kendall_p_value": 0.41355882968847646
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.002461671287889183,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.5833333333333334,
+                "accuracy_excluding_ties": 0.5888501742160279,
+                "kendall_tau": 0.16666666666666663,
+                "kendall_p_value": 0.2553720922559076
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00040237041570985536,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.73,
+                "accuracy_excluding_ties": 0.7385159010600707,
+                "kendall_tau": 0.4599999999999999,
+                "kendall_p_value": 0.0009829823600505953
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0013310247231897315,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.6666666666666666,
+                "accuracy_excluding_ties": 0.663003663003663,
+                "kendall_tau": 0.33333333333333326,
+                "kendall_p_value": 0.019623905415578614
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.003023776539677854,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.63,
+                "accuracy_excluding_ties": 0.6755555555555556,
+                "kendall_tau": 0.25999999999999995,
+                "kendall_p_value": 0.07183422315251489
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0010853454594464606,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.84,
+                "accuracy_excluding_ties": 0.9192825112107623,
+                "kendall_tau": 0.6799999999999998,
+                "kendall_p_value": 2.0324734620975318e-07
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00030465584711952245,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.7133333333333334,
+                "accuracy_excluding_ties": 0.7326732673267327,
+                "kendall_tau": 0.4266666666666666,
+                "kendall_p_value": 0.002397783422611727
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.6408419325334136e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.39,
+                "accuracy_excluding_ties": 0.38626609442060084,
+                "kendall_tau": -0.21999999999999997,
+                "kendall_p_value": 0.12994145940142376
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.6451515151515151,
+          "macro_avg_accuracy_excluding_ties": 0.661269328156444,
+          "macro_avg_kendall_tau": 0.29062378168877095,
+          "compute_cost": 2.1241825591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.7839086399281419,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_300M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0024599024456021423,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7566666666666667,
+                "accuracy_excluding_ties": 0.7912087912087912,
+                "kendall_tau": 0.5133333333333333,
+                "kendall_p_value": 0.0001973957152927555
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.017206579988077633,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.7366666666666667,
+                "accuracy_excluding_ties": 0.7394366197183099,
+                "kendall_tau": 0.4733333333333333,
+                "kendall_p_value": 0.0006723102178477008
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00481012197727129,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.5333333333333333,
+                "accuracy_excluding_ties": 0.5260416666666666,
+                "kendall_tau": 0.06666666666666665,
+                "kendall_p_value": 0.6604714750997261
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0281539761685845,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.6866666666666666,
+                "accuracy_excluding_ties": 0.708502024291498,
+                "kendall_tau": 0.3772960182612104,
+                "kendall_p_value": 0.008294726325459162
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.006496690702499102,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.49,
+                "accuracy_excluding_ties": 0.49477351916376305,
+                "kendall_tau": -0.019999999999999993,
+                "kendall_p_value": 0.9080331814389776
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00041281720158329785,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.5433333333333333,
+                "accuracy_excluding_ties": 0.5477031802120141,
+                "kendall_tau": 0.08666666666666664,
+                "kendall_p_value": 0.5630785727268515
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.002356794440800789,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.6766666666666666,
+                "accuracy_excluding_ties": 0.6886446886446886,
+                "kendall_tau": 0.3533333333333333,
+                "kendall_p_value": 0.013084783660559913
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0038331614552110154,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.5333333333333333,
+                "accuracy_excluding_ties": 0.5288888888888889,
+                "kendall_tau": 0.06666666666666665,
+                "kendall_p_value": 0.6604714750997261
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.006272748308611461,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.7266666666666667,
+                "accuracy_excluding_ties": 0.7802690582959642,
+                "kendall_tau": 0.45333333333333325,
+                "kendall_p_value": 0.00118256899300539
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0010130958680951935,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.5266666666666666,
+                "accuracy_excluding_ties": 0.5396039603960396,
+                "kendall_tau": 0.05333333333333332,
+                "kendall_p_value": 0.7288211329394639
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 5.3457788683196605e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.39666666666666667,
+                "accuracy_excluding_ties": 0.38197424892703863,
+                "kendall_tau": -0.20666666666666664,
+                "kendall_p_value": 0.1556965251316672
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.6006060606060606,
+          "macro_avg_accuracy_excluding_ties": 0.6115496951285148,
+          "macro_avg_kendall_tau": 0.20157236529647363,
+          "compute_cost": 7.4325985591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.8270538448963465,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_530M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.004893021466799574,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7766666666666666,
+                "accuracy_excluding_ties": 0.7985347985347986,
+                "kendall_tau": 0.5533333333333332,
+                "kendall_p_value": 5.032943598554465e-05
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.017941336689054743,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.5533333333333333,
+                "accuracy_excluding_ties": 0.5704225352112676,
+                "kendall_tau": 0.10666666666666665,
+                "kendall_p_value": 0.4730453015604536
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0058488910431199435,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.6066666666666667,
+                "accuracy_excluding_ties": 0.640625,
+                "kendall_tau": 0.2133333333333333,
+                "kendall_p_value": 0.14238229334378744
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.034875262263521986,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.68,
+                "accuracy_excluding_ties": 0.7125506072874493,
+                "kendall_tau": 0.36394040699532687,
+                "kendall_p_value": 0.010884472213805221
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.01763982157614098,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.77,
+                "accuracy_excluding_ties": 0.7735191637630662,
+                "kendall_tau": 0.5399999999999999,
+                "kendall_p_value": 8.071280240832186e-05
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0007888848394005947,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.6433333333333333,
+                "accuracy_excluding_ties": 0.6431095406360424,
+                "kendall_tau": 0.2866666666666666,
+                "kendall_p_value": 0.04630991896491626
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.004916405731311415,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7766666666666666,
+                "accuracy_excluding_ties": 0.7802197802197802,
+                "kendall_tau": 0.5533333333333332,
+                "kendall_p_value": 5.032943598554465e-05
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.010386583308369788,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.7133333333333334,
+                "accuracy_excluding_ties": 0.7822222222222223,
+                "kendall_tau": 0.4266666666666666,
+                "kendall_p_value": 0.002397783422611727
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.008409194479315091,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.7166666666666667,
+                "accuracy_excluding_ties": 0.726457399103139,
+                "kendall_tau": 0.43333333333333324,
+                "kendall_p_value": 0.0020190084614050328
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0014814627368179756,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.7166666666666667,
+                "accuracy_excluding_ties": 0.8366336633663366,
+                "kendall_tau": 0.43333333333333324,
+                "kendall_p_value": 0.0020190084614050328
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00021144612585293767,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.6266666666666667,
+                "accuracy_excluding_ties": 0.648068669527897,
+                "kendall_tau": 0.25333333333333324,
+                "kendall_p_value": 0.07972026188701116
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.6890909090909091,
+          "macro_avg_accuracy_excluding_ties": 0.7193057618065454,
+          "macro_avg_kendall_tau": 0.3785400369995751,
+          "compute_cost": 2.23856199991296e+20,
+          "matched_single_scale_accuracy_including_ties": null,
+          "matched_compute_out_of_range": true,
+          "beats_single_scale_at_matched_compute": null
+        }
+      },
+      "PowerLawC": {
+        "S_fit_le_150M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0007980927033948922,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7266666666666667,
+                "accuracy_excluding_ties": 0.7655677655677655,
+                "kendall_tau": 0.45333333333333325,
+                "kendall_p_value": 0.00118256899300539
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.002878731394195251,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.7566666666666667,
+                "accuracy_excluding_ties": 0.7852112676056338,
+                "kendall_tau": 0.5133333333333333,
+                "kendall_p_value": 0.0001973957152927555
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0017112311202733266,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.5233333333333333,
+                "accuracy_excluding_ties": 0.5,
+                "kendall_tau": 0.046666666666666655,
+                "kendall_p_value": 0.7638450161401625
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0028742784766828022,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.6866666666666666,
+                "accuracy_excluding_ties": 0.7246963562753036,
+                "kendall_tau": 0.3772960182612104,
+                "kendall_p_value": 0.008294726325459162
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0005915746133343943,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.62,
+                "accuracy_excluding_ties": 0.6236933797909407,
+                "kendall_tau": 0.23999999999999996,
+                "kendall_p_value": 0.09754603408321157
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 5.977411492619434e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.8633333333333333,
+                "accuracy_excluding_ties": 0.8798586572438163,
+                "kendall_tau": 0.7266666666666666,
+                "kendall_p_value": 1.4525510985667683e-08
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0003888588678158867,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7633333333333333,
+                "accuracy_excluding_ties": 0.7802197802197802,
+                "kendall_tau": 0.5266666666666665,
+                "kendall_p_value": 0.00012725626615342077
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0020277175788080987,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.6866666666666666,
+                "accuracy_excluding_ties": 0.7111111111111111,
+                "kendall_tau": 0.37333333333333324,
+                "kendall_p_value": 0.008520236731434604
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0013994857003208968,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.79,
+                "accuracy_excluding_ties": 0.8385650224215246,
+                "kendall_tau": 0.5799999999999998,
+                "kendall_p_value": 1.853872631297424e-05
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00017691535517471888,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.7333333333333333,
+                "accuracy_excluding_ties": 0.7970297029702971,
+                "kendall_tau": 0.46666666666666656,
+                "kendall_p_value": 0.0008143331409115769
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.429512445735728e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.52,
+                "accuracy_excluding_ties": 0.5493562231759657,
+                "kendall_tau": 0.03999999999999999,
+                "kendall_p_value": 0.7993481021210237
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.6972727272727273,
+          "macro_avg_accuracy_excluding_ties": 0.7232099333074671,
+          "macro_avg_kendall_tau": 0.39490569862980696,
+          "compute_cost": 2.1241825591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.7839086399281419,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_300M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0007226524755042928,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7066666666666667,
+                "accuracy_excluding_ties": 0.717948717948718,
+                "kendall_tau": 0.4133333333333333,
+                "kendall_p_value": 0.0033507212782298876
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0031242174274912137,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.87,
+                "accuracy_excluding_ties": 0.8908450704225352,
+                "kendall_tau": 0.7399999999999999,
+                "kendall_p_value": 6.308099930779546e-09
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0018878051495895042,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.5,
+                "accuracy_excluding_ties": 0.4791666666666667,
+                "kendall_tau": 0.0,
+                "kendall_p_value": 1.0
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.01153560483992908,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.6766666666666666,
+                "accuracy_excluding_ties": 0.6963562753036437,
+                "kendall_tau": 0.3572626013623851,
+                "kendall_p_value": 0.012431134612111051
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0023248950823774807,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.6833333333333333,
+                "accuracy_excluding_ties": 0.6898954703832753,
+                "kendall_tau": 0.3666666666666666,
+                "kendall_p_value": 0.009856596254745291
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0005283039766242069,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.76,
+                "accuracy_excluding_ties": 0.7809187279151943,
+                "kendall_tau": 0.5199999999999999,
+                "kendall_p_value": 0.00015880897857935695
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0029078142554241353,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7566666666666667,
+                "accuracy_excluding_ties": 0.7692307692307693,
+                "kendall_tau": 0.5133333333333333,
+                "kendall_p_value": 0.0001973957152927555
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0006824601280787521,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.71,
+                "accuracy_excluding_ties": 0.76,
+                "kendall_tau": 0.41999999999999993,
+                "kendall_p_value": 0.002838809542227846
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0024795267669370387,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.7933333333333333,
+                "accuracy_excluding_ties": 0.8789237668161435,
+                "kendall_tau": 0.5866666666666666,
+                "kendall_p_value": 1.4271783082036028e-05
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0004149731174543357,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.6466666666666666,
+                "accuracy_excluding_ties": 0.7029702970297029,
+                "kendall_tau": 0.2933333333333333,
+                "kendall_p_value": 0.04125951957926039
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 3.422962009845454e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.5033333333333333,
+                "accuracy_excluding_ties": 0.5278969957081545,
+                "kendall_tau": 0.006666666666666665,
+                "kendall_p_value": 0.981568217609005
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.6915151515151515,
+          "macro_avg_accuracy_excluding_ties": 0.7176502506749821,
+          "macro_avg_kendall_tau": 0.3833875092147622,
+          "compute_cost": 7.4325985591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.8270538448963465,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_530M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0025804771032888387,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7966666666666666,
+                "accuracy_excluding_ties": 0.8205128205128205,
+                "kendall_tau": 0.5933333333333333,
+                "kendall_p_value": 1.0932248579248358e-05
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.007817248977705207,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.94,
+                "accuracy_excluding_ties": 0.9647887323943662,
+                "kendall_tau": 0.8799999999999999,
+                "kendall_p_value": 3.3090221802436304e-14
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.001814495725669728,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.58,
+                "accuracy_excluding_ties": 0.5989583333333334,
+                "kendall_tau": 0.15999999999999995,
+                "kendall_p_value": 0.27546798247377474
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.011154455753294233,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.7166666666666667,
+                "accuracy_excluding_ties": 0.7408906882591093,
+                "kendall_tau": 0.43739626895768646,
+                "kendall_p_value": 0.0022108910039556856
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0036444792002683795,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.6766666666666666,
+                "accuracy_excluding_ties": 0.6898954703832753,
+                "kendall_tau": 0.3533333333333333,
+                "kendall_p_value": 0.013084783660559913
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0007742134460140281,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.7266666666666667,
+                "accuracy_excluding_ties": 0.734982332155477,
+                "kendall_tau": 0.45333333333333325,
+                "kendall_p_value": 0.00118256899300539
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0010262990870338515,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7233333333333334,
+                "accuracy_excluding_ties": 0.7326007326007326,
+                "kendall_tau": 0.4466666666666666,
+                "kendall_p_value": 0.0014179778893331951
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.007991274427857721,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.65,
+                "accuracy_excluding_ties": 0.6933333333333334,
+                "kendall_tau": 0.29999999999999993,
+                "kendall_p_value": 0.03667379415299802
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0014227917986013416,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.8266666666666667,
+                "accuracy_excluding_ties": 0.874439461883408,
+                "kendall_tau": 0.6533333333333332,
+                "kendall_p_value": 7.752663573750029e-07
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0010257646053787115,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.7133333333333334,
+                "accuracy_excluding_ties": 0.7871287128712872,
+                "kendall_tau": 0.4266666666666666,
+                "kendall_p_value": 0.002397783422611727
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00017593562485157288,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.53,
+                "accuracy_excluding_ties": 0.5321888412017167,
+                "kendall_tau": 0.05999999999999999,
+                "kendall_p_value": 0.6943423762297564
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.7163636363636363,
+          "macro_avg_accuracy_excluding_ties": 0.7427017689935327,
+          "macro_avg_kendall_tau": 0.43309663051130476,
+          "compute_cost": 2.23856199991296e+20,
+          "matched_single_scale_accuracy_including_ties": null,
+          "matched_compute_out_of_range": true,
+          "beats_single_scale_at_matched_compute": null
+        }
+      },
+      "ChinchillaND": {
+        "S_fit_le_150M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.002527531074221204,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.83,
+                "accuracy_excluding_ties": 0.8791208791208791,
+                "kendall_tau": 0.6599999999999998,
+                "kendall_p_value": 5.60498691809609e-07
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.021003907386588597,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.8133333333333334,
+                "accuracy_excluding_ties": 0.8309859154929577,
+                "kendall_tau": 0.6266666666666666,
+                "kendall_p_value": 2.6630155167514518e-06
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.006815049855366429,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.65,
+                "accuracy_excluding_ties": 0.6666666666666666,
+                "kendall_tau": 0.29999999999999993,
+                "kendall_p_value": 0.03667379415299802
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.024886114757982206,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.7166666666666667,
+                "accuracy_excluding_ties": 0.757085020242915,
+                "kendall_tau": 0.43739626895768646,
+                "kendall_p_value": 0.0022108910039556856
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00417361831934265,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.5233333333333333,
+                "accuracy_excluding_ties": 0.5261324041811847,
+                "kendall_tau": 0.046666666666666655,
+                "kendall_p_value": 0.7638450161401625
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0006834381603874551,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.9166666666666666,
+                "accuracy_excluding_ties": 0.9399293286219081,
+                "kendall_tau": 0.8333333333333331,
+                "kendall_p_value": 4.644413290051839e-12
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0047927133615489805,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8233333333333334,
+                "accuracy_excluding_ties": 0.8388278388278388,
+                "kendall_tau": 0.6466666666666666,
+                "kendall_p_value": 1.0653408969625495e-06
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.006337303900188159,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.73,
+                "accuracy_excluding_ties": 0.7733333333333333,
+                "kendall_tau": 0.4599999999999999,
+                "kendall_p_value": 0.0009829823600505953
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0067385101498553205,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.83,
+                "accuracy_excluding_ties": 0.9103139013452914,
+                "kendall_tau": 0.6599999999999998,
+                "kendall_p_value": 5.60498691809609e-07
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0009374343813070591,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.6333333333333333,
+                "accuracy_excluding_ties": 0.693069306930693,
+                "kendall_tau": 0.2666666666666666,
+                "kendall_p_value": 0.0645854561274738
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 7.96,
+              "mean_objective_spread": 5.0432820561923586e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.45666666666666667,
+                "accuracy_excluding_ties": 0.47639484978540775,
+                "kendall_tau": -0.08666666666666664,
+                "kendall_p_value": 0.5630785727268515
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.7203030303030302,
+          "macro_avg_accuracy_excluding_ties": 0.7538054040499159,
+          "macro_avg_kendall_tau": 0.44097541839009263,
+          "compute_cost": 2.1241825591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.7839086399281419,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_300M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.006455676141593611,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8333333333333334,
+                "accuracy_excluding_ties": 0.8681318681318682,
+                "kendall_tau": 0.6666666666666665,
+                "kendall_p_value": 4.0250660399598214e-07
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 7.96,
+              "mean_objective_spread": 0.03995089017715119,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.9,
+                "accuracy_excluding_ties": 0.9330985915492958,
+                "kendall_tau": 0.7999999999999998,
+                "kendall_p_value": 8.45121861355698e-11
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00907277543836574,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.6733333333333333,
+                "accuracy_excluding_ties": 0.734375,
+                "kendall_tau": 0.34666666666666657,
+                "kendall_p_value": 0.015016297415695348
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.03466373315882236,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.5933333333333334,
+                "accuracy_excluding_ties": 0.6153846153846154,
+                "kendall_tau": 0.19031746053884066,
+                "kendall_p_value": 0.18299284634439283
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.01327731208760633,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.75,
+                "accuracy_excluding_ties": 0.759581881533101,
+                "kendall_tau": 0.4999999999999999,
+                "kendall_p_value": 0.0003014398822329857
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0012994880050430486,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.8966666666666666,
+                "accuracy_excluding_ties": 0.9222614840989399,
+                "kendall_tau": 0.7933333333333331,
+                "kendall_p_value": 1.4377353942437816e-10
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.009514473007274838,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7666666666666667,
+                "accuracy_excluding_ties": 0.7948717948717948,
+                "kendall_tau": 0.5333333333333332,
+                "kendall_p_value": 0.00010155799170934749
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.013733170438847957,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.7633333333333333,
+                "accuracy_excluding_ties": 0.8133333333333334,
+                "kendall_tau": 0.5266666666666665,
+                "kendall_p_value": 0.00012725626615342077
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.010877797454581862,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.8133333333333334,
+                "accuracy_excluding_ties": 0.8475336322869955,
+                "kendall_tau": 0.6266666666666666,
+                "kendall_p_value": 2.6630155167514518e-06
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0022785860040608215,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.7133333333333334,
+                "accuracy_excluding_ties": 0.7871287128712872,
+                "kendall_tau": 0.4266666666666666,
+                "kendall_p_value": 0.002397783422611727
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00018131427203230602,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.5433333333333333,
+                "accuracy_excluding_ties": 0.5579399141630901,
+                "kendall_tau": 0.08666666666666664,
+                "kendall_p_value": 0.5630785727268515
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.7496969696969696,
+          "macro_avg_accuracy_excluding_ties": 0.7848764389294837,
+          "macro_avg_kendall_tau": 0.4997258297459551,
+          "compute_cost": 7.4325985591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.8270538448963465,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_530M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.010504719909178055,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7966666666666666,
+                "accuracy_excluding_ties": 0.8131868131868132,
+                "kendall_tau": 0.5933333333333333,
+                "kendall_p_value": 1.0932248579248358e-05
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0671030481744633,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.9333333333333333,
+                "accuracy_excluding_ties": 0.9647887323943662,
+                "kendall_tau": 0.8666666666666665,
+                "kendall_p_value": 1.5450845771625787e-13
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.013618935440010995,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.68,
+                "accuracy_excluding_ties": 0.7239583333333334,
+                "kendall_tau": 0.35999999999999993,
+                "kendall_p_value": 0.011371729355231645
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.060156407366553984,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.73,
+                "accuracy_excluding_ties": 0.7692307692307693,
+                "kendall_tau": 0.4641074914894535,
+                "kendall_p_value": 0.0011653567948099622
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.028460988607631937,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.76,
+                "accuracy_excluding_ties": 0.7735191637630662,
+                "kendall_tau": 0.5199999999999999,
+                "kendall_p_value": 0.00015880897857935695
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0026099036712744733,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.87,
+                "accuracy_excluding_ties": 0.8904593639575972,
+                "kendall_tau": 0.7399999999999999,
+                "kendall_p_value": 6.308099930779546e-09
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.018033527619831034,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8166666666666667,
+                "accuracy_excluding_ties": 0.8388278388278388,
+                "kendall_tau": 0.6333333333333332,
+                "kendall_p_value": 1.9741194066612187e-06
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.023831767793638634,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.7833333333333333,
+                "accuracy_excluding_ties": 0.8088888888888889,
+                "kendall_tau": 0.5666666666666667,
+                "kendall_p_value": 3.0830988230961115e-05
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.016478789648496237,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.83,
+                "accuracy_excluding_ties": 0.8878923766816144,
+                "kendall_tau": 0.6599999999999998,
+                "kendall_p_value": 5.60498691809609e-07
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.003983926486199239,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.7566666666666667,
+                "accuracy_excluding_ties": 0.8613861386138614,
+                "kendall_tau": 0.5133333333333333,
+                "kendall_p_value": 0.0001973957152927555
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0007257490760994773,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.6866666666666666,
+                "accuracy_excluding_ties": 0.721030042918455,
+                "kendall_tau": 0.37333333333333324,
+                "kendall_p_value": 0.008520236731434604
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.7857575757575757,
+          "macro_avg_accuracy_excluding_ties": 0.8230153147087822,
+          "macro_avg_kendall_tau": 0.5718885598323745,
+          "compute_cost": 2.23856199991296e+20,
+          "matched_single_scale_accuracy_including_ties": null,
+          "matched_compute_out_of_range": true,
+          "beats_single_scale_at_matched_compute": null
+        }
+      },
+      "TwoStepLadder": {
+        "S_fit_le_150M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.2312699687946905e-13,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8466666666666667,
+                "accuracy_excluding_ties": 0.8901098901098901,
+                "kendall_tau": 0.6933333333333331,
+                "kendall_p_value": 9.963639550342331e-08
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0008666098048814568,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.9,
+                "accuracy_excluding_ties": 0.926056338028169,
+                "kendall_tau": 0.7999999999999998,
+                "kendall_p_value": 8.45121861355698e-11
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 7.92,
+              "mean_objective_spread": 0.0015889759017926758,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.5666666666666667,
+                "accuracy_excluding_ties": 0.5677083333333334,
+                "kendall_tau": 0.1333333333333333,
+                "kendall_p_value": 0.3661555226120939
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0036439165285695805,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.7133333333333334,
+                "accuracy_excluding_ties": 0.7408906882591093,
+                "kendall_tau": 0.43071846332474467,
+                "kendall_p_value": 0.0025815694964731973
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0005233578182338395,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.43666666666666665,
+                "accuracy_excluding_ties": 0.42857142857142855,
+                "kendall_tau": -0.12666666666666662,
+                "kendall_p_value": 0.3913909170309529
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 7.87639538975827e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.75,
+                "accuracy_excluding_ties": 0.7526501766784452,
+                "kendall_tau": 0.4999999999999999,
+                "kendall_p_value": 0.0003014398822329857
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0004985386003890243,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7866666666666666,
+                "accuracy_excluding_ties": 0.7985347985347986,
+                "kendall_tau": 0.5733333333333333,
+                "kendall_p_value": 2.3964390237921895e-05
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0005248648128197052,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.77,
+                "accuracy_excluding_ties": 0.8311111111111111,
+                "kendall_tau": 0.5399999999999999,
+                "kendall_p_value": 8.071280240832186e-05
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0005723729028483705,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.7966666666666666,
+                "accuracy_excluding_ties": 0.874439461883408,
+                "kendall_tau": 0.5933333333333333,
+                "kendall_p_value": 1.0932248579248358e-05
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 8.344943761544898e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.73,
+                "accuracy_excluding_ties": 0.7772277227722773,
+                "kendall_tau": 0.4599999999999999,
+                "kendall_p_value": 0.0009829823600505953
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 9.306045138596298e-06,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.34,
+                "accuracy_excluding_ties": 0.31759656652360513,
+                "kendall_tau": -0.3199999999999999,
+                "kendall_p_value": 0.025387066467633498
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.6942424242424242,
+          "macro_avg_accuracy_excluding_ties": 0.7186269559823251,
+          "macro_avg_kendall_tau": 0.38885319363558274,
+          "compute_cost": 2.1241825591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.7839086399281419,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_300M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0012757163701998834,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8266666666666667,
+                "accuracy_excluding_ties": 0.8571428571428571,
+                "kendall_tau": 0.6533333333333332,
+                "kendall_p_value": 7.752663573750029e-07
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0023013929258218256,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.8566666666666667,
+                "accuracy_excluding_ties": 0.8802816901408451,
+                "kendall_tau": 0.7133333333333332,
+                "kendall_p_value": 3.2207060749715285e-08
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0013978611017943716,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.5566666666666666,
+                "accuracy_excluding_ties": 0.5833333333333334,
+                "kendall_tau": 0.11333333333333331,
+                "kendall_p_value": 0.4448568614280395
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00910188354115037,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.6566666666666666,
+                "accuracy_excluding_ties": 0.6680161943319838,
+                "kendall_tau": 0.31719576756473444,
+                "kendall_p_value": 0.026464462601750702
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0012585979719845536,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.64,
+                "accuracy_excluding_ties": 0.6515679442508711,
+                "kendall_tau": 0.2799999999999999,
+                "kendall_p_value": 0.05185823522532831
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 3.755991960950808e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.8666666666666667,
+                "accuracy_excluding_ties": 0.8798586572438163,
+                "kendall_tau": 0.7333333333333332,
+                "kendall_p_value": 9.619333926968464e-09
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 2.1098147534592825e-13,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8333333333333334,
+                "accuracy_excluding_ties": 0.8498168498168498,
+                "kendall_tau": 0.6666666666666665,
+                "kendall_p_value": 4.0250660399598214e-07
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0019891724343927804,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.6166666666666667,
+                "accuracy_excluding_ties": 0.6266666666666667,
+                "kendall_tau": 0.23333333333333328,
+                "kendall_p_value": 0.10755605480556475
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0009823498339177705,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.7566666666666667,
+                "accuracy_excluding_ties": 0.7892376681614349,
+                "kendall_tau": 0.5133333333333333,
+                "kendall_p_value": 0.0001973957152927555
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00018494549708225117,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.7433333333333333,
+                "accuracy_excluding_ties": 0.8316831683168316,
+                "kendall_tau": 0.4866666666666665,
+                "kendall_p_value": 0.0004534508545343273
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.4423409663179773e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.43666666666666665,
+                "accuracy_excluding_ties": 0.4248927038626609,
+                "kendall_tau": -0.12666666666666662,
+                "kendall_p_value": 0.3913909170309529
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.7081818181818181,
+          "macro_avg_accuracy_excluding_ties": 0.731136157569832,
+          "macro_avg_kendall_tau": 0.4167147667483091,
+          "compute_cost": 7.4325985591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.8270538448963465,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_530M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0038423138429186476,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8166666666666667,
+                "accuracy_excluding_ties": 0.8498168498168498,
+                "kendall_tau": 0.6333333333333332,
+                "kendall_p_value": 1.9741194066612187e-06
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.007688643837829103,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.92,
+                "accuracy_excluding_ties": 0.9471830985915493,
+                "kendall_tau": 0.8399999999999999,
+                "kendall_p_value": 2.4595495011540233e-12
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.00380183300086258,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.6333333333333333,
+                "accuracy_excluding_ties": 0.6770833333333334,
+                "kendall_tau": 0.2666666666666666,
+                "kendall_p_value": 0.0645854561274738
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.009149370802473135,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.7433333333333333,
+                "accuracy_excluding_ties": 0.7732793522267206,
+                "kendall_tau": 0.4908187140212207,
+                "kendall_p_value": 0.0005944874270822933
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.003917640778208037,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.7666666666666667,
+                "accuracy_excluding_ties": 0.7770034843205574,
+                "kendall_tau": 0.5333333333333332,
+                "kendall_p_value": 0.00010155799170934749
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0003151665237841662,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.8933333333333333,
+                "accuracy_excluding_ties": 0.901060070671378,
+                "kendall_tau": 0.7866666666666665,
+                "kendall_p_value": 2.41079593555365e-10
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.001368784655989308,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.7666666666666667,
+                "accuracy_excluding_ties": 0.7802197802197802,
+                "kendall_tau": 0.5333333333333332,
+                "kendall_p_value": 0.00010155799170934749
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0015498751398714012,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.6833333333333333,
+                "accuracy_excluding_ties": 0.7244444444444444,
+                "kendall_tau": 0.3666666666666666,
+                "kendall_p_value": 0.009856596254745291
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0008198682891590373,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.8833333333333333,
+                "accuracy_excluding_ties": 0.9551569506726457,
+                "kendall_tau": 0.7666666666666665,
+                "kendall_p_value": 1.0489572171579035e-09
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 0.0007401057814839246,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.8133333333333334,
+                "accuracy_excluding_ties": 0.905940594059406,
+                "kendall_tau": 0.6266666666666666,
+                "kendall_p_value": 2.6630155167514518e-06
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 7.5140175997668e-05,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.5466666666666666,
+                "accuracy_excluding_ties": 0.5536480686695279,
+                "kendall_tau": 0.09333333333333331,
+                "kendall_p_value": 0.5321916402283853
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.7696969696969697,
+          "macro_avg_accuracy_excluding_ties": 0.8040760024569267,
+          "macro_avg_kendall_tau": 0.5397713982443533,
+          "compute_cost": 2.23856199991296e+20,
+          "matched_single_scale_accuracy_including_ties": null,
+          "matched_compute_out_of_range": true,
+          "beats_single_scale_at_matched_compute": null
+        }
+      },
+      "LogLinear": {
+        "S_fit_le_150M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 3.642377198465052e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.88,
+                "accuracy_excluding_ties": 0.9267399267399268,
+                "kendall_tau": 0.7599999999999999,
+                "kendall_p_value": 1.6705183694830538e-09
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 6.6103806456441204e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.96,
+                "accuracy_excluding_ties": 0.9823943661971831,
+                "kendall_tau": 0.9199999999999998,
+                "kendall_p_value": 1.3817189787340094e-16
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.2906342661267445e-17,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.6666666666666666,
+                "accuracy_excluding_ties": 0.7239583333333334,
+                "kendall_tau": 0.33333333333333326,
+                "kendall_p_value": 0.019623905415578614
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 7.348722325106749e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.73,
+                "accuracy_excluding_ties": 0.7692307692307693,
+                "kendall_tau": 0.4641074914894535,
+                "kendall_p_value": 0.0011653567948099622
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 4.904930628324422e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.6633333333333333,
+                "accuracy_excluding_ties": 0.6689895470383276,
+                "kendall_tau": 0.3266666666666666,
+                "kendall_p_value": 0.022348133896487505
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 3.166005868929234e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.93,
+                "accuracy_excluding_ties": 0.9540636042402827,
+                "kendall_tau": 0.8599999999999999,
+                "kendall_p_value": 3.2014691654910987e-13
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 4.527628272299466e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8166666666666667,
+                "accuracy_excluding_ties": 0.8315018315018315,
+                "kendall_tau": 0.6333333333333332,
+                "kendall_p_value": 1.9741194066612187e-06
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 4.307535231284909e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.79,
+                "accuracy_excluding_ties": 0.84,
+                "kendall_tau": 0.5799999999999998,
+                "kendall_p_value": 1.853872631297424e-05
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 3.935653886122381e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.8266666666666667,
+                "accuracy_excluding_ties": 0.905829596412556,
+                "kendall_tau": 0.6533333333333332,
+                "kendall_p_value": 7.752663573750029e-07
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 3.3366321858241397e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.6766666666666666,
+                "accuracy_excluding_ties": 0.7524752475247525,
+                "kendall_tau": 0.3533333333333333,
+                "kendall_p_value": 0.013084783660559913
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 4.024558464266192e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.4633333333333333,
+                "accuracy_excluding_ties": 0.4721030042918455,
+                "kendall_tau": -0.07333333333333332,
+                "kendall_p_value": 0.6272676336274836
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.7639393939393938,
+          "macro_avg_accuracy_excluding_ties": 0.802480566046437,
+          "macro_avg_kendall_tau": 0.5282521961960108,
+          "compute_cost": 2.1241825591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.7839086399281419,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_300M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 4.785668389351017e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8966666666666666,
+                "accuracy_excluding_ties": 0.9377289377289377,
+                "kendall_tau": 0.7933333333333331,
+                "kendall_p_value": 1.4377353942437816e-10
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 9.413043261519149e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.95,
+                "accuracy_excluding_ties": 0.9823943661971831,
+                "kendall_tau": 0.8999999999999998,
+                "kendall_p_value": 2.5688970213598528e-15
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.43982048506075e-17,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.69,
+                "accuracy_excluding_ties": 0.7447916666666666,
+                "kendall_tau": 0.37999999999999995,
+                "kendall_p_value": 0.007344866273000015
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 8.469787371456761e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.78,
+                "accuracy_excluding_ties": 0.8218623481781376,
+                "kendall_tau": 0.5642745759835801,
+                "kendall_p_value": 7.878490935781912e-05
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 7.381248390281314e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.7766666666666666,
+                "accuracy_excluding_ties": 0.7874564459930313,
+                "kendall_tau": 0.5533333333333332,
+                "kendall_p_value": 5.032943598554465e-05
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.893084755795471e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.92,
+                "accuracy_excluding_ties": 0.9540636042402827,
+                "kendall_tau": 0.8399999999999999,
+                "kendall_p_value": 2.4595495011540233e-12
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 3.820728455838918e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8266666666666667,
+                "accuracy_excluding_ties": 0.8461538461538461,
+                "kendall_tau": 0.6533333333333332,
+                "kendall_p_value": 7.752663573750029e-07
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 5.078402975922103e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.8166666666666667,
+                "accuracy_excluding_ties": 0.8666666666666667,
+                "kendall_tau": 0.6333333333333332,
+                "kendall_p_value": 1.9741194066612187e-06
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 3.501430916041937e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.8766666666666667,
+                "accuracy_excluding_ties": 0.9327354260089686,
+                "kendall_tau": 0.7533333333333332,
+                "kendall_p_value": 2.6298918064910844e-09
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 2.5690170477044028e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.8,
+                "accuracy_excluding_ties": 0.900990099009901,
+                "kendall_tau": 0.5999999999999999,
+                "kendall_p_value": 8.331428345950857e-06
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 2.640574391088446e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.63,
+                "accuracy_excluding_ties": 0.6738197424892703,
+                "kendall_tau": 0.25999999999999995,
+                "kendall_p_value": 0.07183422315251489
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.8148484848484848,
+          "macro_avg_accuracy_excluding_ties": 0.8589693772120811,
+          "macro_avg_kendall_tau": 0.6300855675136586,
+          "compute_cost": 7.4325985591296e+19,
+          "matched_single_scale_accuracy_including_ties": 0.8270538448963465,
+          "matched_compute_out_of_range": false,
+          "beats_single_scale_at_matched_compute": false
+        },
+        "S_fit_le_530M": {
+          "per_task": {
+            "arc_challenge": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 4.848552115355176e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.94,
+                "accuracy_excluding_ties": 0.9706959706959707,
+                "kendall_tau": 0.8799999999999999,
+                "kendall_p_value": 3.3090221802436304e-14
+              }
+            },
+            "arc_easy": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.0304257447302235e-17,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 16,
+                "accuracy_including_ties": 0.9566666666666667,
+                "accuracy_excluding_ties": 0.9894366197183099,
+                "kendall_tau": 0.9133333333333332,
+                "kendall_p_value": 3.8375889523585516e-16
+              }
+            },
+            "boolq": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.5334955527634974e-17,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 108,
+                "accuracy_including_ties": 0.6933333333333334,
+                "accuracy_excluding_ties": 0.7395833333333334,
+                "kendall_tau": 0.3866666666666666,
+                "kendall_p_value": 0.00631402755690959
+              }
+            },
+            "csqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.0516761073109393e-17,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 53,
+                "accuracy_including_ties": 0.7966666666666666,
+                "accuracy_excluding_ties": 0.8421052631578947,
+                "kendall_tau": 0.5976636041482891,
+                "kendall_p_value": 2.8936310813184233e-05
+              }
+            },
+            "hellaswag": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.1466522176206695e-17,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 13,
+                "accuracy_including_ties": 0.8566666666666667,
+                "accuracy_excluding_ties": 0.8710801393728222,
+                "kendall_tau": 0.7133333333333332,
+                "kendall_p_value": 3.2207060749715285e-08
+              }
+            },
+            "mmlu": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 1.5211356479971627e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 17,
+                "accuracy_including_ties": 0.94,
+                "accuracy_excluding_ties": 0.9646643109540636,
+                "kendall_tau": 0.8799999999999999,
+                "kendall_p_value": 3.3090221802436304e-14
+              }
+            },
+            "olmes_10_macro_avg": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 5.0740661672321604e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 27,
+                "accuracy_including_ties": 0.8533333333333334,
+                "accuracy_excluding_ties": 0.8754578754578755,
+                "kendall_tau": 0.7066666666666666,
+                "kendall_p_value": 4.732331594636342e-08
+              }
+            },
+            "openbookqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 5.88938620094126e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 75,
+                "accuracy_including_ties": 0.8466666666666667,
+                "accuracy_excluding_ties": 0.8888888888888888,
+                "kendall_tau": 0.6933333333333331,
+                "kendall_p_value": 9.963639550342331e-08
+              }
+            },
+            "piqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 2.9793875699901662e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 77,
+                "accuracy_including_ties": 0.8733333333333333,
+                "accuracy_excluding_ties": 0.9417040358744395,
+                "kendall_tau": 0.7466666666666665,
+                "kendall_p_value": 4.094707872058287e-09
+              }
+            },
+            "socialiqa": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 2.760920832234337e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 98,
+                "accuracy_including_ties": 0.8133333333333334,
+                "accuracy_excluding_ties": 0.9158415841584159,
+                "kendall_tau": 0.6266666666666666,
+                "kendall_p_value": 2.6630155167514518e-06
+              }
+            },
+            "winogrande": {
+              "n_recipes_attempted": 25,
+              "n_recipes_succeeded": 25,
+              "n_recipes_failed": 0,
+              "failures": [],
+              "mean_n_converged": 8.0,
+              "mean_objective_spread": 3.4336682802615927e-18,
+              "decision_accuracy": {
+                "n_recipes_compared": 25,
+                "n_pairs": 300,
+                "n_tied_pairs": 67,
+                "accuracy_including_ties": 0.7733333333333333,
+                "accuracy_excluding_ties": 0.8154506437768241,
+                "kendall_tau": 0.5466666666666665,
+                "kendall_p_value": 6.387416551034472e-05
+              }
+            }
+          },
+          "n_tasks": 11,
+          "macro_avg_accuracy_including_ties": 0.8493939393939395,
+          "macro_avg_accuracy_excluding_ties": 0.8922644241262581,
+          "macro_avg_kendall_tau": 0.6991815397710565,
+          "compute_cost": 2.23856199991296e+20,
+          "matched_single_scale_accuracy_including_ties": null,
+          "matched_compute_out_of_range": true,
+          "beats_single_scale_at_matched_compute": null
+        }
+      }
+    },
+    "summary": {
+      "n_combinations": 18,
+      "n_beat_single_scale_at_matched_compute": 0,
+      "winners": []
+    },
+    "dataset_revision": "9919b5a0e61e57a85021263918fa82d6ceaee038"
+  }
+}
