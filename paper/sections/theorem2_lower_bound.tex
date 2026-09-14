@@ -1,0 +1,235 @@
+% paper/sections/theorem2_lower_bound.tex -- P2-03, plan/03-phase2-theory.md.
+%
+% Standalone section fragment, \input{} by paper/main.tex once P6-01 builds
+% the skeleton. Same preamble requirements as theorem1_bound.tex. Depends
+% on paper/sections/setup.tex and theorem1_bound.tex's notation.
+%
+% Part A (the change-of-measure lower bound) is a mechanical adaptation of
+% Kaufmann, Cappe & Garivier (2016)'s transportation-lemma technique --
+% cited from established knowledge of that paper's general structure, not
+% from a copy on hand; if a reviewer's copy disagrees with this section on
+% an exact constant, trust the reviewer's copy over this draft. Part B (the
+% impossibility construction) is marked \needshuman per the plan's own
+% explicit instruction: "Part B's construction is where the real
+% mathematical content is."
+
+\section{Theorem 2: the lower bound and the impossibility phase transition}
+\label{sec:theorem2}
+
+\subsection{Part A: a change-of-measure lower bound}
+\label{sec:theorem2-parta}
+
+\begin{theorem}[Compute-weighted characteristic time lower bound]
+\label{thm:lower-bound}
+For any $\delta$-correct policy (Definition~\ref{def:delta-correct}, $\delta < 1/2$) and
+any instance $\nu$ (a full specification of every $\theta_k$ and $h_k \in \mathcal{H}$),
+\[
+  \mathbb{E}_\nu[C(\tau)] \;\ge\; \mathrm{kl}(\delta, 1-\delta) \cdot T^\star(\nu),
+\]
+where $\mathrm{kl}(x, y) = x \log(x/y) + (1-x)\log((1-x)/(1-y))$ and $T^\star(\nu)$
+solves the compute-weighted optimal-design program
+\[
+  \frac{1}{T^\star(\nu)} \;=\; \sup_{w} \ \min_{k \ne k^\star} \
+  \frac{\Delta_k^2}{2 \, J(\theta_k, s^\star)^\top I_k(w)^{-1} J(\theta_k, s^\star)},
+  \qquad
+  I_k(w) = \sum_{s \in \mathcal{S}} w(k, s) \, \frac{J(\theta_k, s) J(\theta_k, s)^\top}{\sigma^2(s)},
+\]
+the supremum over allocations $w$ (a measure on (arm, scale) pairs with
+$\sum_{k,s} w(k,s)\, c(s) = 1$). This program is concave in $w$ (Lemma~\ref{lem:concave}
+below) and therefore both a well-posed optimization problem and numerically solvable --
+exactly the program P3-02 solves.
+\end{theorem}
+
+\begin{remark}[Where this departs from classical best-arm identification]
+\label{rem:not-classical-bai}
+In classical fixed-confidence BAI (Kaufmann, Capp\'e \& Garivier, 2016; Garivier \&
+Kaufmann, 2016), each pull of arm $k$ reveals a sample with a per-arm
+Kullback-Leibler divergence to any alternative instance, and the characteristic time
+is $1/T^\star = \sup_w \min_{k} w_k \, d(\mu_k, \mu_{k^\star})$-shaped (a per-arm KL
+rate). Here, no scale $s < s^\star$ ever directly observes $\mu_k(s^\star)$: information
+about it arrives only through the parametric link $g(\theta_k, \cdot)$, so a pull's value
+is governed by how much it shrinks the \emph{Fisher information matrix} $I_k(w)$ around
+$\theta_k$, propagated to $s^\star$ through the Jacobian -- the
+$(J^\top I_k(w)^{-1} J)^{-1}$-shaped rate in place of a per-arm KL is the structural
+novelty relative to the classical setting, and is exactly what makes scale
+\emph{allocation} (not just arm allocation) the object P3-02 needs to optimize.
+\end{remark}
+
+\subsubsection{Proof}
+
+\paragraph{Step 1 -- the transportation lemma (cited, standard).}
+For any two instances $\nu, \nu'$ and any event $E$ measurable with respect to the
+policy's observations, the standard change-of-measure / data-processing inequality for
+sequential experiments (Kaufmann, Capp\'e \& Garivier, 2016, Lemma 1, following the
+classical Wald-type argument) gives
+\[
+  \sum_{k,s} \mathbb{E}_\nu[N_k(s, \tau)] \, \mathrm{KL}\big(P_{k,s}^\nu, P_{k,s}^{\nu'}\big)
+  \;\ge\; \mathrm{kl}\big(\mathbb{P}_\nu[E], \mathbb{P}_{\nu'}[E]\big),
+\]
+where $N_k(s,\tau)$ counts pulls of $(k,s)$ up to the stopping time and $P_{k,s}^\nu$ is
+the observation distribution at $(k,s)$ under $\nu$. \emph{Cited, not re-derived}: this
+is foundational BAI machinery, established well before this project and not specific to
+the parametric setting here.
+
+\paragraph{Step 2 -- applying it to a confusing alternative.}
+Fix $k \ne k^\star$. Take $E = \{\hat{k} = k^\star\}$, so $\delta$-correctness gives
+$\mathbb{P}_\nu[E] \ge 1-\delta$. Construct $\nu'$ identical to $\nu$ except
+$\theta'_k = \theta_k + \Delta\theta$ for a perturbation chosen so that $k$ is optimal
+under $\nu'$ (i.e. $g(\theta'_k, s^\star) > \mu_{k^\star}(s^\star)$, at least
+marginally); $\delta$-correctness under $\nu'$ then gives
+$\mathbb{P}_{\nu'}[E] = \mathbb{P}_{\nu'}[\hat{k}=k^\star] \le \delta$. Plugging into
+Step 1's inequality: $\mathrm{kl}(\mathbb{P}_\nu[E], \mathbb{P}_{\nu'}[E]) \ge
+\mathrm{kl}(1-\delta, \delta) = \mathrm{kl}(\delta, 1-\delta)$ ($\mathrm{kl}$ is
+symmetric in this sense). Mechanical, given Step 1.
+
+\paragraph{Step 3 -- the per-pull KL, linearized.}
+For Gaussian (or, to the same local-quadratic order, general sub-Gaussian)
+observations at $(k,s)$ with mean $g(\theta_k, s)$ and variance $\sigma^2(s)$,
+$\mathrm{KL}(P_{k,s}^\nu, P_{k,s}^{\nu'}) = (g(\theta_k,s) - g(\theta'_k,s))^2 /
+(2\sigma^2(s)) \approx (\Delta\theta^\top J(\theta_k,s))^2 / (2\sigma^2(s))$, exact for
+linear-in-$\theta$ $g$ and a first-order (in $\Delta\theta$) approximation otherwise --
+the same nonlinear-$g$ caveat as Theorem~\ref{thm:main-bound} Step 1
+(\needshuman{the exact same non-asymptotic gap: this expansion is exact as
+$\Delta\theta \to 0$ / $C \to \infty$ for a general nonlinear family, matching this
+theorem's role as an \emph{asymptotic} ($\delta \to 0$) characteristic-time result
+(Theorem~\ref{thm:algorithm-correctness}'s own "asymptotic optimality" framing is
+exactly this), but a fully explicit non-asymptotic version needs the same M-estimator
+technology flagged there, not a new derivation}). Summing over the design:
+$\sum_s \mathbb{E}_\nu[N_k(s,\tau)] \, \mathrm{KL}(\cdot) \approx \mathbb{E}_\nu[C(\tau)]
+\cdot \Delta\theta^\top I_k(w) \Delta\theta / 2$ where $w(k,s) = \mathbb{E}_\nu[N_k(s,\tau)]
+\, c(s) / \mathbb{E}_\nu[C(\tau)]$ is the (compute-normalized) empirical allocation.
+Mechanical algebra, given Step 3's linearization.
+
+\paragraph{Step 4 -- optimizing the confusing alternative, and over $k$.}
+Combining Steps 2-3: $\mathbb{E}_\nu[C(\tau)] \ge \mathrm{kl}(\delta,1-\delta) \big/
+\big(\Delta\theta^\top I_k(w) \Delta\theta / 2\big)$ for \emph{any} $\Delta\theta$ with
+$J(\theta_k,s^\star)^\top \Delta\theta \ge \Delta_k$ (the minimum shift needed to flip
+the gap at $s^\star$). The adversary (seeking the \emph{weakest} such bound, i.e. the
+\emph{cheapest} confusing alternative) minimizes $\Delta\theta^\top I_k(w) \Delta\theta$
+subject to this constraint; by the standard quadratic-form identity
+$\min\{x^\top A x : b^\top x = c\} = c^2 / (b^\top A^{-1} b)$ (Lagrange multipliers; a
+D-optimal-design identity, mechanical given $I_k(w) \succ 0$), the minimum is
+$\Delta_k^2 / (J^\top I_k(w)^{-1} J)$, giving exactly the per-$k$ bound in the theorem
+statement. Taking the worst (smallest) bound over $k \ne k^\star$ -- since the policy
+must simultaneously guard against every alternative -- and the best allocation $w$ the
+policy could have used gives $T^\star(\nu)$ as stated. Mechanical.
+$\blacksquare$
+
+\begin{lemma}[Concavity of the characteristic-time program]
+\label{lem:concave}
+$w \mapsto \min_{k \ne k^\star} \Delta_k^2 / (2 J_k^\top I_k(w)^{-1} J_k)$ is concave.
+\end{lemma}
+\begin{proof}
+For fixed $k$, $I_k(w)$ is linear in $w$ (Theorem~\ref{thm:lower-bound}'s definition),
+so, by Step 4's identity read in reverse,
+$\Delta_k^2 / (2J_k^\top I_k(w)^{-1} J_k) = \min_{\Delta\theta : J_k^\top \Delta\theta =
+\Delta_k} \Delta\theta^\top I_k(w) \Delta\theta / 2$, an infimum over a family of
+functions each \emph{linear} (hence concave) in $w$ -- an infimum of concave functions
+is concave. The overall objective is then a minimum over $k$ of concave functions,
+again concave. Mechanical (the same two-line argument used throughout the BAI lower-bound
+literature for the classical, non-parametric $T^\star$ program; adapted here rather than
+re-derived from scratch).
+\end{proof}
+
+\subsection{Part B: the impossibility phase transition}
+\label{sec:theorem2-partb}
+
+\begin{theorem}[Impossibility below the observed range]
+\label{thm:impossibility}
+Suppose $\mathcal{H}$ and $\mathcal{S}$ admit two instances $\nu_1, \nu_2$ that (i)
+induce \emph{identical} observation distributions at every $(k, s)$ with $s < s^\star$,
+and (ii) have $k^\star(\nu_1) \ne k^\star(\nu_2)$. Then no policy using only scales
+$s < s^\star$ is $\delta$-correct simultaneously on $\nu_1$ and $\nu_2$, for any
+$\delta < 1/2$, at any finite compute.
+\end{theorem}
+
+\begin{proof}
+Since every $(k,s)$ observation with $s<s^\star$ has an identical distribution under
+$\nu_1$ and $\nu_2$, and the policy (its choice of pulls, its stopping time $\tau$, and
+its recommendation $\hat{k}$) is a measurable function of those observations alone, the
+\emph{joint law} of $(\tau, \hat{k})$ is identical under $\nu_1$ and $\nu_2$. Write
+$k_1^\star = k^\star(\nu_1) \ne k_2^\star = k^\star(\nu_2)$. Then
+$\mathbb{P}_{\nu_2}[\hat{k} = k_1^\star] = \mathbb{P}_{\nu_1}[\hat{k} = k_1^\star] \ge
+1-\delta$ (identical law; $\delta$-correctness on $\nu_1$), while also
+$\mathbb{P}_{\nu_2}[\hat{k} = k_2^\star] \ge 1-\delta$ ($\delta$-correctness on $\nu_2$).
+Since $k_1^\star \ne k_2^\star$, these are disjoint events under a single measure
+$\mathbb{P}_{\nu_2}$, so their probabilities sum to at most $1$:
+$(1-\delta) + (1-\delta) \le 1 \iff \delta \ge 1/2$. Contradiction for $\delta < 1/2$.
+Mechanical -- this is the same two-point indistinguishability argument (Le Cam's method)
+used in Theorem~\ref{thm:identifiability}'s minimax lower bound, applied here to a
+\emph{decision} rather than an estimation error.
+\end{proof}
+
+\begin{remark}[The genuinely hard part: does such a pair exist?]
+\label{rem:impossibility-construction}
+Theorem~\ref{thm:impossibility}'s proof is entirely mechanical \emph{given} $\nu_1,
+\nu_2$. \needshuman{Whether -- and precisely when -- $\mathcal{H}$ and $\mathcal{S}$
+admit such a pair is the real mathematical content the source document flags as this
+paper's main point of departure from classical BAI ("just BAI applied" is the
+anticipated reviewer objection). What follows is a fully worked \emph{candidate}
+construction for two natural choices of $\mathcal{H}$, with numerical verification that
+it satisfies (i)-(ii) above, plus a partial (sufficient-condition-only) structural
+characterization. A tight, general, necessary-and-sufficient characterization of the
+phase transition across arbitrary $\mathcal{H}$ is not attempted here and needs a
+human's judgement on how far to generalize it for the paper.}
+\end{remark}
+
+\subsubsection{A worked candidate construction}
+\label{sec:theorem2-construction}
+
+Fix the largest fitting scale $s_{\max} = \max S_{\mathrm{fit}} < s^\star$ and gap
+$g = s^\star - s_{\max} > 0$. Let $\nu_1$ have $h_k \equiv 0$ (arm $k$ exactly
+in-family) and $\nu_2$ have $h_k(s) = \eta_k \cdot \phi\big((s - s_{\max})/g\big)$ for a
+bump function $\phi: \mathbb{R} \to [0,1]$ with $\phi(x) = 0$ for $x \le 0$ and
+$\phi(1) = 1$ (so $h_k \equiv 0$ on $S_{\mathrm{fit}}$ -- both instances agree exactly
+on every fitting scale -- and $h_k(s^\star) = \eta_k$). Both instances share the same
+$\theta_k$'s, so the two arms' orderings differ only through $h$'s effect at $s^\star$:
+choosing $\eta_k$'s that reverse the sign of $\mu_{k^\star}(s^\star) - \mu_k(s^\star)$
+for the true winner $k^\star$ (under $\nu_1$) gives $k^\star(\nu_2) \ne k^\star(\nu_1)$.
+
+\begin{itemize}
+  \item \textbf{Sup-norm class} ($\mathcal{H} = \{h : \sup_s |h(s)| \le \eta\}$, no
+    smoothness requirement beyond boundedness): any $\phi$ works, including a step
+    function ($\phi(x) = \mathbb{1}[x > 0]$) if $\mathcal{H}$ does not require
+    continuity, or any continuous bump otherwise. \textbf{Sufficient condition for
+    impossibility: $\eta \ge \Delta_{\min} / 2$} where $\Delta_{\min} = \min_{k \ne
+    k^\star} \Delta_k$ under $\nu_1$ (enough perturbation budget, split between the
+    two competing arms, to close a gap of $\Delta_{\min}$ and reverse it). This
+    condition does not depend on the gap $g$ at all -- with no smoothness tying
+    behaviour at $s^\star$ to behaviour at $s_{\max}$, impossibility is purely a
+    question of how much perturbation budget $\mathcal{H}$ allows, however close
+    $s^\star$ is to the fitted region.
+  \item \textbf{H\"older-$\alpha$ ball} ($\mathcal{H} = \{h : |h(s) - h(s')| \le
+    \eta\, |s-s'|^\alpha\}$): a bump function respecting this modulus can rise from $0$
+    at $s_{\max}$ to at most $\eta \, g^\alpha$ by $s^\star$ (the H\"older condition
+    applied directly to the pair $(s_{\max}, s^\star)$, or, for a bump with the
+    standard $\mathrm{dist}(x, \{0,1\})^\alpha$-type profile, exactly this order).
+    \textbf{Sufficient condition for impossibility: $\eta \, g^\alpha \ge
+    \Delta_{\min}/2$} -- unlike the sup-norm case, this is a genuine \emph{phase
+    transition in $g$}: for fixed $\eta, \alpha, \Delta_{\min}$, impossibility
+    (via \emph{this construction}) holds once the target is far enough past the
+    fitted region ($g$ large enough), and this specific construction fails for smaller
+    $g$. Whether the regime is then actually \emph{solvable} for small $g$, or merely
+    that this particular construction does not witness impossibility there, is exactly
+    the open direction flagged in Remark~\ref{rem:impossibility-construction}.
+\end{itemize}
+
+\subsubsection{Numerical certificate}
+\label{sec:theorem2-certificate}
+
+\texttt{tests/theory/test\_theorem2.py} builds both constructions explicitly (a concrete
+$\phi$ satisfying each modulus) on a randomized grid of $(S_{\mathrm{fit}}, s^\star,
+\theta_k, \eta)$ instances and checks, for each: (a) $h_1 \equiv 0$ and $h_2$ agree with
+$\max_{s \in S_{\mathrm{fit}}} |h_2(s)| = 0$ exactly (machine precision) on every fitting
+scale, so \emph{any} function of the fitting data alone -- in particular every one of
+the six fitters in \texttt{src/pdt/scaling/fitters.py} -- produces an identical fit
+under $\nu_1$ and $\nu_2$, mechanically (not something that needs a "large class of
+estimators" checked one by one: the fitted $\hat\theta$ is a deterministic function of
+data that is identical under both instances, full stop); (b) the true winner flips
+($k^\star(\nu_1) \ne k^\star(\nu_2)$); (c) the H\"older construction's sufficient
+condition ($\eta g^\alpha \ge \Delta_{\min}/2$) correctly predicts, on both sides, which
+randomly generated instances succeed at flipping the winner while retaining the
+Hölder-$\alpha$ modulus and which do not. Verifying $T^\star$ against the P3 algorithm's
+achieved sample complexity in the solvable regime is deferred to P3-04's simulation
+study, which did not exist when this task was written -- flagged here rather than
+skipped silently.
