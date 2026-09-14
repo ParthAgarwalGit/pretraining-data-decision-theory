@@ -231,3 +231,220 @@ skipped in favor of trusting a single successful run.
 **Decided by:** Agent, while executing task P1-02, verified by diffing
 regenerated output against the already-merged P1-01 results before and
 after the fix.
+
+---
+
+## 2026-09-02 — P1-04 scaling-law fitters: two scoping decisions
+
+**Context:** `plan/02-phase1-datadecide.md` P1-04 specifies an
+`Extrapolator` interface (`fit`/`predict`/`jacobian`) and six concrete
+fitters, one of which (`TwoStepLadder`) explicitly follows DataDecide's own
+baseline method (Bhagia et al., arXiv:2412.04403).
+
+**Decision 1 — numerical jacobian, not six hand-derived analytic ones.**
+`src/pdt/scaling/base.py`'s `Extrapolator.jacobian()` is implemented once,
+generically, via central-difference numerical differentiation on the
+fitted parameter vector -- every subclass gets it for free by implementing
+`_predict_from_theta(theta, scale)` as a pure function. Hand-deriving six
+analytic gradients (one per fitter, `TwoStepLadder`'s composed through two
+chained functions) is six independent chances for a sign or chain-rule
+error. `plan/02-phase1-datadecide.md` P1-07 already plans to cross-check
+this exact machinery against bootstrap variance rather than assume perfect
+analytic exactness, so numerical precision here is squarely within what
+that later step is designed to catch if it's ever insufficient.
+
+**Decision 2 — `TwoStepLadder` is a scoped adaptation, not a literal
+reproduction of Bhagia et al.** Their method's step 1 target is actual
+pretraining validation loss. This project's cached tables carry task
+*accuracy* (`eval_results`/`macro_avg`, built in P0-06/P1-01), not
+per-recipe loss -- that lives in a separate table, `allenai/DataDecide-ppl-results`
+(also cached since P0-06, via `load_ppl_results()`, but never joined
+against the accuracy tables by (recipe, scale, seed) anywhere in this
+project yet). Implementing the literal method would require that join.
+Instead, `TwoStepLadder` here fits step 1 (a power law in compute) directly
+to the task metric as its own intermediate proxy, then step 2 reshapes that
+proxy through a 4-parameter sigmoid -- the closest same-data-source
+analogue to "compute -> loss -> metric" without pulling in a second table.
+
+**How to apply:** if a future task (or a reviewer) needs the literal
+Bhagia et al. method for a tighter DataDecide comparison, the join needed
+is `ppl_results` x `eval_results`/`macro_avg` on (recipe `data`, `params`,
+`seed`) -- `ppl_results` uses the same recipe/params/seed labels (confirmed
+in P0-06), so the join keys already line up; the work is building the
+loss-to-metric step 2 fit on real loss data instead of the metric-as-proxy
+approximation used now. Not planned as a required task, but flagged here so
+it isn't rediscovered from scratch if it becomes worth doing before the
+paper is finalized.
+
+**Decided by:** Agent, while executing task P1-04. All 6 fitters verified
+against clean synthetic curves generated from each one's own functional
+form before being trusted on real data (`tests/test_scaling.py`).
+
+---
+
+## 2026-09-02 — P1-04 experiment script: scope and matched-compute handling
+
+**Context:** `experiments/p1_04_extrapolation_baselines.py` fits all 6
+`pdt.scaling` extrapolators x 3 held-out designs (`S_fit` <=150M/<=300M/<=530M)
+x 11 macro_avg tasks x 25 recipes (4,950 fits total) and compares against
+the single-scale baseline from P1-03 at matched compute.
+
+**Decision 1 — one variant only (primary_metric, seed-averaged), not all
+four P1-03 sensitivity variants.** P1-03's four-variant sensitivity check
+(metric x seed-handling) existed because *that* task's job was specifically
+to stress-test the reproduction. P1-04's job is different: compare an
+extrapolation frontier against *the* single-scale frontier at matched
+compute, which requires both frontiers to use an identical metric/seed
+definition or the comparison is meaningless. Scoped to P1-03's headline
+definition (`primary_metric`, seed-averaged) -- the one DataDecide's own
+~80% figure targets.
+
+**Decision 2 — deterministic per-fit RNG seed via `sha256(fitter|design|task|recipe)`,
+not a single shared `np.random.default_rng`.** A shared mutable generator
+consumed sequentially across 4,950 fits would still be reproducible run to
+run, but only by accident of a frozen iteration order -- adding, removing,
+or reordering any fit anywhere would silently perturb every fit after it.
+Hashing the four identifying strings (via `hashlib.sha256`, not Python's
+built-in `hash()`, which is salted per-process by `PYTHONHASHSEED` and
+would break reproducibility across separate runs) gives every fit an
+independent, order-invariant seed. Verified: two independent full runs
+produced byte-identical `results/p1_04_extrapolation.json` output
+(excluding `provenance.utc_timestamp`).
+
+**Decision 3 — matched-compute comparison is `null`/"out of range" rather
+than extrapolated, when a design's total compute exceeds the largest
+single-scale point available.** The plan asks to compare each design
+against "the single-scale design of the same total compute" via
+interpolation of P1-03's real per-size points. In practice the <=530M
+design's total compute (sum of 6ND over 12 sizes, ~2.24e20) exceeds the
+compute of the largest available single-scale *proxy* point (750M,
+~1.39e20) -- extrapolating the comparison frontier itself past its own
+observed range would be a second, unrequested extrapolation stacked on top
+of the one actually being evaluated. `_log_interp_accuracy()` returns
+`(None, out_of_range=True)` in this case rather than guessing. This is a
+real result, not a bug: it means the <=530M design's accuracy (85.1%) has
+no matched-compute single-scale comparison point at all within this
+project's own data, only the unmatched observation that it exceeds every
+directly observed single-scale point below it.
+
+**Decision 4 — per-(fitter, design, task) results store aggregated fit
+diagnostics (mean n_converged, mean objective_spread across the 25
+recipes) plus every individual failure, not every individual fit's full
+diagnostics.** Satisfies the plan's "log every failed fit, never drop
+silently" requirement exactly (failures are rare and individually
+informative -- Claim 3 treats a failure itself as evidence). Storing all
+4,950 fits' full per-restart diagnostics would bloat the results file for
+information that's only useful in aggregate once a design/fitter/task
+group is healthy. In this run, 0 of 4,950 fits failed.
+
+**Decided by:** Agent, while executing task P1-04. Verified via two
+independent clean full runs (see Decision 2) and a hard consistency check
+in the script itself: `ConstantExtrapolator`'s per-design accuracy must
+exactly equal (not approximately) the matching P1-03 single-scale point,
+since it is the same computation by construction; this passed on both runs.
+
+---
+
+## 2026-09-14 — Two real bugs found by external review, fixed, results regenerated
+
+**Context:** PR #12's reviewer found two real correctness bugs in `src/pdt/scaling/`,
+both with concrete, executable reproductions, and flagged that the resulting
+mis-fits/mis-predictions propagate through every downstream task that fits a scaling
+law (essentially all of Phase 1 onward) since PowerLawN/ConstantExtrapolator are used
+throughout.
+
+**Bug 1 (P1): `multi_start_fit`'s uniform-random restart initialization can silently
+converge to the wrong answer with all restarts agreeing.** `x0 = rng.uniform(bounds[0],
+bounds[1])` samples an exponent parameter like `alpha` linearly over `[1e-3, 10]` --
+almost all of that mass lands on `alpha >~ 1`, where `N^-alpha` and its derivatives
+underflow to numerically zero for the parameter counts this project fits over
+(1e6-1e9): a flat region with no gradient signal. `scipy.optimize.least_squares` can
+report `success=True` there anyway (it stops on step size, not residual, going to
+zero), so **every one of the default 8 restarts can land in that flat region and agree
+with each other** -- passing the function's own `objective_spread`-based multi-start
+sanity check while still being badly wrong. Reproduced exactly as the reviewer gave it:
+`PowerLawN(rng=np.random.default_rng(1))` fit to a noiseless `y = 0.9 - 2*N^-0.1` curve
+(`N` from 1e6 to 1.5e8) predicted 0.504 at the target scale instead of the true 0.648,
+with all 8 restarts converging to the identical wrong point (`objective_spread` ~1e-18).
+
+**Fix:** `multi_start_fit` gained a `log_uniform_dims` parameter naming which parameter
+indices are decay-rate exponents; those are now drawn log-uniformly over their own
+bounds instead of linearly, concentrating restarts in the region where the fit's
+gradient signal actually exists. Applied to every fitter with an exponent parameter:
+`PowerLawN`, `PowerLawC` (`alpha`, index 2), `ChinchillaND` (`alpha` and `beta`,
+indices 2 and 4), `TwoStepLadder`'s step 1 (`alpha1`, index 2). Re-running the exact
+counterexample now recovers the true curve exactly (`theta = [0.9, -2.0, 0.1]`,
+`best_cost ~4.5e-30`). Regression tests added:
+`tests/test_scaling.py::test_power_law_n_recovers_a_small_alpha_noiseless_curve_across_seeds`
+(the exact counterexample, checked across 5 seeds, not just the one reported) and
+`test_multi_start_fit_log_uniform_dims_avoids_the_flat_high_alpha_region` (a direct,
+model-agnostic before/after check of the fix itself).
+
+**Bug 2 (P2): `ConstantExtrapolator` used the first observation at the largest scale,
+not the average of every replicate there.** `values[idx]` for whichever row happened to
+be first at max-`N`, when the interface accepts (and every real caller passes) a
+replicate history -- several seeds at the same size. Reproduced exactly as given:
+scales `[(1,1),(2,1),(2,1)]`, `y=[0,0.1,0.9]` predicted 0.1 (the first n=2 row), not the
+mean 0.5; reordering the last two rows changed the answer.
+
+**Fix:** average every observation at the largest scale (respecting the `weights`
+argument when given), not just the first one encountered. Three regression tests
+added, covering averaging, order-independence, and weighted averaging.
+
+`results/p1_04_extrapolation.json` (and every downstream results file computed from a
+scaling-law fit) needs regenerating with both fixes in place -- see the follow-up
+decisions.md entry for the regenerated numbers.
+
+**Decided by:** Agent, addressing PR #12's review. Full suite: 136 passed, 100%
+coverage on `src/pdt/scaling/base.py` and `src/pdt/scaling/fitters.py`.
+
+## 2026-09-14 — P1-04 results regenerated with both fixes: headline finding unchanged, individual fitter accuracies shift
+
+**Context:** follow-up to the entry immediately above. `results/p1_04_extrapolation.json`
+regenerated via `PDT_OVERWRITE=1 uv run python experiments/p1_04_extrapolation_baselines.py`
+on a clean tree with both scaling-law bugs fixed.
+
+**Headline finding is unchanged:** still 0/18 (fitter, design) combinations beat
+single-scale training at matched compute. `summary.n_beat_single_scale_at_matched_compute`
+is `0` both before and after, same as `summary.winners == []`. The consistency check
+(`ConstantExtrapolator`'s predictions matching P1-03's own reported numbers) still
+passes.
+
+**Individual accuracies moved, in the direction the bug predicts.** Every fitter with a
+decay-rate exponent parameter (the ones the `log_uniform_dims` fix touches) changed;
+`ConstantExtrapolator` and `LogLinear` (no exponent parameter, untouched by the fix) are
+bit-for-bit identical before and after, which is itself a useful sanity check that the
+fix is scoped correctly. Macro-averaged decision accuracy (including ties), by fitter
+and design:
+
+| fitter | design | before | after |
+|---|---|---|---|
+| PowerLawN | S_fit≤150M | 0.6452 | 0.7376 |
+| PowerLawN | S_fit≤300M | 0.6006 | 0.8097 |
+| PowerLawN | S_fit≤530M | 0.6891 | 0.8273 |
+| PowerLawC | S_fit≤150M | 0.6973 | 0.7358 |
+| PowerLawC | S_fit≤300M | 0.6915 | 0.7645 |
+| PowerLawC | S_fit≤530M | 0.7164 | 0.8179 |
+| ChinchillaND | S_fit≤150M | 0.7203 | 0.7624 |
+| ChinchillaND | S_fit≤300M | 0.7497 | 0.8148 |
+| ChinchillaND | S_fit≤530M | 0.7858 | 0.8482 |
+| TwoStepLadder | S_fit≤150M | 0.6942 | 0.5979 |
+| TwoStepLadder | S_fit≤300M | 0.7082 | 0.6197 |
+| TwoStepLadder | S_fit≤530M | 0.7697 | 0.6773 |
+| ConstantExtrapolator | (all 3) | 0.7627 / 0.8252 / 0.8509 | unchanged |
+| LogLinear | (all 3) | 0.7639 / 0.8148 / 0.8494 | unchanged |
+
+`PowerLawN`, `PowerLawC`, and `ChinchillaND` all got *more* accurate after the fix (by
+4-21 points) -- the old buggy initialization was landing genuine fits in the numerically
+flat high-alpha region often enough to measurably drag down decision accuracy, not just
+occasionally. `TwoStepLadder` moved the other way, *down* by 9-11 points: its step 1 also
+fits an `alpha`-like exponent, and the old bug's flat-region fits apparently happened to
+produce extrapolations that agreed with the true ranking more often than the genuinely
+optimal fits now do. Neither direction is surprising once the mechanism is understood --
+the old numbers weren't measuring "how good is this functional form", they were partly
+measuring "how did this particular numerical failure mode happen to land" -- but it means
+any pre-fix conclusion about `TwoStepLadder` specifically (e.g. "it's the best of the
+exponent-based fitters") should be treated as an artifact of the bug, not a real result.
+
+**Decided by:** Agent. Regeneration run completed cleanly (`git_dirty: false` in the
+written provenance); no code changes in this entry, data only.
