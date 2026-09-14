@@ -1,0 +1,249 @@
+% paper/sections/setup.tex -- P2-01, plan/03-phase2-theory.md.
+%
+% Standalone section fragment, \input{} by paper/main.tex once P6-01 builds
+% the skeleton. Requires (from the main preamble, not redeclared here):
+%   amsmath, amssymb, amsthm, mathtools
+%   \newtheorem{assumption}{Assumption}
+%   \newtheorem{definition}{Definition}
+%   \newtheorem{remark}{Remark}
+% and a \needshuman{...} macro (defined once main.tex exists; renders its
+% argument in a visually distinct box -- see plan/03-phase2-theory.md's
+% instruction to mark every non-mechanical proof step this way rather than
+% write "it can be shown that").
+%
+% Every symbol here is mapped to the code identifier that computes or
+% estimates it in docs/notation.md -- read that file alongside this one.
+%
+% Citation keys used below (P6-01 must add these to the project .bib when
+% the bibliography is set up; not yet resolvable, no .bib file exists):
+%   hoffmann2022chinchilla -- Hoffmann et al. 2022, arXiv:2203.15556
+%     (see docs/related_work.md, already vetted there).
+
+\section{Formal setup}
+\label{sec:setup}
+
+\subsection{Arms, scales, and the target}
+
+There are $K$ arms (candidate data recipes), indexed $k \in \{1, \dots, K\}$. Each arm
+$k$ has a true decision-relevant quantity $\mu_k(s)$ at every scale $s$, where a
+\emph{scale} $s = (N, D) \in \mathcal{S}$ is a (parameter count, token count) pair. The
+\emph{target scale} $s^\star \in \mathcal{S}$ is the scale at which the decision must
+actually be made -- $\mu_k(s^\star)$ is the quantity of interest, and $\mathcal{S}$ may
+contain scales both below and (in principle) above $s^\star$, though every scale this
+paper actually fits at is below it. The decision-maker never observes $\mu_k(s^\star)$
+directly except by paying its full cost (Section~\ref{sec:setup-cost}); the entire
+problem is choosing how to spend a compute budget observing $\mu_k(s)$ at scales
+$s \ne s^\star$ to infer $\mu_k(s^\star)$ well enough to identify
+$k^\star = \arg\max_k \mu_k(s^\star)$.
+
+\subsection{The scaling family}
+\label{sec:setup-family}
+
+\begin{assumption}[Parametric scaling family]
+\label{asn:family}
+There is a known function $g: \Theta \times \mathcal{S} \to \mathbb{R}$, with
+$\Theta \subset \mathbb{R}^p$ compact, such that each arm's \emph{in-family} trend is
+$g(\theta_k, s)$ for some unknown $\theta_k \in \Theta$. $g$ is continuously
+differentiable in $\theta$ on $\Theta$ for every $s \in \mathcal{S}$, and its Jacobian
+$J(\theta, s) = \nabla_\theta g(\theta, s)$ is bounded on $\Theta \times \mathcal{S}$:
+$\sup_{\theta \in \Theta, s \in \mathcal{S}} \lVert J(\theta, s) \rVert < \infty$.
+\end{assumption}
+
+This project implements six concrete choices of $g$ (\texttt{src/pdt/scaling/fitters.py}),
+differing in $p$ and functional form:
+\texttt{ConstantExtrapolator} ($p = 1$, $g$ does not depend on $s$ -- the single-scale
+baseline, Corollary~\ref{cor:single-scale} below), \texttt{LogLinear} ($p = 2$),
+\texttt{PowerLawN} and \texttt{PowerLawC} ($p = 3$ each, differing in whether the power
+law is indexed by parameter count or compute), \texttt{ChinchillaND} ($p = 5$, the joint
+$(N, D)$ form of \citet{hoffmann2022chinchilla}), and \texttt{TwoStepLadder} ($p = 7$).
+Assumption~\ref{asn:family} is stated for a generic $g$ because every theorem below
+applies to any of the six -- the fitter is a free parameter of the theory, not baked
+into a theorem statement, matching how \texttt{src/pdt/theory/bound.py} takes a fitted
+\texttt{Extrapolator} instance as an argument rather than hardcoding one.
+
+Fitting $\theta_k$ requires a \emph{design} $S_{\mathrm{fit}} \subset \mathcal{S}$, a
+finite multiset of scales at which arm $k$ is actually observed
+(Section~\ref{sec:setup-obs}). \texttt{Extrapolator.fit()} refuses a design with
+$|S_{\mathrm{fit}}| < p + 1$ (raises \texttt{FitFailure}) -- this is not a numerical
+convenience but a real content of the theory, since Theorem~\ref{thm:identifiability}
+below is exactly about what $|S_{\mathrm{fit}}|$ and its spacing must satisfy for
+$\theta_k$ to be identifiable at all.
+
+\subsection{The observation model}
+\label{sec:setup-obs}
+
+\begin{assumption}[Noisy observations]
+\label{asn:noise}
+At each scale $s \in S_{\mathrm{fit}}$ where arm $k$ is observed, one (or several
+independent, indexed $i$) noisy observations are drawn:
+\[
+  y_{k, i}(s) = \mu_k(s) + \varepsilon_{k, i}(s), \qquad
+  \varepsilon_{k, i}(s) \ \text{sub-Gaussian with proxy variance } \sigma^2(s),
+\]
+independent across $(k, i, s)$, with $\sigma^2(s)$ known or (as in this project's actual
+experiments) estimated from repeated observations before the design is chosen.
+\end{assumption}
+
+\begin{remark}[The scale-noise assumption is empirically false, and this is a
+finding, not a nuisance]
+\label{rem:noise-not-monotone}
+It is natural to expect $\sigma^2(s)$ to \emph{decrease} in $s$ -- a well-worn
+intuition from standard best-arm identification, where more samples (here, larger
+models) are usually less noisy per observation, and an earlier draft of this project
+assumed exactly that. \textbf{P1-05 measured this directly on DataDecide and found no
+such trend}: the seed-variance component of $\sigma^2(s)$ has a median ranging from
+about $2.9 \times 10^{-5}$ to $5.9 \times 10^{-5}$ across the 4M-to-1B ladder with no
+clear monotonic direction (\texttt{results/p1\_05\_noise.json};
+\texttt{docs/decisions.md}, 2026-09-03). Per Rule 2 of \texttt{plan/00-agent-protocol.md}
+(``report results that contradict the hypothesis''), Assumption~\ref{asn:noise} is
+therefore stated \emph{without} assuming monotonicity in $s$: $\sigma^2(\cdot)$ is a
+general, scale-indexed (heteroscedastic) function, not a decreasing one. This matters
+for Theorem~\ref{thm:lower-bound}'s allocation program (Part~A): the classical BAI
+intuition that bigger scales are doubly attractive (informative \emph{and} eventually
+cheap-per-bit) does not hold here on the noise side -- only the bias side
+(Section~\ref{sec:setup-misspec}) pulls the allocation toward larger scales, which is a
+strictly weaker force. \texttt{P3-02}'s numerical solver for $T^\star$ must therefore
+use the \emph{measured} $\sigma^2(s)$ (\texttt{src/pdt/analysis/noise.py}), never an
+assumed decreasing curve.
+\end{remark}
+
+In practice, $\sigma^2(s)$ has (at least) three independent, separately estimated
+components -- seed variance, checkpoint jitter, and eval-sampling noise
+(\texttt{src/pdt/analysis/noise.py}: \texttt{seed\_variance}, \texttt{checkpoint\_jitter},
+\texttt{eval\_sampling\_noise} / \texttt{eval\_sampling\_noise\_of\_mean}). Which
+components apply, and how they combine, depends on what a single ``observation'' $y$
+means for a given estimator (a single seed's single-checkpoint score, versus a
+seed-averaged score); \texttt{docs/notation.md} states the exact correspondence used
+by each results file. Theorem~\ref{thm:main-bound} treats $\sigma^2(s)$ as given and is
+agnostic to this decomposition.
+
+\subsection{The cost model}
+\label{sec:setup-cost}
+
+\begin{assumption}[Compute cost]
+\label{asn:cost}
+Observing arm $k$ once at scale $s = (N, D)$ costs $c(s) = 6 N D$ FLOPs (the standard
+transformer training-compute approximation; \texttt{Scale.compute} in
+\texttt{src/pdt/scaling/base.py}). A design that observes scale $s_i$ a total of $n_i$
+times costs $\sum_i n_i \, c(s_i)$, and the total compute spent by a policy up to any
+point is $C = \sum_i n_i \, c(s_i)$, summed over everything pulled so far.
+\end{assumption}
+
+\subsection{The misspecification model}
+\label{sec:setup-misspec}
+
+This is the paper's central modelling choice, and the one requiring the most care.
+
+\begin{assumption}[Bounded misspecification]
+\label{asn:misspec}
+Each arm's true trend is $\mu_k(s) = g(\theta_k, s) + h_k(s)$, where $h_k$ lies in a
+known bounded perturbation class $\mathcal{H}$ -- for concreteness, either
+$\sup_{s \in \mathcal{S}} |h_k(s)| \le \eta$ for a known or estimated $\eta \ge 0$, or a
+Hölder ball of known smoothness and radius. $g$ is never exactly correct; $\mathcal{H}$
+is the family's honest admission of that, not an edge case.
+\end{assumption}
+
+\begin{definition}[Population-level in-family projection]
+\label{def:projection}
+For a design $S_{\mathrm{fit}}$ (formally, a probability measure $\pi$ on
+$\mathcal{S}$ supported on the scales observed, weighted by how much of the budget each
+receives), the \emph{population-level} (noise-free, infinite-replicate) least-squares
+projection of arm $k$'s true trend onto the family is
+\[
+  \theta_k^{\dagger}(S_{\mathrm{fit}})
+  \;=\; \arg\min_{\theta \in \Theta} \ \mathbb{E}_{s \sim \pi}\!\left[
+    \big( g(\theta, s) - \mu_k(s) \big)^2 \right].
+\]
+\end{definition}
+
+\begin{definition}[Extrapolation bias, $\sigma^2_{\mathrm{extrap}}$]
+\label{def:sigma2-extrap}
+\[
+  \sigma^2_{\mathrm{extrap}, k}(S_{\mathrm{fit}})
+  \;=\; \Big( g\big(\theta_k^{\dagger}(S_{\mathrm{fit}}), s^\star\big) - \mu_k(s^\star)
+  \Big)^2 .
+\]
+\end{definition}
+
+\begin{remark}[Design-dependence is the mathematical heart of the paper]
+\label{rem:design-dependence}
+$\sigma^2_{\mathrm{extrap}, k}$ is a property of the pair $(k, S_{\mathrm{fit}})$, not
+of $k$ alone -- two different designs project the same true $\mu_k$ onto two different
+in-family curves, with two different biases at $s^\star$. Consequently:
+\begin{itemize}
+  \item \textbf{More replicates at the same scales do not shrink
+    $\sigma^2_{\mathrm{extrap}, k}$.} They shrink the \emph{estimation} variance
+    $v_k(C)$ (Theorem~\ref{thm:main-bound}) toward $0$, but
+    $\theta_k^{\dagger}(S_{\mathrm{fit}})$ -- and hence
+    $\sigma^2_{\mathrm{extrap}, k}(S_{\mathrm{fit}})$ -- does not depend on $C$ at all
+    for a \emph{fixed design shape} (fixed relative weighting $\pi$ across scales, just
+    scaled up). This is exactly the empirical pattern P1-06 measured: across
+    $6$ fitters $\times$ $3$ designs $\times$ $11$ tasks, \texttt{v\_hat} shrinks with
+    fitting compute while \texttt{sigma2\_extrap\_hat} does not shrink to $0$ at any
+    design (\texttt{results/p1\_06\_decomposition.json}; a $\sim$14$\times$ spread
+    across tasks at the same fitter and design, \texttt{docs/findings/p1\_06.md}).
+  \item \textbf{Changing which scales are in the design changes
+    $\sigma^2_{\mathrm{extrap}, k}$}, because it changes $\pi$ and hence
+    $\theta_k^{\dagger}$. This is the lever Theorem~\ref{thm:identifiability}'s
+    design-dependence corollary formalises, and what P1-06's own (surprising,
+    contrary-to-plan) finding is really about: P1-06 found the ratio
+    $\sigma^2_{\mathrm{extrap}} / v$ \emph{falls}, not rises, as the design's largest
+    scale moves closer to $s^\star$ -- consistent with this remark (a design whose
+    scales sit closer to $s^\star$ changes $\pi$ toward the region where $g$'s
+    in-family fit is closer to the truth), not with the earlier, wrong prediction that
+    $\sigma^2_{\mathrm{extrap}}$ should stay flat in $C$ while only $v$ moves.
+\end{itemize}
+\end{remark}
+
+\begin{remark}[Estimating $\sigma^2_{\mathrm{extrap}, k}$]
+\label{rem:sigma2-extrap-estimator}
+Definitions~\ref{def:projection}--\ref{def:sigma2-extrap} are population quantities;
+$\mu_k$ and $\theta_k^{\dagger}$ are never observed exactly. P1-06's estimator
+(\texttt{bias\_variance\_decomposition} in \texttt{src/pdt/analysis/bootstrap.py}) is
+\[
+  \widehat{\sigma^2_{\mathrm{extrap}, k}}
+  \;=\; \max\!\Big(0,\ \widehat{\mathrm{bias}}_k^2
+    - \frac{\hat{v}_k}{B} - \sigma^2_{\mathrm{target}, k} \Big),
+\]
+where $\widehat{\mathrm{bias}}_k = \overline{\hat\mu}_k^{(1:B)} - \mu_{k,\mathrm{true}}$
+is the mean bootstrap prediction of $\mu_k(s^\star)$ across $B$ replicates minus the
+measured ground truth, $\hat v_k$ is the across-replicate variance of those same $B$
+predictions, and $\sigma^2_{\mathrm{target}, k}$ is the noise in the ground-truth
+measurement itself (Assumption~\ref{asn:noise} evaluated at $s^\star$). The subtracted
+terms debias the naive $\widehat{\mathrm{bias}}_k^2$, which over-estimates
+$\sigma^2_{\mathrm{extrap}, k}$ because $\widehat{\mathrm{bias}}_k$ itself carries
+sampling noise from two independent sources (the bootstrap mean's own variance
+$\hat v_k / B$, and the ground truth's own measurement noise $\sigma^2_{\mathrm{target}, k}$);
+the $\max(0, \cdot)$ clip is necessary because the debiased quantity can go negative in
+a finite sample even though the population quantity it estimates cannot.
+\end{remark}
+
+\subsection{The policy class and correctness criterion}
+\label{sec:setup-policy}
+
+A policy is a (possibly randomised, adaptive) rule that, at each step, either selects
+an arm-scale pair $(k, s) \in \{1, \dots, K\} \times \mathcal{S}$ to observe next or
+stops. Formally: a stopping time $\tau$ with respect to the filtration generated by the
+observations so far, together with a recommendation $\hat{k} \in \{1, \dots, K\}$ that
+is $\mathcal{F}_\tau$-measurable. Let
+$k^\star = \arg\max_k \mu_k(s^\star)$ (assumed unique unless stated otherwise) and
+$\Delta_k = \mu_{k^\star}(s^\star) - \mu_k(s^\star) \ge 0$ for $k \ne k^\star$.
+
+\begin{definition}[$\delta$-correctness]
+\label{def:delta-correct}
+A policy is $\delta$-correct on an instance class $\mathcal{I}$ if
+$\mathbb{P}[\hat{k} \ne k^\star] \le \delta$ for every instance in $\mathcal{I}$.
+\end{definition}
+
+Section~\ref{sec:setup-misspec}'s misspecification model is folded into
+$\mathcal{I}$ via $\mathcal{H}$: an instance is a full specification
+$(\theta_1, \dots, \theta_K, h_1, \dots, h_K)$ with each $h_k \in \mathcal{H}$, and
+$\delta$-correctness (Definition~\ref{def:delta-correct}) is required uniformly over
+every such instance, not just over the noise given fixed, correctly-specified
+$\theta_k$'s -- this is what makes Theorem~\ref{thm:main-bound}'s bound depend on
+$\sigma^2_{\mathrm{extrap}, k}$ and not only on estimation variance, and what makes
+Theorem~\ref{thm:lower-bound}'s impossibility result (Part~B) possible at all.
+
+\bigskip
+\noindent\emph{Every symbol introduced above is mapped to its computing code identifier
+in \texttt{docs/notation.md}.}
