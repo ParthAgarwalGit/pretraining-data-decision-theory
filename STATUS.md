@@ -2,7 +2,7 @@
 
 Update this file at the end of **every** session (protocol step 11).
 
-Last updated: 2026-09-02 | Session: 9
+Last updated: 2026-09-02 | Session: 10
 
 States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
@@ -32,8 +32,8 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
 | Task | Title | State | PR | Notes |
 |---|---|---|---|---|
-| P1-01 | Canonical analysis frame | IN REVIEW | (opening) | full (recipe, params, seed, task) coverage matrix is 100% complete -- 69,300/69,300 cells, 0 holes -- confirming P0-06's coarser check at full granularity; built on load_eval_results() rather than re-parsing metrics |
-| P1-02 | Ground truth at target scale, and gaps | TODO | | |
+| P1-01 | Canonical analysis frame | DONE | [#9](https://github.com/ParthAgarwalGit/pretraining-data-decision-theory/pull/9) | full (recipe, params, seed, task) coverage matrix is 100% complete -- 69,300/69,300 cells, 0 holes; gained a `source`/`metrics` parameterization in P1-02 after finding eval_results was the wrong granularity -- see docs/decisions.md |
+| P1-02 | Ground truth at target scale, and gaps | IN REVIEW | (opening) | **headline finding: 9/11 macro_avg tasks still ambiguous under primary_metric at 1B (6/11 under acc_per_char)** -- even DataDecide's own olmes_10_macro_avg has a ~0.05pp winning margin, within seed noise; found eval_results was the wrong task granularity (fixed frame.py), a cache-key bug that silently poisoned P1-01's own results (fixed), and non-deterministic tie-breaking in compute_ground_truth (fixed) -- all 3 caught by diffing clean-tree reruns against each other, see docs/decisions.md |
 | P1-03 | Reproduce DataDecide single-scale baseline | TODO | | target ~80% at 150M |
 | P1-04 | Scaling-law fitters; reproduce "extrapolation does not win" | TODO | | |
 | **GATE-1** | **Reproduction checkpoint — PI approval** | TODO | | |
