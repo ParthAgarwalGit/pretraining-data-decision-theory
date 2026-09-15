@@ -920,3 +920,79 @@ about extrapolation uncertainty. See `tests/test_bound.py`'s two paired
 tests for both properties checked directly.
 
 **Decided by:** Agent, while executing task P1-07.
+
+---
+
+## 2026-09-16 — P1-07's additive bound was an invalid "upper bound" for large fixed bias; estimator-specific uncertainty guard added
+
+**Context:** PR #17's reviewer found two real issues in
+`src/pdt/theory/bound.py`.
+
+**Issue 1 (P1): the additive form `exp(-Delta_k^2 / (2*(bias^2+v)))`
+folds a fixed, signed misspecification (bias) into a variance-like
+denominator term, which is the wrong treatment and produces an invalid
+bound.** Counterexample, reproduced exactly as given: challenger gap=5,
+bias=+10, variance=.01 -- the bias alone dwarfs and reverses the apparent
+5-point gap, so the true decision error is near-certain (~1), yet the old
+formula evaluated to ~0.8825, an "upper bound" *smaller* than the true
+error rate it is supposed to bound -- a violated bound, not just a loose
+one. The bug: averaging a large *fixed* bias into the denominator
+alongside genuinely random variance treats it as if it were symmetric
+noise that merely widens the distribution, when a bias that exceeds the
+gap in the wrong direction should make the term vacuous (-> 1, "no
+guarantee"), not moderately shrink it.
+
+**Fix:** `_bound_term` now treats bias as a worst-case, sign-unknown
+shift that first cancels the apparent gap (`effective_gap = max(0,
+|delta_k| - bias_magnitude)`), and only the *surviving* gap gets the
+variance-driven exponential-tail treatment. At `bias_magnitude=0` this is
+identical to the original formula, so the zero-bias case (and every
+downstream reported bound value that happens to have negligible bias) is
+unaffected. Re-running the exact counterexample now gives `1.0` (fully
+vacuous, correctly signaling "no guarantee" instead of the invalid 0.8825).
+`marginal_bound_term` uses `sqrt(sigma2_extrap_hat)` as the bias
+magnitude (already a squared-magnitude, sign-unknown estimate);
+`pairwise_bound_term` uses `abs(bias_hat)` (a signed point estimate,
+whose sign is itself uncertain at the scale that matters, so its
+magnitude is the defensible worst case). Documented plainly in the module
+docstring that this is **an empirical diagnostic, not a proven
+statistical bound** -- PR #23's review of the paper's own Theorem 1 proof
+(`paper/sections/theorem1_bound.tex`) independently found the nonlinear
+case isn't rigorously established either (smoothness/bounded-Jacobian
+alone don't give exact sub-Gaussian tails), so every value from this
+module should be read as "compare against P1-07's Monte-Carlo empirical
+error estimate," not "certified guarantee."
+
+**Issue 2 (P2): `sandwich_covariance`/`analytic_v_k` silently reported a
+number for every fitter, including two whose actual fitting procedure the
+joint-least-squares sandwich formula does not describe.**
+`ConstantExtrapolator` only fits to the largest-scale observations
+(ignoring the rest), and `sandwich_covariance` called with the *full*
+scales list would wrongly charge it "residuals" at scales it never used.
+`TwoStepLadder` fits in two separate sequential stages with different
+objectives, not one joint simultaneous optimization -- the single
+shared-jacobian/residual M-estimator structure doesn't represent a
+two-stage procedure at all. Both previously produced a plausible-looking
+`analytic_v_k` number that `results/p1_07_bound_coverage.json` reported
+"alongside P1-06's bootstrap `v_hat_k` as a cross-check," implying the two
+measure the same thing when for these two fitters they provably don't.
+
+**Fix:** `analytic_v_k` now raises `UnsupportedEstimatorError` for any
+fitter in the new `UNSUPPORTED_SANDWICH_ESTIMATORS` constant
+(`{"ConstantExtrapolator", "TwoStepLadder"}`) rather than fabricating a
+number. `experiments/p1_07_bound_coverage.py`'s `_compute_analytic_v_k`
+catches it alongside the existing `FitFailure`/`LinAlgError` handling and
+records `unsupported_estimator: true` in the per-recipe result (`false`
+for a genuine fit failure), so a reader of the results file can tell "not
+analytically supported by design" apart from "the fit itself failed."
+Both fitters are simply absent from `analytic_v_k` going forward, rather
+than silently present with a number that doesn't mean what the results
+file's own docstring claims it means.
+
+**Not yet done:** `results/p1_07_bound_coverage.json` needs regenerating
+with both fixes (plus every inherited upstream fix -- P1-04's fitter
+bugs, P1-06's bootstrap correlation/squared-bias/ID-alignment bugs) once
+this branch is merged forward past `phase1/bias-variance`'s own P1-06
+regeneration.
+
+**Decided by:** Agent, addressing PR #17's review. Full suite: 204 passed.

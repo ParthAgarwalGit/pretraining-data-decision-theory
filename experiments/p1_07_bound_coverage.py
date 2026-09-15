@@ -11,7 +11,11 @@ See plan/02-phase1-datadecide.md task P1-07. Three pieces:
    bootstrap v_hat_k as a cross-check of the analytic machinery, not
    substituted into the reported bound (which uses P1-06's bootstrap
    estimates throughout, for consistency with sigma2_extrap_hat, which has
-   no purely-analytic counterpart).
+   no purely-analytic counterpart). `ConstantExtrapolator` and
+   `TwoStepLadder` are skipped here (`bound.UnsupportedEstimatorError`,
+   `unsupported_estimator: true` in the per-recipe result) since the
+   joint-least-squares sandwich formula doesn't describe how either
+   actually fits -- see `bound.analytic_v_k`'s docstring.
 3. A Monte-Carlo estimate of the actual selection error (>=500 resamples,
    seed-bootstrap scheme -- see docs/decisions.md for why this scheme, not
    parametric, was chosen as the canonical one for this specific check),
@@ -124,8 +128,11 @@ def _compute_analytic_v_k(
             model = fitter_cls(rng=np.random.default_rng(seed))
             model.fit(scales, values)
             v_k = bound.analytic_v_k(model, scales, values, target_scale)
+        except bound.UnsupportedEstimatorError as exc:
+            result[recipe] = {"ok": False, "unsupported_estimator": True, "error": str(exc)}
+            continue
         except (FitFailure, np.linalg.LinAlgError) as exc:
-            result[recipe] = {"ok": False, "error": str(exc)}
+            result[recipe] = {"ok": False, "unsupported_estimator": False, "error": str(exc)}
             continue
         result[recipe] = {"ok": True, "analytic_v_k": v_k}
     return result
