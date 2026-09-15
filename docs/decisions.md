@@ -793,3 +793,56 @@ file; no further diffing against either parent version individually is
 meaningful since both were missing one of the two now-combined fixes.
 
 **Decided by:** Agent, resolving the merge of PR #12 into PR #14.
+
+---
+
+## 2026-09-14 — P1-09's Bonferroni threshold was actually a ~12x-too-loose normal approximation; corrected reversal rate is 1.0%, not 15.2%
+
+**Context:** PR #15's reviewer found that `pair_effect_size` is a t-like
+statistic -- both `sigma2_a` and `sigma2_b` are estimated from only
+`n_seeds=3` observations each -- but the Bonferroni-corrected significance
+threshold used `scipy.stats.norm.ppf`, a standard-normal quantile, as if
+the variances were known exactly. Reproduced exactly as given: at `df=4`
+(the pooled-equal-variance case this project's real `n_seeds=3` gives
+everywhere), the normal-based cutoff's actual two-sided false-positive
+rate under the correct `t(4)` distribution is 0.0435, not the intended
+`0.05/14=0.00357` -- **more than 12x the nominal rate**, meaning the
+previously-committed "Bonferroni-corrected" 15.2% reversal rate
+(2026-09-03 entry above) was substantially inflated by the same kind of
+multiple-comparisons problem it was supposed to be correcting for, just a
+smaller version of it.
+
+**Fix:** `rank_reversal.welch_satterthwaite_df()` computes a per-(task,
+size, pair) cell Welch-Satterthwaite degrees of freedom from each
+recipe's own seed variance (they differ in practice, so pooling them into
+a single fixed df is itself an approximation this avoids), and
+`p1_09_rank_reversals._bonferroni_t_threshold()` uses `scipy.stats.t.ppf`
+at that df instead of a single fixed normal quantile shared across every
+cell. Four regression tests added (equal-variance recovers the pooled
+`df=4` case, unequal variance gives a lower df, both degenerate cases
+return `None` and fall back to an infinite threshold rather than
+crashing).
+
+**Regenerated `results/p1_09_rank_reversals.json` with the fix (plus the
+inherited P1-04 fitter fixes and the group_by determinism fix, both
+already merged forward into this branch) on a clean tree.** The corrected
+Bonferroni-calibrated reversal rate is **1.0%** (32/3300 pairs), down from
+the previously-reported 15.2% -- a much sharper conclusion than the earlier
+number suggested, though still nonzero (rank reversals are real, just far
+rarer at the properly-calibrated significance level than the miscalibrated
+threshold made them look). The uncorrected `1.0`-threshold figure is
+unaffected by this fix (61.7%, matching the earlier entry almost exactly --
+the small residual difference is downstream of the P1-04/group_by fixes'
+effect on `seed_variance`, not this fix) since it never used the Bonferroni
+threshold at all.
+
+**How to apply:** any paper draft, figure, or claim citing "15.2% of pairs
+reverse" (the number this project's own earlier decisions.md entry and
+`primary_threshold_label: "bonferroni"` pointed to) must be updated to
+1.0% -- the earlier number was wrong, not superseded by a policy choice.
+The uncorrected 61.7% figure's status as "kept for continuity, not the
+headline" (2026-09-03 entry) is unchanged.
+
+**Decided by:** Agent, addressing PR #15's review. Full suite: 172 passed.
+`results/p1_09_rank_reversals.json` regenerated on a clean tree
+(`git_dirty: false`).
