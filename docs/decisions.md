@@ -609,3 +609,135 @@ stronger safety property than adding a sort would be.
 flagged. Verified via 25 independent full runs pre-fix (24 pairwise diffs)
 and 10 independent full runs post-fix (all byte-identical), plus 3 clean
 regenerations of the affected results files.
+
+---
+
+## 2026-09-14 — Two real bugs found by external review, fixed, results regenerated
+
+**Context:** PR #12's reviewer found two real correctness bugs in `src/pdt/scaling/`,
+both with concrete, executable reproductions, and flagged that the resulting
+mis-fits/mis-predictions propagate through every downstream task that fits a scaling
+law (essentially all of Phase 1 onward) since PowerLawN/ConstantExtrapolator are used
+throughout.
+
+**Bug 1 (P1): `multi_start_fit`'s uniform-random restart initialization can silently
+converge to the wrong answer with all restarts agreeing.** `x0 = rng.uniform(bounds[0],
+bounds[1])` samples an exponent parameter like `alpha` linearly over `[1e-3, 10]` --
+almost all of that mass lands on `alpha >~ 1`, where `N^-alpha` and its derivatives
+underflow to numerically zero for the parameter counts this project fits over
+(1e6-1e9): a flat region with no gradient signal. `scipy.optimize.least_squares` can
+report `success=True` there anyway (it stops on step size, not residual, going to
+zero), so **every one of the default 8 restarts can land in that flat region and agree
+with each other** -- passing the function's own `objective_spread`-based multi-start
+sanity check while still being badly wrong. Reproduced exactly as the reviewer gave it:
+`PowerLawN(rng=np.random.default_rng(1))` fit to a noiseless `y = 0.9 - 2*N^-0.1` curve
+(`N` from 1e6 to 1.5e8) predicted 0.504 at the target scale instead of the true 0.648,
+with all 8 restarts converging to the identical wrong point (`objective_spread` ~1e-18).
+
+**Fix:** `multi_start_fit` gained a `log_uniform_dims` parameter naming which parameter
+indices are decay-rate exponents; those are now drawn log-uniformly over their own
+bounds instead of linearly, concentrating restarts in the region where the fit's
+gradient signal actually exists. Applied to every fitter with an exponent parameter:
+`PowerLawN`, `PowerLawC` (`alpha`, index 2), `ChinchillaND` (`alpha` and `beta`,
+indices 2 and 4), `TwoStepLadder`'s step 1 (`alpha1`, index 2). Re-running the exact
+counterexample now recovers the true curve exactly (`theta = [0.9, -2.0, 0.1]`,
+`best_cost ~4.5e-30`). Regression tests added:
+`tests/test_scaling.py::test_power_law_n_recovers_a_small_alpha_noiseless_curve_across_seeds`
+(the exact counterexample, checked across 5 seeds, not just the one reported) and
+`test_multi_start_fit_log_uniform_dims_avoids_the_flat_high_alpha_region` (a direct,
+model-agnostic before/after check of the fix itself).
+
+**Bug 2 (P2): `ConstantExtrapolator` used the first observation at the largest scale,
+not the average of every replicate there.** `values[idx]` for whichever row happened to
+be first at max-`N`, when the interface accepts (and every real caller passes) a
+replicate history -- several seeds at the same size. Reproduced exactly as given:
+scales `[(1,1),(2,1),(2,1)]`, `y=[0,0.1,0.9]` predicted 0.1 (the first n=2 row), not the
+mean 0.5; reordering the last two rows changed the answer.
+
+**Fix:** average every observation at the largest scale (respecting the `weights`
+argument when given), not just the first one encountered. Three regression tests
+added, covering averaging, order-independence, and weighted averaging.
+
+`results/p1_04_extrapolation.json` (and every downstream results file computed from a
+scaling-law fit) needs regenerating with both fixes in place -- see the follow-up
+decisions.md entry for the regenerated numbers.
+
+**Decided by:** Agent, addressing PR #12's review. Full suite: 136 passed, 100%
+coverage on `src/pdt/scaling/base.py` and `src/pdt/scaling/fitters.py`.
+
+## 2026-09-14 — P1-04 results regenerated with both fixes: headline finding unchanged, individual fitter accuracies shift
+
+**Context:** follow-up to the entry immediately above. `results/p1_04_extrapolation.json`
+regenerated via `PDT_OVERWRITE=1 uv run python experiments/p1_04_extrapolation_baselines.py`
+on a clean tree with both scaling-law bugs fixed.
+
+**Headline finding is unchanged:** still 0/18 (fitter, design) combinations beat
+single-scale training at matched compute. `summary.n_beat_single_scale_at_matched_compute`
+is `0` both before and after, same as `summary.winners == []`. The consistency check
+(`ConstantExtrapolator`'s predictions matching P1-03's own reported numbers) still
+passes.
+
+**Individual accuracies moved, in the direction the bug predicts.** Every fitter with a
+decay-rate exponent parameter (the ones the `log_uniform_dims` fix touches) changed;
+`ConstantExtrapolator` and `LogLinear` (no exponent parameter, untouched by the fix) are
+bit-for-bit identical before and after, which is itself a useful sanity check that the
+fix is scoped correctly. Macro-averaged decision accuracy (including ties), by fitter
+and design:
+
+| fitter | design | before | after |
+|---|---|---|---|
+| PowerLawN | S_fit≤150M | 0.6452 | 0.7376 |
+| PowerLawN | S_fit≤300M | 0.6006 | 0.8097 |
+| PowerLawN | S_fit≤530M | 0.6891 | 0.8273 |
+| PowerLawC | S_fit≤150M | 0.6973 | 0.7358 |
+| PowerLawC | S_fit≤300M | 0.6915 | 0.7645 |
+| PowerLawC | S_fit≤530M | 0.7164 | 0.8179 |
+| ChinchillaND | S_fit≤150M | 0.7203 | 0.7624 |
+| ChinchillaND | S_fit≤300M | 0.7497 | 0.8148 |
+| ChinchillaND | S_fit≤530M | 0.7858 | 0.8482 |
+| TwoStepLadder | S_fit≤150M | 0.6942 | 0.5979 |
+| TwoStepLadder | S_fit≤300M | 0.7082 | 0.6197 |
+| TwoStepLadder | S_fit≤530M | 0.7697 | 0.6773 |
+| ConstantExtrapolator | (all 3) | 0.7627 / 0.8252 / 0.8509 | unchanged |
+| LogLinear | (all 3) | 0.7639 / 0.8148 / 0.8494 | unchanged |
+
+`PowerLawN`, `PowerLawC`, and `ChinchillaND` all got *more* accurate after the fix (by
+4-21 points) -- the old buggy initialization was landing genuine fits in the numerically
+flat high-alpha region often enough to measurably drag down decision accuracy, not just
+occasionally. `TwoStepLadder` moved the other way, *down* by 9-11 points: its step 1 also
+fits an `alpha`-like exponent, and the old bug's flat-region fits apparently happened to
+produce extrapolations that agreed with the true ranking more often than the genuinely
+optimal fits now do. Neither direction is surprising once the mechanism is understood --
+the old numbers weren't measuring "how good is this functional form", they were partly
+measuring "how did this particular numerical failure mode happen to land" -- but it means
+any pre-fix conclusion about `TwoStepLadder` specifically (e.g. "it's the best of the
+exponent-based fitters") should be treated as an artifact of the bug, not a real result.
+
+**Decided by:** Agent. Regeneration run completed cleanly (`git_dirty: false` in the
+written provenance); no code changes in this entry, data only.
+
+---
+
+## 2026-09-14 — P1-04 results regenerated again: both the scaling-fitter fix and the group_by determinism fix are now in the same file
+
+**Context:** this branch (`phase1/groupby-determinism-audit`, PR #14) and
+`phase1/scaling-fitters` (PR #12) each independently regenerated
+`results/p1_04_extrapolation.json` from a clean tree, from two different
+fixes to two different bugs (the group_by summation-order bug above, and
+the scaling-law initialization/replicate-averaging bugs in the entries
+above that). Merging PR #12's fix forward into this branch produced a
+real conflict in the results file itself -- both versions are genuine,
+correct regenerations of their own fix in isolation, but neither reflects
+both fixes at once. Per this project's provenance discipline (never
+hand-merge a generated results file), resolved by regenerating fresh from
+the merged code, which now has both fixes applied together, rather than
+attempting to reconcile the two JSON payloads by hand.
+
+**Result:** `PDT_OVERWRITE=1 uv run python experiments/p1_04_extrapolation_baselines.py`
+on the merged, clean tree. Headline finding still unchanged (0/18 combinations
+beat single-scale at matched compute); the `ConstantExtrapolator`-vs-P1-03
+consistency check still passes. Superseded both parents' versions of this
+file; no further diffing against either parent version individually is
+meaningful since both were missing one of the two now-combined fixes.
+
+**Decided by:** Agent, resolving the merge of PR #12 into PR #14.
