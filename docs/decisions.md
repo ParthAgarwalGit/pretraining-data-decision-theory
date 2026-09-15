@@ -995,3 +995,68 @@ trusting the first run's console output, which had already produced
 nonsensical negative percentages -- a signal something was wrong with the
 *interpretation*, not (as first suspected) a bug in P1-06/07's actual
 computed values, both of which were re-checked and confirmed correct.
+
+---
+
+## 2026-09-16 — P1-08's "gap" diagnostic mixed two decision events; the single-scale baseline was compute-mismatched
+
+**Context:** PR #18's reviewer found two real issues in
+`experiments/p1_08_ceiling_prediction.py`, both about comparing two
+quantities that are not actually the same thing.
+
+**Issue 1 (P1): `gap_predicted_minus_observed` compared a best-arm-selection
+bound against an all-pairs accuracy statistic.** `predicted_accuracy` is
+`max(0, 1 - bound_pairwise)`, and `bound_pairwise` is a union bound over
+the ~24 comparisons against the task's single true best recipe `k*` -- it
+lower-bounds P(this fitter's own argmax recipe == k*), one specific
+decision event. `observed_accuracy` (from P1-03/04) is
+`macro_avg_accuracy_including_ties`, the fraction of ALL 300 recipe
+*pairs* correctly ordered -- a different statistic that mostly says
+nothing about whether k* specifically was identified. Their difference
+cannot diagnose anything about the bound's tightness or the 80% ceiling,
+since a mismatch between them could be entirely an artifact of which event
+each one measures, unrelated to the theory's quality.
+
+**Fix:** added `_observed_best_arm_accuracy_per_task`, sourcing the SAME
+decision event's empirical rate directly from P1-07's own Monte-Carlo
+estimate (`empirical_error_rate` = 1 - P(argmax recipe == k*), computed by
+literally resampling the fitting procedure the bound describes). The new
+`observed_best_arm_accuracy` / `gap_predicted_minus_observed_best_arm`
+fields are the valid ceiling diagnostic going forward. The original
+(event-mismatched) `observed_accuracy` / `gap_predicted_minus_observed`
+fields are kept, but now documented as NOT the ceiling diagnostic --
+`observed_accuracy` is still legitimately used for the separate,
+internally-consistent "does extrapolation's all-pairs accuracy beat
+single-scale's all-pairs accuracy" central claim, where both sides use the
+same statistic.
+
+**Issue 2 (P2): the "beats single-scale" central claim compared extrapolation
+against `ConstantExtrapolator` at the SAME endpoint size, not the same
+compute.** `ConstantExtrapolator` at a design's endpoint (e.g. 150M) only
+pays for one model at that one size; the extrapolation fitter being
+compared against it consumed the compute of the ENTIRE fitting ladder up
+to that endpoint (every smaller size too). Comparing accuracy at matched
+*size* rather than matched *compute* is exactly the mismatch P1-04's own
+headline finding ("0/18 beat single-scale at matched compute") was
+designed to avoid -- P1-08 was silently redoing (and miscomputing) that
+same comparison instead of reusing it.
+
+**Fix:** added `_matched_compute_single_scale`, which reads P1-04's own
+already-correct `matched_single_scale_accuracy_including_ties` /
+`matched_compute_out_of_range` fields (the log-compute-interpolated
+single-scale baseline P1-04's headline already uses, identical across
+every fitter at a given design since they share the same ladder/compute).
+`extrapolation_beats_single_scale_observed` in `central_claims` now uses
+this matched-compute baseline instead of `ConstantExtrapolator`'s
+same-endpoint accuracy; `ConstantExtrapolator`'s own accuracy is still
+reported, renamed to `single_scale_observed_same_endpoint` to make clear
+it is informational, not the comparison baseline. `matched_compute_out_of_range`
+is now surfaced per central claim so a `<=530M`-design claim (out of
+P1-03's interpolatable range) reads as "no valid comparison" rather than
+silently falling back to something compute-mismatched.
+
+**Not yet done:** `results/p1_08_ceiling_prediction.json` needs
+regenerating once this branch merges past `phase1/bias-variance` and
+`phase1/bound-check`'s own upstream fixes and regenerations.
+
+**Decided by:** Agent, addressing PR #18's review. Full suite: 203 passed.
