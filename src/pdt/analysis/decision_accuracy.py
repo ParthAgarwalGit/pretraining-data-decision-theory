@@ -16,6 +16,7 @@ import polars as pl
 from scipy.stats import kendalltau
 
 from pdt.analysis.ground_truth import AMBIGUOUS_EFFECT_SIZE_THRESHOLD
+from pdt.scaling.base import Scale
 
 
 def _sign(x: float) -> int:
@@ -69,7 +70,19 @@ def recipe_means(
             "is_final=True -- check the metric name and scale label are real."
         )
 
-    grouped = subset.group_by(["recipe", "task"]).agg(pl.col("metric_value").mean().alias("mu"))
+    # Sorted on a fully deterministic key before the group-by/mean
+    # reduction, with maintain_order=True on the group_by itself: mean()
+    # is not order-associative in floating point, and this specific call
+    # was confirmed to actually flip last-bit float64 values run to run on
+    # the (larger) eval_results source -- 24/24 independent-process runs
+    # differed from each other before this fix, always in `mu`, always at
+    # ~1e-14 relative magnitude. See docs/decisions.md for the audit that
+    # found this (the same class of bug P1-05 fixed in noise.py).
+    grouped = (
+        subset.sort(["recipe", "task", "seed"])
+        .group_by(["recipe", "task"], maintain_order=True)
+        .agg(pl.col("metric_value").mean().alias("mu"))
+    )
 
     result: dict[str, dict[str, float]] = {}
     for task, recipe, mu in zip(
@@ -148,3 +161,80 @@ def pairwise_decision_accuracy(
         "kendall_tau": tau,
         "kendall_p_value": tau_p_value,
     }
+
+
+def recipe_trajectories(
+    long_frame: pl.DataFrame,
+    metric_name: str,
+    proxy_sizes: list[str],
+    *,
+    seed_mode: str = "average",
+) -> dict[str, dict[str, list[tuple[Scale, float]]]]:
+    """{task: {recipe: [(Scale(n, d), value), ...]}} across `proxy_sizes`,
+    each recipe's list sorted by scale ascending -- exactly the shape
+    plan/02-phase1-datadecide.md P1-04's per-recipe extrapolator fitting
+    needs (`Extrapolator.fit(scales, values)`).
+
+    Unlike `recipe_means()` (one scale at a time), this carries `n`/`d`
+    through so the caller doesn't need a second lookup to build `Scale`
+    objects for fitting.
+    """
+    if seed_mode not in ("average", "default_only"):
+        raise ValueError(f"seed_mode must be 'average' or 'default_only', got {seed_mode!r}")
+
+    subset = long_frame.filter(
+        (pl.col("metric_name") == metric_name)
+        & (pl.col("params_str").is_in(proxy_sizes))
+        & (pl.col("is_final"))
+    )
+    if seed_mode == "default_only":
+        subset = subset.filter(pl.col("seed") == "default")
+
+    if subset.height == 0:
+        raise ValueError(
+            f"no rows for metric_name={metric_name!r}, proxy_sizes={proxy_sizes!r}, "
+            "is_final=True -- check the metric name and size labels are real."
+        )
+
+    # Sorted + maintain_order=True for the same reason recipe_means() above
+    # needs it: mean() is order-sensitive in floating point. A same-day
+    # 24-independent-process audit against the (already-cached, warm)
+    # frame did not reproduce a direct failure here -- but see
+    # docs/decisions.md's "group_by().agg() determinism audit" entry,
+    # Finding 3: the already-committed P1-04 results (which depend on
+    # this function's `mu` values as fit inputs) show 61 diagnostic-level
+    # differences against a clean regeneration of this fixed code,
+    # traced to the same root cause rippling through from
+    # compute_ground_truth()/recipe_means(). Fixed for the same reason
+    # those two needed it: nothing about a clean same-day audit rules out
+    # the cold-cache conditions the original committed run actually used.
+    grouped = (
+        subset.sort(["recipe", "task", "params_str", "seed"])
+        .group_by(["recipe", "task", "params_str"], maintain_order=True)
+        .agg(
+            pl.col("metric_value").mean().alias("mu"),
+            pl.col("params_num").first().alias("n"),
+            pl.col("tokens").mean().alias("d"),
+        )
+    )
+
+    result: dict[str, dict[str, list[tuple[Scale, float]]]] = {}
+    for row in grouped.iter_rows(named=True):
+        task_dict = result.setdefault(row["task"], {})
+        task_dict.setdefault(row["recipe"], []).append((Scale(n=row["n"], d=row["d"]), row["mu"]))
+
+    for task_dict in result.values():
+        for recipe, trajectory in task_dict.items():
+            task_dict[recipe] = sorted(trajectory, key=lambda pair: pair[0].n)
+
+    return result
+
+
+def compute_cost(scales: list[Scale]) -> float:
+    """Total FLOPs to train one recipe across every scale in `scales`
+    (C ~= 6*N*D per scale, summed) -- the cost of a proxy design `S_fit`,
+    per plan/02-phase1-datadecide.md P1-04. Recipe-agnostic: every recipe
+    trains the same size ladder, so this depends only on the scales
+    themselves, not which recipe.
+    """
+    return sum(scale.compute for scale in scales)
