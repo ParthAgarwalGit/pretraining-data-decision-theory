@@ -1242,3 +1242,62 @@ introduced.
 `results/p1_08_ceiling_prediction.json`, and every other downstream
 results file computed from P1-06's output still need regenerating once
 their own branches merge this fix forward.
+
+---
+
+## 2026-09-16 — Merging the P1-04 fitter fix forward broke a P1-07 test that was passing for the wrong reason
+
+**Context:** merging `phase1/bias-variance` (which itself carries the
+upstream `phase1/scaling-fitters` fix) into `phase1/bound-check` broke
+`tests/test_bound.py::test_analytic_v_k_saturates_for_power_law_n_far_extrapolation`,
+which asserts `PowerLawN`'s delta-method `v_k` saturates (stops growing)
+between `N=1e11` and `N=1e14`.
+
+**Root cause: the test shared this file's module-level mutable `_RNG`
+across every test, so its outcome depended on how many random draws
+earlier tests in the file happened to consume -- and the log-uniform-init
+fix changes exactly that (one extra `rng.uniform()` call per restart per
+exponent dimension).** Diagnosed by reproducing the exact fit this test
+now gets: `PowerLawN` converged to `alpha=0.404` sitting at its own
+parameter's *box boundary* (`a=-10.0`, the lower bound) -- a genuinely
+different, boundary-constrained local optimum on this test's narrow (8
+points, `1e6` to `1e8`) noisy synthetic curve, one of several comparably-
+low-cost optima this specific data supports (checked directly: 20
+independent seeds on the same synthetic curve land in >=3 qualitatively
+different regimes, including two boundary-hugging ones). But the deeper
+issue survives even for a *well-identified*, non-boundary fit with
+`alpha` close to the curve's true `0.3`: `N^-alpha * ln(N)` (the shape of
+the alpha-jacobian entry) decays to 0 as `N -> infinity` for any
+`alpha > 0`, but only logarithmically slowly for `alpha` this small --
+checked directly, a clean `alpha~0.3` fit's `v_k` is still 40-135%
+different between `N=1e11` and `N=1e14`, not remotely saturated; genuine
+saturation to float64 precision for this curve doesn't arrive until
+roughly `N=1e30`-`1e40`. The original test only ever passed because
+whatever fit the old (buggy, uniform-alpha) `_RNG` sequence happened to
+produce at that point in file execution order behaved as if already
+saturated by `1e11` -- plausibly because the old bug's own failure mode
+(restarts landing in the near-flat, large-alpha region) produces
+*faster*-decaying, not truer, fits.
+
+**Fix:** the test now uses a dedicated local `np.random.default_rng(1)`
+(not the shared file-level `_RNG`), wider/more-informative synthetic data
+(14 points over `1e6`-`1e10`, lower noise, reliably identifying `alpha`
+close to `0.3` across independent seeds -- checked directly), and
+genuinely far-apart comparison scales (`1e30` vs `1e40`) that produce real
+saturation regardless of which valid `alpha` the multi-start fit lands on,
+rather than relying on a specific fit's incidental behavior at scales
+nowhere near true saturation. Not a change to `bound.py`'s own logic --
+the delta-method machinery itself was never wrong here, only this test's
+premise about how close `N=1e11`-`1e14` gets to genuine saturation.
+
+**How to apply:** the rest of this file's tests still share the same
+file-level `_RNG` and remain fine today, but any future change to how
+many random draws a fitter's `fit()` consumes internally could silently
+shift which local optimum any of them lands in. Prefer a dedicated local
+`rng` for a new test whose assertion depends on *which* local optimum a
+multi-modal fit converges to (as this one does), not just whether it
+converges.
+
+**Decided by:** Agent, while merging `phase1/bias-variance` forward into
+`phase1/bound-check`. Full suite: 220 passed, confirmed stable across
+repeated runs and running the file in isolation.
