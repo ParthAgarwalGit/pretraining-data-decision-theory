@@ -1037,3 +1037,63 @@ headline" (2026-09-03 entry) is unchanged.
 **Decided by:** Agent, addressing PR #15's review. Full suite: 172 passed.
 `results/p1_09_rank_reversals.json` regenerated on a clean tree
 (`git_dirty: false`).
+
+---
+
+## 2026-09-16 — P1-06 results regenerated with all upstream fixes: the sigma2_extrap/v ratio still falls with compute, more starkly for some fitters
+
+**Context:** follow-up to this branch's own PR #16 review-fix commit
+(correlation+1, squared-bias estimator, bootstrap-ID-alignment) and to
+every upstream fix merged forward into this branch (`phase1/scaling-fitters`'s
+fitter-initialization/replicate-averaging bugs, `phase1/groupby-determinism-audit`'s
+summation-order fix, `phase1/rank-reversals`'s calibration fix -- none of
+the latter two touch `p1_06_decomposition.py`'s own computation, but the
+fitter fix does, directly). `results/p1_06_decomposition.json` regenerated
+via `PDT_OVERWRITE=1 uv run python experiments/p1_06_decomposition.py` on
+a clean tree: the full grid (6 fitters x 3 designs x 11 tasks x 2 schemes
+= 396 work units, B=200 replicates x 25 recipes each), 1,980,000
+individual bootstrap fits, **0 failures**. Took ~19.4 hours wall-clock this
+run (vs. the ~75-90 minutes the original 2026-09-03 run took) -- almost
+entirely because the fitter-initialization fix means restarts now do
+genuine optimization work instead of instantly "converging" in the flat
+high-alpha region for a large fraction of fits; this is a real, expected
+cost of the correctness fix, not a regression to chase down.
+
+**The core P1-06 finding (`sigma2_extrap_hat / v_hat` falls with compute,
+contradicting the plan's stated theoretical expectation that it should
+rise) survives, for every one of the 6 fitters, with some fitters' ratios
+shifting substantially in magnitude.** Median ratio by fitter and design
+(`seed_bootstrap` scheme, before -> after both this branch's own fix and
+every upstream fix):
+
+| Fitter | @150M before -> after | @300M before -> after | @530M before -> after |
+|---|---|---|---|
+| ConstantExtrapolator | 1612.6 -> 1611.6 | 574.0 -> 573.0 | 195.1 -> 194.1 |
+| PowerLawN | 9.57 -> 31.68 | 7.21 -> 22.57 | 5.20 -> 14.36 |
+| PowerLawC | 20.79 -> 14.27 | 16.10 -> 8.34 | 11.98 -> 5.07 |
+| ChinchillaND | 8.81 -> 368.69 | 5.20 -> 307.22 | 3.42 -> 275.05 |
+| TwoStepLadder | 16.37 -> 0.87 | 11.32 -> 0.21 | 10.70 -> 0.01 |
+| LogLinear | 310.5 -> 309.5 | 272.7 -> 271.7 | 230.2 -> 229.2 |
+
+`ConstantExtrapolator` and `LogLinear` (no exponent parameter, untouched
+by the P1-04 fitter fix) are essentially unchanged, as expected -- the
+small residual shift is from this PR's own squared-bias-formula
+correction (always non-increasing, since it subtracts an additional
+`v_hat` term) and the group_by determinism fix's last-bit noise, not the
+fitter fix. `PowerLawN`, `PowerLawC`, `ChinchillaND`, and `TwoStepLadder`
+(all fit an exponent parameter) moved substantially -- most strikingly
+`ChinchillaND` (8.81 -> 368.69 at 150M) and `TwoStepLadder` (16.37 -> 0.87,
+now falling all the way to **0.01** at 530M). Every single fitter still
+falls monotonically across the three designs, exactly as the original
+finding reported -- the magnitude shifted (for the affected fitters,
+substantially), but the qualitative conclusion (the theory's own stated
+signature prediction is contradicted by this data, across the board) is
+unchanged and, if anything, now stated with cleaner numbers since they no
+longer reflect the numerical-initialization artifact P1-04's bugs
+introduced.
+
+**Decided by:** Agent. Regeneration completed cleanly (`git_dirty: false`,
+`git_sha` matches this branch's merge commit). `results/p1_07_bound_coverage.json`,
+`results/p1_08_ceiling_prediction.json`, and every other downstream
+results file computed from P1-06's output still need regenerating once
+their own branches merge this fix forward.
