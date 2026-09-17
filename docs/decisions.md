@@ -1821,3 +1821,53 @@ honestly, including the one (claim 2) not meaningfully testable at this scale an
 qualification.
 
 **Decided by:** Agent, while executing task P3-04.
+
+---
+
+## 2026-09-17 — make_instance zeroed the winner's own bias even when that bias made it the winner; abstention rate conflated timeout with genuine recognition
+
+**Context:** PR #30's reviewer found two real issues in
+`experiments/p3_04_simulation.py`.
+
+**Issue 1 (P1): `eta_assumed` special-cased `eta=0` for whichever recipe
+ended up as the re-resolved `k_star`, even when that recipe's OWN
+target-only bump was substantial -- and, at large `eta_level`, is exactly
+what can make a recipe win in the first place.** Reproduced exactly as
+given: `make_instance(np.random.default_rng(0), 3, "well_separated",
+"large")` yields winner `r2` with `eta_assumed["r2"]=0`, while `r2`'s own
+`bias_at_target` is `0.6228505534` -- a supposedly "perfectly calibrated"
+pilot (Theorem 4's delta-correctness hypothesis is meant to hold by
+construction, per this file's own module docstring) was silently telling
+the algorithm the eventual winner has no bias when it demonstrably does.
+
+**Fix:** `eta_assumed[r] = abs(params[r]["bias_at_target"])` for every
+recipe unconditionally, dropping the `0.0 if r == k_star` special case.
+`bias_at_target` itself is unaffected -- it was already correctly 0 for
+the *original* (pre-bump) leader by construction (line ~259's loop only
+ever bumps recipes other than the original leader) and already correctly
+nonzero for every bumped recipe, including one that goes on to become the
+new leader; only the downstream `eta_assumed` formula was wrong. Pinned
+the reviewer's exact reproduction as a regression test
+(`tests/test_p3_04_simulation.py`).
+
+**Issue 2 (P2): the reported `ets_abstention_rate` conflated genuine
+bias-floor abstention with simply running out of `max_rounds`, so it
+cannot support "the algorithm recognized an impossible instance" (claim
+3's whole point in the reversing-regime cells).** `ets.py`'s own
+`SelectionResult.certificate["reason"]` already distinguishes `"bias
+floor"` (Theorem 4's actual abstention condition) from `"max_rounds
+exhausted without certifying or abstaining"` (a pilot budget limit,
+unrelated to the theorem) -- this script just never read it.
+
+**Fix:** `_run_one_cell` now reads `certificate["reason"]` and tracks
+`ets_abstention_rate_bias_floor` / `ets_abstention_rate_timeout`
+separately alongside the original combined `ets_abstention_rate` (kept
+for backward-compatible context, explicitly documented as not the right
+number for a recognition claim). `claim3_reversing_regime_abstention_vs_baselines`
+reports both split rates per cell.
+
+**Not yet done:** `results/p3_04_simulation.json` needs regenerating with
+both fixes once this branch merges past its upstream dependencies.
+
+**Decided by:** Agent, addressing PR #30's review. `tests/test_p3_04_simulation.py`
+added (4 tests, all passing).
