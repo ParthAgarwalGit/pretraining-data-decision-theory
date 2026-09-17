@@ -1961,3 +1961,45 @@ under-estimation danger and honestly-flagged open-compute-budget results for the
 not silently marked fully resolved.
 
 **Decided by:** Agent, while executing task P3-06.
+
+---
+
+## 2026-09-17 — _TwoArmOracle's observation noise didn't vary across trials
+
+**Context:** PR #32's reviewer found that `_TwoArmOracle.pull()`'s noise
+seed depended only on `(recipe, scale, seed)`, never on which TRIAL was
+calling it. Unlike `SyntheticOracle` (PR #27's identical defect), this
+class's means/noise levels are hardcoded, not drawn from a constructor
+`rng`, so there was no instance-level randomness at all to accidentally
+correlate -- a "fresh" `_TwoArmOracle()` across `run_idx` iterations drew
+the EXACT SAME observation noise every time. Reproduced exactly as
+given: 3 fresh oracles produced `eta_hat(leader)=0.04207552584962325`
+identically -- the plug-in estimator's whole purported sampling
+variability, which this script exists partly to characterize, was
+exactly zero. `run_idx` only ever affected the ETS solver's own internal
+randomness, never the data the algorithm was actually shown.
+
+**Fix:** `_TwoArmOracle` now requires a `trial_salt` constructor argument,
+folded into `pull()`'s seed (`_stable_seed(self._trial_salt, recipe,
+scale.n, scale.d, seed)`, the same instance-salting pattern PR #27's
+fix established). Both call sites (`_run_trials`'s main eta-multiplier
+sweep and `main()`'s plug-in-eta loop) now construct
+`_TwoArmOracle(trial_salt=run_idx)`. Deliberately `run_idx` alone, NOT
+including the multiplier-specific `seed_prefix` the solver's own rng
+uses: this makes every eta multiplier's sweep reuse the SAME underlying
+noise realization for a given `run_idx` (common random numbers across
+eta values, sharpening the comparison BETWEEN eta settings, which is
+what this sweep is actually trying to measure) while still drawing
+genuinely independent noise across different `run_idx` values (the
+actual bug). Regression tests added
+(`tests/test_p3_06_eta_sensitivity.py`), including a reproduction of the
+reviewer's "estimates should vary across 3 fresh trials" finding.
+
+**Not yet done:** `results/p3_06_eta_sensitivity.json` needs
+regenerating -- the review specifically calls out the 20/20 run counts,
+error-rate, and plug-in variance claims as needing to be redone with
+this fix, since the old numbers were computed against non-independent
+"trials."
+
+**Decided by:** Agent, addressing PR #32's review. `tests/test_p3_06_eta_sensitivity.py`
+added (4 tests, all passing).
