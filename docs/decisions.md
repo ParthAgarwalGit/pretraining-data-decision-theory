@@ -2057,3 +2057,57 @@ entirely (citing Phase 1's F1 result), and the current round-cap-exhaustion limi
 best-practice text. 9 new tests, 100% coverage on `src/pdt/cli.py`.
 
 **Decided by:** Agent, while executing task P3-08.
+
+---
+
+## 2026-09-18 — The practitioner guide overclaimed "never wrong"; the CLI's datadecide backend could crash on pool exhaustion
+
+**Context:** PR #34's reviewer found two real issues.
+
+**Issue 1 (P1): `docs/when_to_trust_extrapolation.md` said over-estimating
+`eta` "never causes a wrong certification," and treated `eta` as the
+only condition for the guarantee to hold.** Both are wrong. Even a
+genuinely delta-correct method allows rare errors by construction --
+`delta` is not zero, and "never" mischaracterizes what a probabilistic
+guarantee promises. Separately, the *implementation* itself was found
+(PR #29's review) to exceed even its own probabilistic bound with a
+correctly-specified, valid `eta`: the shipped `LogLinear` fitter produced
+91 wrong certifications in 1,000 independent trials at `delta=.01` (9.1%
+actual vs. 1% requested) -- a real confidence-machinery bug, not just an
+`eta` problem.
+
+**Fix:** rewrote the guide's central section to state the guarantee
+precisely -- a bound on the JOINT probability `P[certifies AND wrong] <=
+delta`, explicitly distinguished from the conditional error rate
+`P[wrong | certified]` (a different, generally larger quantity) -- and to
+report the confidence-machinery bug and its fix honestly: PR #29's
+Student-t correction brought the same reproduction down to a 0.70% actual
+error rate (5,000 trials), under the 1% request, but this is documented
+as a verified, substantial improvement, not a proof. Tightened
+`README.md`'s corresponding paragraph to match (same joint-vs-conditional
+distinction, pointer to the calibration issue).
+
+**Issue 2 (P2): `pdt.cli`'s `select` command ran the `datadecide` backend
+against a raw `DataDecideOracle`, with a default `max_rounds=5000`.**
+`DataDecideOracle`'s real+pseudo replicate pool is finite, and P3-05's
+own real replay already found a 60-round adaptive run can exhaust it --
+5000 rounds essentially guarantees an unhandled `IndexError` crash rather
+than a usable CLI result.
+
+**Fix:** promoted PR #31's `p3_05_replay.py`-local pool-exhaustion guard
+into a reusable `FiniteDataOracle` / `DataExhaustedError` pair in
+`src/pdt/bai/oracle.py` (same principle: re-raise cleanly, never silently
+recycle an already-observed value as fresh data). `_build_oracle` now
+wraps the `datadecide` backend in it; `main()` catches
+`DataExhaustedError` and prints a distinct `{"outcome": "data_exhausted",
+...}` result instead of crashing. Documented the limit in `cli.py`'s own
+module docstring. Regression tests added: a unit test that
+`FiniteDataOracle` raises `DataExhaustedError` (not a raw `IndexError`),
+and a CLI-level test (monkeypatching `_build_oracle` to a tiny
+1-real-seed fake oracle, with `min_pulls_per_pair=2` so exhaustion is
+deterministic during the warm-up sweep itself, independent of any
+certification-math edge case) confirming `main()` prints the clean
+exhausted result rather than raising.
+
+**Decided by:** Agent, addressing PR #34's review. `tests/test_cli.py`
+gained 4 new tests (12 total, all passing).

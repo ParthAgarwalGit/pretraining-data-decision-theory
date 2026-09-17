@@ -243,6 +243,57 @@ class DataDecideOracle:
         return list(self._scale_by_params_str.values())
 
 
+class DataExhaustedError(RuntimeError):
+    """Raised by `FiniteDataOracle` when the wrapped oracle's replicate
+    pool is genuinely exhausted. See `FiniteDataOracle`'s own docstring
+    for why this propagates instead of silently recycling."""
+
+
+class FiniteDataOracle:
+    """Wraps any `PullOracle` backed by a FINITE replicate pool (in
+    practice, `DataDecideOracle`, whose `pull()` raises `IndexError` past
+    its real+pseudo pool -- see its own docstring) and re-raises that as
+    a clearly-named `DataExhaustedError` instead of letting a raw
+    `IndexError` propagate as an unhandled crash.
+
+    PR #34's review: `pdt.cli`'s `select` command runs
+    `extrapolation_track_and_stop` against a raw `DataDecideOracle` with
+    a default `max_rounds=5000` -- P3-05's own real replay already found
+    a *60*-round adaptive run can exhaust a (recipe, scale) pair's pool,
+    so 5000 rounds essentially guarantees it, and an unwrapped oracle
+    turns that into an unhandled `IndexError` traceback rather than a
+    usable result. This is the SAME finite-pool problem
+    `experiments/p3_05_replay.py`'s own local `_CyclingOracle` /
+    `_ReplicatePoolExhaustedError` (PR #31's review) fix addressed for
+    that script; promoted here as a small reusable wrapper since the CLI
+    needs the identical protection. Recycling an already-observed value
+    as if it were fresh, independent data is NOT a valid fix (it would
+    silently violate ETS's independent-observations assumption -- see
+    PR #31's decisions.md entry) -- this wrapper deliberately does not
+    do that, only renames the failure so callers can handle it cleanly.
+    """
+
+    def __init__(self, inner: PullOracle):
+        self._inner = inner
+
+    def pull(self, recipe: str, scale: Scale, seed: int) -> float:
+        try:
+            return self._inner.pull(recipe, scale, seed)
+        except IndexError as exc:
+            raise DataExhaustedError(
+                f"{recipe}/{scale}: replicate pool exhausted at seed={seed} -- "
+                "refusing to recycle an already-observed value as if it were fresh, "
+                "independent data. Reduce max_rounds, or supply a data source with "
+                "more replicates."
+            ) from exc
+
+    def cost(self, scale: Scale) -> float:
+        return self._inner.cost(scale)
+
+    def available_scales(self) -> list[Scale]:
+        return self._inner.available_scales()
+
+
 class LiveTrainingOracle:
     """Phase 4 only. Stubbed now so the PullOracle interface is fixed
     before P4 starts -- see plan/05-phase4-training.md."""

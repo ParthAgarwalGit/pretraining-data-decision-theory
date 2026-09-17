@@ -58,10 +58,14 @@ print(result.outcome, result.recipe, result.certificate)
 ```
 
 **Read [`docs/when_to_trust_extrapolation.md`](docs/when_to_trust_extrapolation.md)
-before picking `eta`** — the delta-correctness guarantee only holds if
-`eta` is a valid upper bound on each recipe's true extrapolation bias;
-under-estimating it can produce confident, wrong answers (see
-`src/pdt/bai/ets.py`'s own docstring).
+before picking `eta`** — the delta-correctness guarantee (a bound on
+`P[certifies AND wrong] <= delta`, not "certification is never wrong,"
+and not the same as the conditional error rate given certification) only
+holds if `eta` is a valid upper bound on each recipe's true extrapolation
+bias; under-estimating it can produce confident, wrong answers far more
+often than `delta` (see `src/pdt/bai/ets.py`'s own docstring and the
+guide above for the full account, including a real confidence-machinery
+calibration issue found and largely, but not provably, fixed).
 
 Or from the command line, against a YAML config
 ([`configs/my_selection.yaml`](configs/my_selection.yaml) is a runnable

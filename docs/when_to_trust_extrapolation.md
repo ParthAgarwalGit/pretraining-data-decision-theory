@@ -5,24 +5,57 @@ Practitioner-facing guide for using `pdt.bai.ets.extrapolation_track_and_stop`
 
 ## The one thing that matters most: `eta` is a promise you make, not a fact the algorithm discovers
 
-Theorem 4's delta-correctness guarantee — "whenever the algorithm
-certifies, `P[wrong recipe] <= delta`" — holds **only if** `eta[k] >=
-sqrt(sigma2_extrap_k)` for every recipe `k`: `eta` must be a genuine
-upper bound on how far each recipe's extrapolated prediction can be from
-its true target-scale value. The algorithm does not check this for you.
-It cannot — the whole reason extrapolation is needed is that the true
-target-scale value is never observed.
+Theorem 4's delta-correctness guarantee is a bound on a **joint**
+probability, precisely: `P[the algorithm certifies AND the certified
+recipe is wrong] <= delta`. It is **not** "whenever the algorithm
+certifies, the certified recipe is right with probability `1 - delta`"
+(that would be the *conditional* error rate, `P[wrong | certified]`, a
+different and generally larger quantity) — and it is **not** "a valid
+`eta` means certification is never wrong." Even a genuinely delta-correct
+method allows rare errors by construction; `delta` is not zero. What the
+guarantee actually promises is that wrong certifications, across the
+full random path of the algorithm (including the cases where it
+correctly abstains or runs out of rounds instead of certifying), happen
+no more than a `delta` fraction of the time.
 
-**If `eta` under-estimates the true bias, the guarantee silently fails.**
-This is not a theoretical nicety: `experiments/p3_06_eta_sensitivity.py`
+This guarantee holds **only if** `eta[k] >= sqrt(sigma2_extrap_k)` for
+every recipe `k`: `eta` must be a genuine upper bound on how far each
+recipe's extrapolated prediction can be from its true target-scale
+value. The algorithm does not check this for you. It cannot — the whole
+reason extrapolation is needed is that the true target-scale value is
+never observed.
+
+**If `eta` under-estimates the true bias, the guarantee gets much
+worse, not just "silently fails" in some abstract sense.** This is not a
+theoretical nicety: `experiments/p3_06_eta_sensitivity.py`
 (`results/p3_06_eta_sensitivity.json`) found that giving the algorithm
 `eta=0` (i.e. trusting the extrapolation completely) on a controlled
 instance produced a confident, *wrong* certification in 20 out of 20
-trials. Over-estimating `eta` is the safe direction — it costs more
-compute (more abstention, more rounds before certifying) but never
-causes a wrong certification.
+trials. Over-estimating `eta` is the safer direction — it costs more
+compute (more abstention, more rounds before certifying) and reduces the
+false-certification risk, but does **not** mean zero wrong
+certifications are possible even with a perfectly conservative `eta`.
 
-**When in doubt, over-estimate.**
+**A separate, real confidence-machinery bug, found and partially fixed:**
+PR #29's review found that `ets.py`'s certification radius, as originally
+implemented, plugged in an *estimated* variance as if it were known
+exactly — with the shipped `LogLinear` fitter and a small sample, this
+produced 91 wrong certifications in 1,000 independent, correctly-specified
+trials at `delta=.01` (9.1% actual vs. 1% requested — the delta-correctness
+bound itself was violated, not just "eta was wrong"). This has since been
+fixed with a Student-t-based radius accounting for the variance estimate's
+own degrees of freedom (see `docs/decisions.md`); the same reproduction
+now gives a 0.70% actual error rate at `delta=.01` (5,000 trials), under
+the requested bound. **This fix is a verified, substantial improvement,
+not a proof.** It is documented in `ets.py` itself as a tested heuristic
+correction, not a rigorously proven finite-sample guarantee — treat the
+delta-correctness promise in this whole section as empirically
+well-supported at the sample sizes tested, not as a mathematical
+certainty, until a fully rigorous confidence-sequence treatment lands.
+
+**When in doubt, over-estimate `eta`, and prefer more replicates per
+scale over fewer** (the confidence-machinery issue above is worst with
+very few residual degrees of freedom).
 
 ## How to estimate `sigma2_extrap` for your own recipes
 

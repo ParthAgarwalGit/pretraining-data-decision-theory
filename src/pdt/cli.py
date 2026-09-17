@@ -12,6 +12,17 @@ expressible in YAML** -- plug in your own `pull(recipe, scale, seed)` /
 this CLI; any object implementing that three-method protocol works (see
 `pdt.bai.oracle.PullOracle`, and the README quickstart). This CLI covers
 the two backends this project ships, not a general plugin system.
+
+**The `datadecide` backend has a FINITE replicate pool** (`DataDecideOracle`'s
+own real+pseudo seeds -- see its docstring), and `select`'s default
+`max_rounds=5000` can exhaust it well before then (P3-05's own real
+replay hit this within 60 rounds on a real task). The oracle is wrapped
+in `pdt.bai.oracle.FiniteDataOracle`, so exhaustion is reported as a
+distinct `{"outcome": "data_exhausted", ...}` result rather than an
+unhandled crash -- it is never silently papered over by recycling an
+already-observed value as fresh data. If you see this, lower
+`max_rounds` in your config or pick an easier instance (see
+`docs/when_to_trust_extrapolation.md`).
 """
 
 from __future__ import annotations
@@ -25,7 +36,13 @@ import numpy as np
 import yaml
 
 from pdt.bai.ets import SelectionResult, extrapolation_track_and_stop
-from pdt.bai.oracle import DataDecideOracle, PullOracle, SyntheticOracle
+from pdt.bai.oracle import (
+    DataDecideOracle,
+    DataExhaustedError,
+    FiniteDataOracle,
+    PullOracle,
+    SyntheticOracle,
+)
 from pdt.scaling.base import Scale
 from pdt.scaling.fitters import (
     ChinchillaND,
@@ -63,9 +80,18 @@ def _build_oracle(cfg: dict[str, Any]) -> PullOracle:
     oracle_cfg = cfg["oracle"]
     kind = oracle_cfg["type"]
     if kind == "datadecide":
-        return DataDecideOracle(
-            task=oracle_cfg["task"],
-            metric_name=oracle_cfg.get("metric_name", "primary_metric"),
+        # Wrapped in FiniteDataOracle: DataDecideOracle's real+pseudo
+        # replicate pool is finite, and the default max_rounds=5000 below
+        # essentially guarantees an adaptive run exhausts it eventually
+        # (P3-05's own real replay hit this within 60 rounds) -- an
+        # unwrapped oracle would surface that as a raw, unhandled
+        # IndexError instead of the clean "exhausted" result `main()`
+        # handles below (PR #34's review).
+        return FiniteDataOracle(
+            DataDecideOracle(
+                task=oracle_cfg["task"],
+                metric_name=oracle_cfg.get("metric_name", "primary_metric"),
+            )
         )
     if kind == "synthetic":
         return SyntheticOracle(
@@ -120,20 +146,30 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.command == "select":
         cfg = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
-        result = run_selection(cfg)
-        print(
-            json.dumps(
-                {
-                    "outcome": result.outcome,
-                    "recipe": result.recipe,
-                    "compute_spent": result.compute_spent,
-                    "n_pulls": result.n_pulls,
-                    "certificate": result.certificate,
-                },
-                indent=2,
-                default=str,
-            )
-        )
+        try:
+            result = run_selection(cfg)
+            output = {
+                "outcome": result.outcome,
+                "recipe": result.recipe,
+                "compute_spent": result.compute_spent,
+                "n_pulls": result.n_pulls,
+                "certificate": result.certificate,
+            }
+        except DataExhaustedError as exc:
+            # A finite real-data source (datadecide) ran out of
+            # replicates before the algorithm resolved -- an honest,
+            # distinct result, never fabricated as a certification or
+            # silently crashed as an unhandled IndexError (PR #34's
+            # review). Lower max_rounds or pick an easier instance (see
+            # docs/when_to_trust_extrapolation.md) if you see this.
+            output = {
+                "outcome": "data_exhausted",
+                "recipe": None,
+                "compute_spent": None,
+                "n_pulls": None,
+                "certificate": {"reason": str(exc)},
+            }
+        print(json.dumps(output, indent=2, default=str))
 
 
 if __name__ == "__main__":  # pragma: no cover -- exercised via the `pdt` console script
