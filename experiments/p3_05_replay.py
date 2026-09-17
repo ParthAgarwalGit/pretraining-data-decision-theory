@@ -82,17 +82,39 @@ _N_REAL_SEEDS = 3  # confirmed everywhere in DataDecide, P0-06/P1-01
 
 
 class _ReseededOracle:
-    """Remaps the external seed index `i` a caller asks for to a
+    """Remaps EVERY external seed index `i` a caller asks for to a
     bootstrap-resampled real seed index, so a baseline's own internal
     `seed=0,1,2,...` pulls draw from a resampled set of real replicates
-    rather than always the same 3, in order, every bootstrap replicate."""
+    rather than always the same 3, in order, every bootstrap replicate.
 
-    def __init__(self, inner, seed_map: dict[int, int]):
+    Lazily draws (and caches) a fresh resampled mapping for each DISTINCT
+    seed index the FIRST time it's requested, rather than pre-building a
+    map for only `seed in range(_N_REAL_SEEDS)`. PR #31's review: some
+    baselines request more than `_N_REAL_SEEDS` internal seed indices
+    (`UniformAllocation` was observed making 6 passes over the scale
+    ladder on a real replay instance, using `seed=0..5`) -- a fixed
+    0/1/2-only map left indices `>= _N_REAL_SEEDS` unmapped
+    (`dict.get(seed, seed)` falling back to the RAW, un-resampled index),
+    which `DataDecideOracle` then resolves via its own checkpoint-based
+    PSEUDO-replicate fallback -- a fixed value, identical across every
+    bootstrap replicate, silently mixed in alongside genuinely resampled
+    real-seed pulls and understating the reported bootstrap variance.
+    Lazy per-index caching keeps repeated pulls at the SAME seed index
+    within one bootstrap replicate consistent (the deterministic
+    `PullOracle` contract), while every distinct index still gets its own
+    independently resampled real seed.
+    """
+
+    def __init__(self, inner, rng: np.random.Generator, n_real_seeds: int = _N_REAL_SEEDS):
         self._inner = inner
-        self._seed_map = seed_map
+        self._rng = rng
+        self._n_real_seeds = n_real_seeds
+        self._seed_map: dict[int, int] = {}
 
     def pull(self, recipe: str, scale: Scale, seed: int) -> float:
-        return self._inner.pull(recipe, scale, self._seed_map.get(seed, seed))
+        if seed not in self._seed_map:
+            self._seed_map[seed] = int(self._rng.integers(0, self._n_real_seeds))
+        return self._inner.pull(recipe, scale, self._seed_map[seed])
 
     def cost(self, scale: Scale) -> float:
         return self._inner.cost(scale)
@@ -101,26 +123,46 @@ class _ReseededOracle:
         return self._inner.available_scales()
 
 
-class _CyclingOracle:
-    """Wraps a (guarded) oracle and cycles back through the 3 real
-    seeds once a (recipe, scale) pair's replicate pool -- real seeds
-    plus `DataDecideOracle`'s own pseudo-replicate fallback -- is
-    exhausted.
+class _ReplicatePoolExhaustedError(RuntimeError):
+    """Raised by `_CyclingOracle` when a (recipe, scale) pair's real+
+    pseudo replicate pool is genuinely exhausted. See `_CyclingOracle`'s
+    own docstring for why this propagates instead of silently recycling
+    an already-observed value."""
 
-    Found necessary running ETS's *adaptive* tracking against real
-    DataDecide data: unlike `SyntheticOracle`, which can draw
-    unboundedly many fresh replicates, `DataDecideOracle` raises
-    `IndexError` past its fixed real+pseudo pool (`tests/test_oracle.py`
-    confirms 3 real seeds everywhere, plus a small pseudo pool). A
-    heavily adaptive tracking rule can and did legitimately exhaust a
-    single (recipe, scale) pair's pool during a real 60-round run (the
-    tracking rule concentrates repeatedly on whichever pair is most
-    under-sampled relative to the current plan, and real data has no
-    "keep drawing forever" escape hatch a synthetic oracle has).
-    Repeating an already-observed real value past that point is a
-    genuine, explicitly documented limitation, not a fabrication -- see
-    docs/decisions.md -- and is preferable to the replay crashing
-    partway through a real run."""
+
+class _CyclingOracle:
+    """Wraps a (guarded) oracle for ETS's real-data run against
+    `DataDecideOracle`, which raises `IndexError` past its fixed real+
+    pseudo replicate pool (`tests/test_oracle.py` confirms 3 real seeds
+    everywhere, plus a small pseudo pool) -- unlike `SyntheticOracle`,
+    which can draw unboundedly many fresh replicates. A heavily adaptive
+    tracking rule can and did legitimately exhaust a single (recipe,
+    scale) pair's pool during a real 60-round run (the tracking rule
+    concentrates repeatedly on whichever pair is most under-sampled
+    relative to the current plan, and real data has no "keep drawing
+    forever" escape hatch a synthetic oracle has).
+
+    PR #31's review: an earlier version of this class caught the
+    `IndexError` and silently RECYCLED an already-observed value
+    (`seed % n_real_seeds`) to keep the run going. That is not a
+    harmless stopgap -- ETS's own statistical machinery (the analytic
+    delta-method `v_hat`, the certification radius's residual degrees of
+    freedom, per PR #29's own fix) assumes every counted pull is genuine,
+    INDEPENDENT new information. Recycling a value while still counting
+    it as a fresh pull artificially shrinks the apparent uncertainty
+    without adding any real information, which can make a CERTIFICATION
+    look more confident than the data actually supports -- silently
+    invalidating exactly the guarantee this whole task exists to
+    exercise on real data.
+
+    Fixed by raising `_ReplicatePoolExhaustedError` instead of recycling.
+    `extrapolation_track_and_stop`'s own `pull()` has no `try`/`except`
+    around the oracle call, so this propagates straight up to
+    `_run_task`, which reports an explicit `"pool_exhausted"` outcome
+    (never a certification) rather than silently completing a run on
+    fabricated data -- "return finite-pool exhaustion," per the review's
+    own suggested remedy.
+    """
 
     def __init__(self, inner, n_real_seeds: int = _N_REAL_SEEDS):
         self._inner = inner
@@ -129,8 +171,12 @@ class _CyclingOracle:
     def pull(self, recipe: str, scale: Scale, seed: int) -> float:
         try:
             return self._inner.pull(recipe, scale, seed)
-        except IndexError:
-            return self._inner.pull(recipe, scale, seed % self._n_real_seeds)
+        except IndexError as exc:
+            raise _ReplicatePoolExhaustedError(
+                f"{recipe}/{scale}: real+pseudo replicate pool exhausted at seed={seed} -- "
+                "refusing to recycle an already-observed value as if it were fresh, "
+                "independent data."
+            ) from exc
 
     def cost(self, scale: Scale) -> float:
         return self._inner.cost(scale)
@@ -182,14 +228,11 @@ _BASELINES = {
 }
 
 
-def _bootstrap_baseline(
-    fn, base_oracle, recipes, fit_scales, target, winner, n_bootstrap, rng
-) -> dict:
+def _bootstrap_baseline(fn, oracle, recipes, fit_scales, target, winner, n_bootstrap, rng) -> dict:
     n_correct = 0
     compute_spent = []
     for _ in range(n_bootstrap):
-        seed_map = {i: int(rng.integers(0, _N_REAL_SEEDS)) for i in range(_N_REAL_SEEDS)}
-        reseeded = _ReseededOracle(base_oracle, seed_map)
+        reseeded = _ReseededOracle(oracle, rng)
         res = fn(reseeded, recipes, fit_scales, target)
         n_correct += int(res.recipe == winner)
         compute_spent.append(res.compute_spent)
@@ -215,35 +258,28 @@ def _run_task(
     baseline_results = {}
     for name, fn in _BASELINES.items():
         baseline_results[name] = _bootstrap_baseline(
-            fn, base_oracle, recipes, fit_scales, target, winner, n_bootstrap, rng
+            fn, guarded, recipes, fit_scales, target, winner, n_bootstrap, rng
         )
 
     t0 = time.time()
-    ets_res = extrapolation_track_and_stop(
-        _CyclingOracle(guarded),
-        recipes,
-        fit_scales,
-        target,
-        delta=delta,
-        eta=eta,
-        sigma2=lambda _s: 1e-4,
-        model_factory=PowerLawN,
-        epsilon_0=0.02,
-        max_rounds=max_rounds,
-        solver_n_restarts=1,
-        solver_n_iter=solver_n_iter,
-        min_pulls_per_pair=1,
-    )
-    ets_elapsed = time.time() - t0
-
-    return {
-        "task": task,
-        "reversal_heavy": task in _REVERSAL_HEAVY_TASKS,
-        "true_winner": winner,
-        "n_recipes": len(recipes),
-        "n_fit_scales": len(fit_scales),
-        "baselines": baseline_results,
-        "ets_single_run": {
+    try:
+        ets_res = extrapolation_track_and_stop(
+            _CyclingOracle(guarded),
+            recipes,
+            fit_scales,
+            target,
+            delta=delta,
+            eta=eta,
+            sigma2=lambda _s: 1e-4,
+            model_factory=PowerLawN,
+            epsilon_0=0.02,
+            max_rounds=max_rounds,
+            solver_n_restarts=1,
+            solver_n_iter=solver_n_iter,
+            min_pulls_per_pair=1,
+        )
+        ets_elapsed = time.time() - t0
+        ets_single_run = {
             "outcome": ets_res.outcome,
             "recipe": ets_res.recipe,
             "correct": ets_res.recipe == winner,
@@ -261,8 +297,37 @@ def _run_task(
             # ambiguous between the two for that reason).
             "certificate_reason": ets_res.certificate.get("reason"),
             "hit_round_cap": ets_res.certificate.get("reason", "").startswith("max_rounds"),
+            "pool_exhausted": False,
             "note": "single real-data run, no bootstrap -- see module docstring",
-        },
+        }
+    except _ReplicatePoolExhaustedError as exc:
+        # The real+pseudo replicate pool ran out before ETS resolved --
+        # NEVER report a certification (or any other outcome) built on
+        # data that would have required recycling an already-observed
+        # value as if it were fresh (PR #31's review). Explicit, distinct
+        # outcome rather than silently falling back to "abstained".
+        ets_elapsed = time.time() - t0
+        ets_single_run = {
+            "outcome": "pool_exhausted",
+            "recipe": None,
+            "correct": None,
+            "compute_spent": None,
+            "n_pulls": None,
+            "wall_seconds": ets_elapsed,
+            "certificate_reason": None,
+            "hit_round_cap": False,
+            "pool_exhausted": True,
+            "note": f"real+pseudo replicate pool exhausted before resolving: {exc}",
+        }
+
+    return {
+        "task": task,
+        "reversal_heavy": task in _REVERSAL_HEAVY_TASKS,
+        "true_winner": winner,
+        "n_recipes": len(recipes),
+        "n_fit_scales": len(fit_scales),
+        "baselines": baseline_results,
+        "ets_single_run": ets_single_run,
     }
 
 
@@ -309,10 +374,17 @@ def main() -> None:
             return None
         return sum(1 for r in cells if r["ets_single_run"]["hit_round_cap"]) / len(cells)
 
+    def _pool_exhausted_rate(cells: list[dict]) -> float | None:
+        if not cells:
+            return None
+        return sum(1 for r in cells if r["ets_single_run"]["pool_exhausted"]) / len(cells)
+
     ets_abstention_reversal_heavy = _genuine_abstention_rate(reversal_heavy_cells)
     ets_abstention_stable = _genuine_abstention_rate(stable_cells)
     ets_round_cap_rate_reversal_heavy = _round_cap_rate(reversal_heavy_cells)
     ets_round_cap_rate_stable = _round_cap_rate(stable_cells)
+    ets_pool_exhausted_rate_reversal_heavy = _pool_exhausted_rate(reversal_heavy_cells)
+    ets_pool_exhausted_rate_stable = _pool_exhausted_rate(stable_cells)
 
     headline = []
     for r in results:
@@ -349,6 +421,12 @@ def main() -> None:
         "ets_abstention_rate_stable_tasks": ets_abstention_stable,
         "ets_round_cap_rate_reversal_heavy_tasks": ets_round_cap_rate_reversal_heavy,
         "ets_round_cap_rate_stable_tasks": ets_round_cap_rate_stable,
+        # A run that exhausted its real+pseudo replicate pool before
+        # resolving -- never a certification, never silently folded into
+        # "abstained" (PR #31's review): recycling data to keep going
+        # would have violated ETS's independent-observations assumption.
+        "ets_pool_exhausted_rate_reversal_heavy_tasks": ets_pool_exhausted_rate_reversal_heavy,
+        "ets_pool_exhausted_rate_stable_tasks": ets_pool_exhausted_rate_stable,
     }
 
     provenance.write_result(
@@ -370,6 +448,10 @@ def main() -> None:
         f"ETS round-cap-exhausted rate, reversal-heavy tasks: {ets_round_cap_rate_reversal_heavy}"
     )
     print(f"ETS round-cap-exhausted rate, stable tasks: {ets_round_cap_rate_stable}")
+    print(
+        f"ETS pool-exhausted rate, reversal-heavy tasks: {ets_pool_exhausted_rate_reversal_heavy}"
+    )
+    print(f"ETS pool-exhausted rate, stable tasks: {ets_pool_exhausted_rate_stable}")
 
 
 if __name__ == "__main__":

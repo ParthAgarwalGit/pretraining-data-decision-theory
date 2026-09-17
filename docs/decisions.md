@@ -1897,3 +1897,73 @@ open, for a follow-up run with substantially more compute for the adaptive algor
 specifically.
 
 **Decided by:** Agent, while executing task P3-05.
+
+---
+
+## 2026-09-17 — Three real bugs in the replay's oracle wrappers: an unguarded baseline path, a partial bootstrap remap, and silent recycling
+
+**Context:** PR #31's reviewer found three real issues in
+`experiments/p3_05_replay.py`'s oracle-wrapper classes.
+
+**Issue 1 (P1): `_bootstrap_baseline` was called with the raw, unguarded
+`base_oracle`, not `guarded`.** Every baseline ran against an oracle with
+no `TargetScaleLeakageError` barrier at all -- current baselines don't
+intentionally pull the target, but the regression barrier that would
+catch a future one that did was simply missing.
+
+**Fix:** `_run_task` now passes `guarded` into `_bootstrap_baseline`.
+Added `tests/test_p3_05_replay.py::test_bootstrap_baseline_blocks_a_target_pulling_baseline`,
+a baseline test double that deliberately pulls the target scale and must
+raise `TargetScaleLeakageError` before returning anything -- exactly the
+"replay-level test injecting a target-pulling baseline" the review asked
+for.
+
+**Issue 2 (P1): `_ReseededOracle`'s `seed_map` only remapped
+`seed in range(_N_REAL_SEEDS)`; any higher index fell through unchanged
+(`dict.get(seed, seed)`).** `UniformAllocation` was observed making 6
+passes over the scale ladder on a real replay instance (`seed=0..5`),
+so indices 3-5 reached `DataDecideOracle`'s own checkpoint-based
+pseudo-replicate fallback directly -- a FIXED value, identical across
+every bootstrap replicate, silently mixed in alongside genuinely
+resampled real-seed pulls. Reported bootstrap accuracy and its CI
+understated the true resampling variance by exactly this much
+non-resampled, always-identical contribution.
+
+**Fix:** `_ReseededOracle` now takes the bootstrap replicate's own `rng`
+directly and lazily draws (and caches) an independently resampled real
+seed for EVERY distinct index actually requested, however many there
+are -- not a pre-sized map. Regression tests confirm indices up to 19
+all resolve inside `[0, _N_REAL_SEEDS)` and stay consistent within one
+instance.
+
+**Issue 3 (P1): `_CyclingOracle` silently recycled an already-observed
+real value once a (recipe, scale) pair's real+pseudo replicate pool was
+exhausted, still counting it as a fresh pull.** ETS's own statistical
+machinery (the analytic delta-method `v_hat`, the certification radius's
+residual degrees of freedom -- PR #29's own fix) assumes every counted
+pull is genuinely independent new information; silently recycling a
+value while still counting it can make a certification look more
+confident than the data actually supports, which would corrupt exactly
+the guarantee this replay exists to exercise on real data. Per the
+review's own remedy ("return finite-pool exhaustion, ... distinguish
+replay compute/confidence from independent training runs").
+
+**Fix:** `_CyclingOracle.pull()` now raises `_ReplicatePoolExhaustedError`
+on exhaustion instead of recycling.
+`extrapolation_track_and_stop`'s own `pull()` closure has no
+`try`/`except` around the oracle call, so this propagates straight up;
+`_run_task` catches it and reports an explicit `"pool_exhausted"` outcome
+(`recipe`/`correct`/`compute_spent`/`n_pulls` all `None`, `pool_exhausted:
+true`) -- NEVER a certification, abstention, or any other outcome built
+on fabricated data. A new `ets_pool_exhausted_rate_*` pair (mirroring the
+existing genuine-abstention/round-cap split) is reported alongside the
+other two so a reader can see how often this happened without it being
+silently absorbed into either.
+
+**Not yet done:** `results/p3_05_replay.json` needs regenerating with all
+three fixes once this branch merges past its upstream dependencies (real
+DataDecide data access is also needed to run it at all, unlike the
+synthetic-instance PRs).
+
+**Decided by:** Agent, addressing PR #31's review. `tests/test_p3_05_replay.py`
+added (6 tests, all passing).
