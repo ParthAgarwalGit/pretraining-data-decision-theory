@@ -1074,3 +1074,41 @@ was verified against the real published repo structure before being
 treated as a constraint (the `1b` 404, the exact task-key overlap, the
 minimum-scales-per-fitter arithmetic), not assumed from the plan's or
 this project's own DataDecide-side conventions.
+
+---
+
+## 2026-09-16 — P1-10 repeated P1-06's correlation+1 and bootstrap-ID-alignment defects; fixed the same way
+
+**Context:** PR #19's reviewer found that this module's parametric
+bootstrap reused a single shared per-scale `z` across BOTH recipes
+(`standard`/`deduped`) -- exactly the defect PR #16's review caught in
+`p1_06_decomposition.py`, and exactly what Decision 3 above describes as
+having deliberately mirrored ("the same shared-per-scale-per-replicate
+draw design P1-06 established"). That design has since been shown to
+force an unjustified exact +1 correlation between the two recipes'
+bootstrap noise, collapsing the pairwise-difference bootstrap variance to
+zero whenever they have equal noise even though the real observations are
+independent -- see the P1-06 entry above (2026-09-14/16) for the full
+mechanism. While fixing this, the same positional-zip bootstrap-ID-
+misalignment PR #16's review separately caught in `p1_06_decomposition.py`
+was also present here (`replicate_predictions[k_star][i] -
+replicate_predictions[k_other][i]` after each recipe independently
+dropped its own failed replicates) -- not flagged by PR #19's review this
+time, but the identical defect, fixed proactively rather than waiting for
+a future review pass to catch it separately.
+
+**Fix:** independent per-recipe noise draws (seeded via `_seed_for(design,
+task, recipe, "noise", b)`, extending the existing pattern with the
+recipe name) instead of one shared `z` per scale; a new
+`_pairwise_difference_series` helper (mirroring `p1_06_decomposition.py`'s
+own) that tracks replicate id alongside each prediction and intersects by
+id rather than zipping by position. Regression tests added
+(`tests/test_p1_10_secondary_ladder.py`) for the ID-alignment fix,
+matching P1-06's own regression tests for the same defect.
+
+**Not yet done:** `results/p1_10_secondary_ladder.json` needs
+regenerating once this branch merges past its upstream dependencies
+(P1-04's fitter fixes, P1-06's own three fixes) and their own
+regenerations.
+
+**Decided by:** Agent, addressing PR #19's review.
