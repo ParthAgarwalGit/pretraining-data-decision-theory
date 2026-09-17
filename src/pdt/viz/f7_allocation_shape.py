@@ -1,7 +1,21 @@
-"""F7 -- the shape of the optimal allocation across scales, under
-different gap regimes (results/p3_07_allocation_shape.json).
+"""F7 -- the shape of the COMPUTED challenger allocation across scales,
+under different gap regimes (results/p3_07_allocation_shape.json).
 
-Not "as delta varies" literally -- solve_allocation's optimal shape is
+**Not a certified-optimal allocation -- PR #33's review.** The
+underlying data is `solve_allocation`'s own heuristic solution
+(src/pdt/bai/allocation.py's own docstring: "validated-reasonable, not
+certified-optimal" -- every restart lands at a locally max-min-consistent
+point, not verified to reach the global optimum, and a real instance was
+found where `brute_force_allocation` finds a strictly better feasible
+point). It also only ever covers the CHALLENGER arms by construction
+(Theorem 2 Part A's change-of-measure program never perturbs k*'s own
+distribution, so k*'s allocation share -- handled by a separate,
+unrelated heuristic in `extrapolation_track_and_stop` -- never appears
+here at all). This figure shows what `solve_allocation` actually
+computes for the challengers, honestly labeled as such, not evidence of
+a provably optimal full-instance BAI allocation.
+
+Not "as delta varies" literally either -- solve_allocation's shape is
 provably delta-independent (Track-and-Stop's classical property,
 Garivier & Kaufmann 2016); see that result's own module docstring and
 docs/decisions.md for the full account. This shows the shape across
@@ -57,8 +71,10 @@ def generate():
         ax.set_xlabel("Scale $N$")
 
     fig.suptitle(
-        "Optimal-allocation compute share by scale, across gap regimes "
-        "(shape is delta-independent -- see docs/decisions.md)",
-        fontsize=5.2,
+        "Computed challenger-allocation compute share by scale, across gap regimes\n"
+        "(solve_allocation's heuristic solution, restricted to challenger arms -- "
+        "NOT a certified-optimal BAI allocation, and excludes k*'s own share; "
+        "shape is delta-independent -- see docs/decisions.md)",
+        fontsize=4.6,
     )
     return style.save(fig, "f7_allocation_shape")

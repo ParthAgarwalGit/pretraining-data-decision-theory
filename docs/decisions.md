@@ -2015,3 +2015,56 @@ all eight figures (F1-F8) with no manual steps, and none of the three figures ov
 what the underlying experiments actually established.
 
 **Decided by:** Agent, while executing task P3-07.
+
+---
+
+## 2026-09-18 — F8's baseline repetitions weren't independent; F7 overclaimed "optimal"
+
+**Context:** PR #33's reviewer found two real issues, both about this
+task's own two figures overstating what the underlying data supports.
+
+**Issue 1 (P1): `p3_07_baseline_vs_misspecification.py`'s `_TwoArmOracle`
+had the identical missing-trial-salt defect PR #32 fixed in
+`p3_06_eta_sensitivity.py`'s own `_TwoArmOracle` -- here with the loop
+variable literally named `_run_idx` and never used.** Every one of the
+30 "repetitions" per bias-multiplier cell replayed the exact same
+dataset and therefore the exact same deterministic baseline decision, so
+a reported "100% -> 0%" accuracy curve (F8's whole point -- "the crossing
+point where baselines become confidently wrong") was never actually an
+error-rate estimate over noisy trials, just one decision repeated 30
+times.
+
+**Fix:** the same instance-salting pattern as PR #32/#27: `_TwoArmOracle`
+now requires `trial_salt`, folded into `pull()`'s seed;
+`main()`'s sweep loop passes `trial_salt=run_idx` (recovering the
+variable that used to be discarded). Regression tests added
+(`tests/test_p3_07_baseline_vs_misspecification.py`).
+
+**Issue 2 (P2): F7 (`src/pdt/viz/f7_allocation_shape.py`) and its data
+script (`experiments/p3_07_allocation_shape.py`) both titled the figure
+"the shape of the OPTIMAL allocation," when the underlying
+`solve_allocation` call is explicitly documented (in `allocation.py`'s
+own docstring, from PR #28's earlier fix) as "validated-reasonable, not
+certified-optimal" -- a real instance exists where `brute_force_allocation`
+found a strictly better feasible point. The program also structurally
+covers only the CHALLENGER arms (Theorem 2 Part A's change-of-measure
+construction never perturbs k*'s own distribution), so k*'s own
+allocation share never appears in the plotted data at all -- a second,
+independent reason "the optimal allocation" overclaims what's shown.
+
+**Fix (the review's own lighter-weight suggested remedy: label
+accurately rather than undertake a full validation-against-brute-force
+study across every regime):** relabeled both the figure's title/caption
+and the results payload's own `allocation_caveat` field to describe this
+as `solve_allocation`'s computed, challenger-only, heuristic allocation
+-- explicitly not evidence of a certified-optimal full-instance BAI
+allocation. Module docstrings in both files updated to match.
+
+**Not yet done:** `results/p3_07_baseline_vs_misspecification.json` and
+the F8 PDF need regenerating with the trial-salt fix;
+`results/p3_07_allocation_shape.json`'s own numbers are unaffected by
+the relabeling fix (only the reported text/caveat changed), but F7's PDF
+should still be re-rendered so its title matches the corrected text.
+
+**Decided by:** Agent, addressing PR #33's review. `tests/test_p3_07_baseline_vs_misspecification.py`
+added (3 tests, all passing).
