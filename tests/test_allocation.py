@@ -23,7 +23,7 @@ from pdt.bai.allocation import (
     solve_allocation,
 )
 from pdt.scaling.base import Scale
-from pdt.scaling.fitters import PowerLawN
+from pdt.scaling.fitters import LogLinear, PowerLawN
 
 _SCALES = [Scale(n=1e6, d=2e7), Scale(n=1e7, d=2e8), Scale(n=1e8, d=2e9)]
 _TARGET = Scale(n=1e9, d=2e10)
@@ -115,6 +115,49 @@ def test_arm_rate_increases_with_more_weight():
     assert large > small
 
 
+def test_arm_rate_is_zero_when_target_is_structurally_unidentifiable():
+    # Regression for PR #28's review, exactly as given: a LogLinear model
+    # (y = a + b*log(N)) observed ONLY at N=1 has jacobian [1, log(1)] =
+    # [1, 0] at every candidate scale, regardless of weight -- the slope
+    # parameter b is structurally unidentifiable from this design, no
+    # matter how compute is allocated among (the one) candidate scale.
+    # The target at N=4 has jacobian [1, log(4)], nonzero in the missing
+    # direction. Before the fix, pinv's minimum-norm convention silently
+    # treated that missing direction as contributing zero variance,
+    # giving a small but finite (and wrong) rate; the correct rate is
+    # exactly 0 (infinite variance -- cannot be estimated at all here).
+    model = LogLinear()
+    model._theta = np.array([0.5, 0.1])
+    scales = [Scale(n=1.0, d=1.0)]
+    target = Scale(n=4.0, d=4.0)
+    rate = _arm_rate(model, scales, lambda s: 1.0, np.array([1.0]), target, delta_k=0.1)
+    assert rate == 0.0
+
+
+def test_arm_rate_and_grad_is_zero_when_target_is_structurally_unidentifiable():
+    model = LogLinear()
+    model._theta = np.array([0.5, 0.1])
+    scales = [Scale(n=1.0, d=1.0)]
+    target = Scale(n=4.0, d=4.0)
+    rate, grad = _arm_rate_and_grad(
+        model, scales, lambda s: 1.0, np.array([1.0]), target, delta_k=0.1
+    )
+    assert rate == 0.0
+    assert np.all(grad == 0.0)
+
+
+def test_arm_rate_is_positive_when_target_direction_is_actually_covered():
+    # Sanity check that the fix doesn't over-trigger: adding a SECOND
+    # candidate scale whose jacobian has a nonzero log-N component makes
+    # the slope identifiable again, and the rate should be positive.
+    model = LogLinear()
+    model._theta = np.array([0.5, 0.1])
+    scales = [Scale(n=1.0, d=1.0), Scale(n=100.0, d=100.0)]
+    target = Scale(n=4.0, d=4.0)
+    rate = _arm_rate(model, scales, lambda s: 1.0, np.array([1.0, 1.0]), target, delta_k=0.1)
+    assert rate > 0.0
+
+
 def test_fisher_information_rejects_nonpositive_sigma2():
     model = _model(0.7, 2.5, 0.25)
 
@@ -202,6 +245,22 @@ def test_solve_allocation_stops_at_a_zero_gradient_stationary_point(small_instan
     )
     assert res.rate == 0.0
     assert res.converged
+
+
+def test_solve_allocation_reports_nonconvergence_on_budget_exhaustion(small_instance):
+    # Regression for PR #28's review, P2: converged=True was previously
+    # unconditional even when the iteration budget ran out without the
+    # subgradient norm ever settling near zero. n_iter=1 gives the search
+    # essentially no chance to reach a near-stationary point on this
+    # instance (delta_k > 0 for every challenger, so the gradient stays
+    # informative), so it should honestly report budget exhaustion.
+    models, deltas = small_instance
+    res = solve_allocation(
+        models, "kstar", _SCALES, _TARGET, _sigma2, deltas, n_restarts=1, n_iter=1
+    )
+    assert res.converged is False
+    assert res.n_iterations == 1
+    assert "budget exhausted" in res.message
 
 
 def test_solve_allocation_rejects_deltas_naming_only_k_star(small_instance):

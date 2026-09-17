@@ -1610,3 +1610,75 @@ which handles 1M+ samples in a few seconds -- necessary for it to actually get r
 check rather than skipped for being too slow.
 
 **Decided by:** Agent, while executing task P3-02.
+
+---
+
+## 2026-09-17 — allocation.py: pinv silently mis-scored unidentifiable targets; converged was unconditional
+
+**Context:** PR #28's reviewer found two real issues in
+`src/pdt/bai/allocation.py`.
+
+**Issue 1 (P1): `_arm_rate`/`_arm_rate_and_grad`/`brute_force_allocation`
+computed `J_target^T pinv(I_k(w)) J_target` without checking whether
+`J_target` actually lies in `range(I_k(w))`.** Reproduced exactly as
+given: a `LogLinear` model (`y = a + b*log(N)`) observed only at `N=1`
+has jacobian `[1, log(1)] = [1, 0]` at every candidate scale regardless
+of weight, so `I = diag(1, 0)` -- the slope parameter is structurally
+unidentifiable from this design, no matter how compute is allocated. The
+target at `N=4` has jacobian `[1, log(4)]`, nonzero in the missing
+direction. `np.linalg.pinv`'s minimum-norm convention treats a direction
+outside `range(I)` as contributing ZERO variance (`pinv(diag(1,0)) =
+diag(1,0)` exactly), the opposite of the truth (INFINITE variance --
+"cannot be estimated at all"), so `_arm_rate` returned a small but finite
+(and wrong) rate (~0.005 at `Delta=.1`, unit variance/weight) instead of
+the correct 0.
+
+**Fix:** a new `_target_denom` helper checks `J_target`'s residual after
+projection through `I @ pinv(I)` (the orthogonal projector onto
+`range(I)`) relative to `||J_target||`, returning 0.0 -- matching
+`_arm_rate`'s own already-documented "no information at all" contract --
+whenever that residual exceeds `_TARGET_RANGE_RTOL` (10%, deliberately
+loose: `info` routinely gets extremely ill-conditioned (~1e14 condition
+numbers) during the search, and reconstructing `J_target` through `pinv`
+at that conditioning accumulates real floating-point residuals up to
+~0.5% on ordinary, non-degenerate instances -- checked directly by
+sampling many restarts of the existing test instance. A genuinely
+unidentifiable case's residual is ~80-100%, not a few percent, so 10%
+separates the two with wide margin on both sides; a tight,
+precision-scale threshold was tried first and immediately false-triggered
+on ordinary optimization trajectory, collapsing real solves to `rate=0`).
+Applied to `_arm_rate` and `_arm_rate_and_grad` (whose zero-gradient
+response in this case is the mathematically correct one -- if no
+candidate scale's jacobian has any component in `J_target`'s missing
+direction, no reweighting among them can ever create that information, so
+`d(rate)/dw = 0` genuinely everywhere, not a spurious stall) and,
+vectorized, to `brute_force_allocation`'s batched Fisher-information
+computation. Regression tests added (`tests/test_allocation.py`),
+including the exact reviewer counterexample and a sanity check that a
+second, informative candidate scale restores a positive rate.
+
+**Issue 2 (P2): `solve_allocation` reported `converged=True`
+unconditionally, even when the `n_iter` budget was exhausted without the
+subgradient ever reaching a stationary point.** Given the solver's own
+documented status ("validated-reasonable, not certified-optimal," see
+the entry above), this overclaimed every returned allocation as if the
+search had definitively finished, when in the overwhelming majority of
+real runs it had simply run out of budget.
+
+**Fix:** each restart now tracks whether it broke early via the existing
+exact-zero-subgradient check (a genuine stationary point, scale-invariant
+regardless of the problem's own units) or ran the full `n_iter` without
+reaching it; the returned `AllocationResult.converged` reflects the
+BEST restart's own status, `n_iterations` reports how many iterations
+that restart actually ran (not always the configured budget), and
+`message` says plainly when the budget was exhausted rather than implying
+a certified optimum. Deliberately did NOT use a small positive gradient-
+norm tolerance instead of exact zero: the natural scale of the
+subgradient depends entirely on the problem's own units (rates here span
+roughly 1e-20 to 1 depending on `delta_k`/`sigma2`/`cost`), so any fixed
+tolerance is either too loose (verified directly: a `1e-6` tolerance
+falsely declared convergence after a single iteration on the existing
+test instance, breaking two other tests that check solution quality) or
+too tight for a different instance's units.
+
+**Decided by:** Agent, addressing PR #28's review.

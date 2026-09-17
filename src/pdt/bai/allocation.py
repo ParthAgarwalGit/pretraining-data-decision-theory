@@ -61,6 +61,58 @@ def _fisher_information(
     return info
 
 
+#: Relative tolerance (against ||J_target||) for deciding whether J_target
+#: lies in range(I_k(w)) -- see `_target_denom`. Deliberately loose
+#: (10%), not a tight numerical-precision-scale value: `info` routinely
+#: gets extremely ill-conditioned (condition numbers ~1e14+) during
+#: `solve_allocation`'s search, where `pinv`'s own reciprocal of a tiny
+#: but nonzero eigenvalue, reconstructed back through `info @ pinv(info)
+#: @ j_star`, accumulates genuine floating-point roundoff of up to
+#: ~0.5% relative residual on real (non-degenerate) instances -- checked
+#: directly by sampling many restarts/iterations of a normal instance,
+#: worst case observed ~0.55%. A structurally rank-deficient case (PR
+#: #28's review counterexample: a model observed at only one scale,
+#: giving an EXACT zero eigenvalue in the missing direction) produces a
+#: relative residual around 80-100%, not a borderline few percent -- so
+#: 10% cleanly separates "genuinely unidentifiable" from "just very
+#: ill-conditioned but, in exact arithmetic, still identifiable" with
+#: wide margin on both sides.
+_TARGET_RANGE_RTOL = 0.1
+
+
+def _target_denom(info: np.ndarray, j_star: np.ndarray, rtol: float = _TARGET_RANGE_RTOL) -> float:
+    """`J_target^T I^-1 J_target`, but only after confirming `J_target`
+    actually lies in `range(I)` to within `rtol` (relative to
+    `||J_target||`) -- PR #28's review: `np.linalg.pinv` silently treats
+    any direction outside `range(I)` as contributing ZERO variance (its
+    minimum-norm convention), the OPPOSITE of the truth (INFINITE
+    variance -- "this design can never estimate the target in that
+    direction no matter how it's weighted"). Reproduced exactly as given:
+    a `LogLinear` model observed only at `N=1` has `J(N=1) = [1, log(1)]
+    = [1, 0]`, so `I = diag(1, 0)` regardless of weight -- the slope
+    parameter is structurally unidentifiable from this design. The target
+    at `N=4` has `J_target = [1, log(4)]`, nonzero in the missing
+    direction; `pinv(I) = diag(1, 0)` (numpy's own convention) gives
+    `J_target^T pinv(I) J_target = 1`, a small but *finite*, plausible-
+    looking number, when the true answer is "cannot be estimated at all
+    from this design" (denom = 0, matching `_arm_rate`'s own documented
+    "no information at all" contract, which the raw `pinv` computation
+    was silently violating).
+
+    Checked via the standard projector test: `I @ pinv(I)` is the
+    orthogonal projector onto `range(I)`, so `J_target` is in range(I)
+    iff `I @ pinv(I) @ J_target == J_target`. Returns 0.0 (not the
+    understated `pinv` value) when that residual is non-negligible.
+    """
+    if not np.any(j_star):
+        return 0.0
+    info_pinv = np.linalg.pinv(info)
+    projected = info @ info_pinv @ j_star
+    if np.linalg.norm(j_star - projected) > rtol * np.linalg.norm(j_star):
+        return 0.0  # J_target not in range(I): structurally unidentifiable
+    return float(j_star @ info_pinv @ j_star)
+
+
 def _arm_rate(
     model: Extrapolator,
     scales: list[Scale],
@@ -78,9 +130,10 @@ def _arm_rate(
     # arbitrary w (e.g. w_arm all zero, or concentrated on scales whose
     # Jacobians don't span p dimensions) -- exactly the "rank-deficient
     # design" case Theorem 3 already treats as a real, not a numerical,
-    # phenomenon.
-    info_pinv = np.linalg.pinv(info)
-    denom = float(j_star @ info_pinv @ j_star)
+    # phenomenon. `_target_denom` (not a raw `j_star @ pinv @ j_star`)
+    # confirms J_target is actually estimable before trusting pinv's
+    # output -- see its docstring.
+    denom = _target_denom(info, j_star)
     if denom <= 1e-300:
         return 0.0
     return (delta_k**2) / (2.0 * denom)
@@ -124,14 +177,23 @@ def _arm_rate_and_grad(
     finite-difference Jacobian of a function that routes through
     `np.linalg.pinv` -- exactly what made the earlier SLSQP/trust-constr
     attempts unreliable (see docs/decisions.md).
+
+    Gated by the same `_target_denom` range check `_arm_rate` uses: if
+    `J_target` is not in `range(I_k(w))`, the target is structurally
+    unidentifiable from every candidate scale regardless of `w` (PR #28's
+    review), so `rate=0` for the *entire* feasible simplex here, not just
+    this one point -- the true `d(rate)/dw = 0` everywhere, making a zero
+    gradient the mathematically correct answer (not a spurious stall),
+    and `solve_allocation`'s "zero subgradient -> stationary, done" exit
+    is the right call in that case.
     """
     info = _fisher_information(model, scales, sigma2, w_arm)
     j_star = model.jacobian(target_scale)
-    info_pinv = np.linalg.pinv(info)
-    f = float(j_star @ info_pinv @ j_star)
     n = len(w_arm)
+    f = _target_denom(info, j_star)
     if f <= 1e-300:
         return 0.0, np.zeros(n)
+    info_pinv = np.linalg.pinv(info)
     y = info_pinv @ j_star
     c = (delta_k**2) / 2.0
     rate = c / f
@@ -243,15 +305,39 @@ def solve_allocation(
     def with_floor(p_raw: np.ndarray) -> np.ndarray:
         return (1.0 - n_dims * floor) * p_raw + floor
 
+    # PR #28's review, P2: `converged` must reflect whether THIS restart
+    # actually reached a stationarity criterion, not just that the loop
+    # ran to completion -- exhausting the `n_iter` budget without the
+    # subgradient norm reaching exactly zero is budget exhaustion, not
+    # convergence, even though a rate value is still returned either way
+    # (the heuristic objective at whatever point the search stopped, not
+    # a certified T* optimum). Deliberately an EXACT-zero check, not a
+    # small positive tolerance: `grad_norm`'s natural scale depends
+    # entirely on the problem's own units (`delta_k`, `sigma2`, `cost`
+    # can put rates anywhere from ~1e-20 to ~1 depending on the instance),
+    # so any fixed positive tolerance is either too loose for some
+    # instances (falsely claiming convergence after essentially zero
+    # progress -- tried first, and directly observed to trigger after a
+    # single iteration on this module's own realistic-instance tests) or
+    # too tight for others. Exact zero is scale-invariant: it means the
+    # tightest challenger's own subgradient is a genuine zero vector, a
+    # real critical point regardless of units -- the same signal the
+    # pre-fix code already used, just now correctly reflected in
+    # `converged` instead of being reported as `True` unconditionally
+    # regardless of whether that signal was ever seen.
     rng = rng if rng is not None else np.random.default_rng(0)
     best_rate = -1.0
     best_p: np.ndarray | None = None
     best_n_iter = 0
+    best_converged = False
 
     for _ in range(n_restarts):
         p = with_floor(rng.dirichlet(np.ones(n_dims)))
+        actual_iters = 0
+        restart_converged = False
 
         for t in range(1, n_iter + 1):
+            actual_iters = t
             rates, grads = rates_and_grads(p)
             tightest = min(rates, key=rates.get)
             full_grad = np.zeros(n_dims)
@@ -273,6 +359,7 @@ def solve_allocation(
             # docs/decisions.md.
             grad_norm = float(np.linalg.norm(full_grad))
             if grad_norm <= 0:
+                restart_converged = True
                 break  # a true stationary point (zero subgradient); done
             step = 0.5 / (np.sqrt(t) * grad_norm)
             p = with_floor(_project_to_simplex(p + step * full_grad))
@@ -282,7 +369,8 @@ def solve_allocation(
         if final_rate > best_rate:
             best_rate = final_rate
             best_p = p
-            best_n_iter = n_iter
+            best_n_iter = actual_iters
+            best_converged = restart_converged
 
     assert best_p is not None
     w_final = {
@@ -296,14 +384,25 @@ def solve_allocation(
     }
     rate = min(arm_rates.values())
     weights = {(arm, i): float(w_final[arm][i]) for arm in challengers for i in range(n_scales)}
+    message = (
+        f"projected subgradient ascent: {n_restarts} restarts x up to {n_iter} iterations "
+        f"(reached a near-stationary point in {best_n_iter} iterations)"
+        if best_converged
+        else (
+            f"projected subgradient ascent: {n_restarts} restarts x {n_iter} iterations -- "
+            "budget exhausted without reaching a near-stationary point on the best restart; "
+            "treat the returned rate as a heuristic value from wherever the search stopped, "
+            "not a certified T* optimum"
+        )
+    )
     return AllocationResult(
         weights=weights,
         rate=rate,
         t_star=(1.0 / rate) if rate > 0 else float("inf"),
         arm_rates=arm_rates,
-        converged=True,
+        converged=best_converged,
         n_iterations=best_n_iter,
-        message=f"projected subgradient ascent: {n_restarts} restarts x {n_iter} iterations",
+        message=message,
     )
 
 
@@ -362,7 +461,17 @@ def brute_force_allocation(
         j_outer = np.einsum("si,sj->sij", j_scales, j_scales) / sig2[:, None, None]
         info_batch = np.einsum("ns,sij->nij", w_arm, j_outer)  # (n_samples, p, p)
         info_pinv_batch = np.linalg.pinv(info_batch)
-        f_batch = np.einsum("i,nij,j->n", j_star, info_pinv_batch, j_star)
+        y_batch = np.einsum("nij,j->ni", info_pinv_batch, j_star)  # pinv(I) @ J_target, per sample
+        f_batch = np.einsum("i,ni->n", j_star, y_batch)
+        # Same J_target-in-range(I) check as `_target_denom` (PR #28's
+        # review), vectorized: pinv silently treats an out-of-range
+        # direction as zero variance rather than infinite, so a sample
+        # whose I(w) doesn't span J_target gets a misleadingly finite
+        # f_batch unless caught here.
+        projected_batch = np.einsum("nij,nj->ni", info_batch, y_batch)
+        residual_norm = np.linalg.norm(j_star[None, :] - projected_batch, axis=1)
+        not_in_range = residual_norm > _TARGET_RANGE_RTOL * np.linalg.norm(j_star)
+        f_batch = np.where(not_in_range, 0.0, f_batch)
         rates_per_arm[a] = np.where(
             f_batch > 1e-300, (deltas[arm] ** 2) / (2.0 * np.maximum(f_batch, 1e-300)), 0.0
         )
