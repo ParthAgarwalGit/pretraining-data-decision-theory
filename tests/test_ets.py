@@ -26,8 +26,10 @@ from pdt.bai.ets import (
     SelectionResult,
     _assert_design_identified,
     _beta,
+    _certification_radius,
     _fit_recipe,
     _largest_observed_scale,
+    _welch_satterthwaite_df,
     extrapolation_track_and_stop,
     fixed_ladder_extrapolation,
     single_scale_recommendation,
@@ -215,17 +217,83 @@ def test_beta_matches_hand_formula():
 
 
 # ---------------------------------------------------------------------------
+# _welch_satterthwaite_df / _certification_radius -- PR #29's review: the
+# certification radius must account for v_hat being ESTIMATED, not known.
+# ---------------------------------------------------------------------------
+
+
+def test_welch_satterthwaite_df_equal_variance_and_df_matches_pooled():
+    # numerator=(1+1)^2=4, denominator=1^2/4+1^2/4=0.5 -> df=8: combining
+    # two independent, equal-variance, equal-df estimates roughly doubles
+    # the effective degrees of freedom, the expected pooled-df behavior.
+    df = _welch_satterthwaite_df(1.0, 4.0, 1.0, 4.0)
+    assert df == pytest.approx(8.0)
+
+
+def test_welch_satterthwaite_df_none_for_nonpositive_df():
+    assert _welch_satterthwaite_df(1.0, 0.0, 1.0, 4.0) is None
+    assert _welch_satterthwaite_df(1.0, 4.0, 1.0, -1.0) is None
+
+
+def test_welch_satterthwaite_df_none_for_degenerate_zero_variance():
+    assert _welch_satterthwaite_df(0.0, 4.0, 0.0, 4.0) is None
+
+
+def test_certification_radius_is_much_larger_than_the_known_variance_formula_at_low_df():
+    # The whole point of the fix: at very low degrees of freedom (the
+    # reviewer's counterexample has df=1 per arm), the t-based radius
+    # must be substantially larger than the original known-variance
+    # Gaussian-tail formula it replaces -- that's what closes the gap
+    # between the requested and actual certification error rate.
+    var_a, var_b, beta_t = 0.01, 0.01, 0.005
+    radius = _certification_radius(var_a, 1.0, var_b, 1.0, beta_t)
+    known_variance_formula = float(np.sqrt(2 * (var_a + var_b) * np.log(1 / beta_t)))
+    assert radius > 2.5 * known_variance_formula
+
+
+def test_certification_radius_converges_to_known_variance_formula_at_high_df():
+    # As df -> infinity, t.ppf(1-beta, df) -> norm.ppf(1-beta), which is
+    # close to (though not identical to) the original Chernoff-style
+    # sqrt(2*log(1/beta)) bound -- the correction should matter far less
+    # once each arm has plenty of data.
+    var_a, var_b, beta_t = 0.01, 0.01, 0.005
+    radius = _certification_radius(var_a, 1e6, var_b, 1e6, beta_t)
+    known_variance_formula = float(np.sqrt(2 * (var_a + var_b) * np.log(1 / beta_t)))
+    assert radius == pytest.approx(known_variance_formula, rel=0.5)
+
+
+def test_certification_radius_falls_back_when_df_is_degenerate():
+    var_a, var_b, beta_t = 0.01, 0.01, 0.005
+    radius = _certification_radius(var_a, 0.0, var_b, 4.0, beta_t)
+    expected = float(np.sqrt(2 * (var_a + var_b) * np.log(1 / beta_t)))
+    assert radius == pytest.approx(expected)
+
+
+# ---------------------------------------------------------------------------
 # _assert_design_identified / _fit_recipe / _largest_observed_scale
 # ---------------------------------------------------------------------------
 
 
 def test_assert_design_identified_rejects_too_few_distinct_scales():
     with pytest.raises(FitFailure):
-        _assert_design_identified(2, "LogLinear", [_BUMP_SCALES[0]])
+        _assert_design_identified(LogLinear, 2, "LogLinear", [_BUMP_SCALES[0]])
 
 
 def test_assert_design_identified_accepts_exactly_n_params_plus_one():
-    _assert_design_identified(2, "LogLinear", _BUMP_SCALES[:3])  # must not raise
+    # must not raise -- 3 genuinely distinct N values identify LogLinear's
+    # [1, log(N)] jacobian.
+    _assert_design_identified(LogLinear, 2, "LogLinear", _BUMP_SCALES[:3])
+
+
+def test_assert_design_identified_rejects_scales_differing_only_in_an_ignored_dim():
+    # Regression for PR #29's review: LogLinear's fit ignores D entirely,
+    # so 3 distinct (N, D) pairs sharing the same N pass the naive
+    # count-only check while providing zero information about the slope
+    # parameter -- the exact counterexample given (LogLinear observed
+    # only at N=1, with varying D).
+    same_n_scales = [Scale(n=1.0, d=1.0), Scale(n=1.0, d=2.0), Scale(n=1.0, d=3.0)]
+    with pytest.raises(FitFailure, match="rank"):
+        _assert_design_identified(LogLinear, 2, "LogLinear", same_n_scales)
 
 
 def test_fit_recipe_raises_via_the_same_path_solve_uses():

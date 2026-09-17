@@ -1719,3 +1719,81 @@ pinning the exact 25-recipe, skewed-cost configuration that raised before this f
 
 **Decided by:** Agent, while executing task P3-05 (fix applied on `phase3/track-and-stop`
 and merged forward, per this project's no-rebase discipline).
+
+---
+
+## 2026-09-17 — ETS's certification radius was invalid for estimated variance; design-rank check missed a D-blind model
+
+**Context:** PR #29's reviewer found two real issues in
+`src/pdt/bai/ets.py`.
+
+**Issue 1 (P1): the certification radius `c_t = sqrt(2*(v_a+v_b)*
+log(1/beta_t))` is a valid sub-Gaussian tail bound only if `v_a`/`v_b`
+are the TRUE, known variance -- but they are `analytic_v_k`'s HC0
+sandwich-covariance ESTIMATE, itself uncertain, especially with the few
+residual degrees of freedom a real run has early on.** Reproduced
+exactly as given: `LogLinear`, scales `N=[1,2,3]`, target `N=4`,
+`delta=.01`, a single check after just the `n_params+1=3` warm-up pulls
+per arm (1 residual degree of freedom each), 1,000 independent trials --
+9.1% unconditional certification error against the 1% requested, a ~9x
+violation.
+
+**Fix:** a Student-t radius, `t.ppf(1-beta_t, df) * sqrt(v_a+v_b)`, using
+a Welch-Satterthwaite-combined `df` from each arm's own HC0-residual
+degrees of freedom (pulls minus fitted parameters) -- the same remedy
+already applied to P1-09's calibration bug. `_welch_satterthwaite_df` is
+the general form (arbitrary, independently-estimated variances with
+their own df) of `pdt.analysis.rank_reversal.welch_satterthwaite_df`
+(the special case sharing one `n_seeds`). Verified empirically against
+the reviewer's own counterexample, not just asserted: 5,000 independent
+trials of the exact reproduction now give a 0.70% unconditional error
+rate, comfortably under the 1% request (down from 9.1%).
+
+**Explicitly not claimed as a rigorously proven finite-sample radius.**
+A fully rigorous fix needs either a proper always-valid confidence
+sequence for unknown variance, or restricting the guarantee to the
+known-`sigma2` case `tests/theory/test_theorem4.py` already certifies
+(that test's own simulation uses the TRUE simulation `sigma`, not an
+estimate, so its Gaussian-formula certificate remains valid on its own
+terms and was not changed). PR #26's review of `theorem4_algorithm.tex`
+independently found the same "missing simultaneous-adaptive-confidence
+proof" gap at the paper's proof level -- this ets.py fix is a
+substantial, empirically-verified improvement to the running code, not a
+substitute for that proof-level fix once PR #26 is reached.
+
+**Issue 2 (P2): `_assert_design_identified` counted distinct `(N, D)`
+scale pairs but never checked whether the model's Jacobian actually has
+full rank there.** `LogLinear`'s fit ignores `D` entirely, so
+`n_params+1` pairs sharing the same `N` (different `D`) passed the count
+check while providing zero information about the slope parameter.
+
+**Fix:** also check the Jacobian's rank at several GENERIC reference
+parameter values (from the model's own `_bounds`, not this run's
+possibly-degenerate converged fit -- reusing a possibly-degenerate
+converged fit was already tried and rejected once, see the entry above;
+this check deliberately avoids repeating that mistake). Two numerical
+traps found and fixed while building this, both via direct measurement,
+not guessed:
+1. Linear-uniform probe sampling over a fitter's full declared bounds
+   put ~81% of draws in the exact numerically-flat region PR #12's
+   `multi_start_fit` log-uniform fix already exists to avoid (checked
+   directly on a genuinely well-identified 4-scale `PowerLawN` design) --
+   an 8-probe run had a ~20% chance of hitting 8-in-a-row bad draws and
+   false-rejecting a legitimate design, which is exactly what an early
+   version of this fix did to two pre-existing tests. Fixed by sampling
+   log-uniformly for any dimension with a strictly positive lower bound
+   (a model-agnostic heuristic matching every `alpha`/`beta` bound this
+   project's fitters declare), dropping the bad-draw rate to ~18%
+   (~1e-6 for 8-in-a-row).
+2. The probe RNG was initially a single shared, mutating module-level
+   generator, making one call's probe sequence (and thus whether it hit
+   a bad-luck streak) depend on how many prior calls elsewhere had
+   already consumed from it -- real, observed flakiness. Fixed by
+   re-seeding a fresh, local RNG from a fixed constant on every call.
+
+Regression tests added for both issues (`tests/test_ets.py`), including
+the reviewer's exact `LogLinear`-ignores-`D` counterexample and the
+`PowerLawN` false-rejection case that exposed the two numerical traps
+above.
+
+**Decided by:** Agent, addressing PR #29's review.

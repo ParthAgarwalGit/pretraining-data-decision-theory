@@ -31,6 +31,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 import numpy as np
+from scipy.stats import t as _t_dist
 
 from pdt.bai.allocation import solve_allocation
 from pdt.bai.oracle import PullOracle
@@ -72,24 +73,137 @@ def _beta(t: int, delta: float) -> float:
     return delta / (t * (t + 1))
 
 
-def _assert_design_identified(n_params: int, model_name: str, distinct_scales: list[Scale]) -> None:
-    """Theorem 3's rank condition, asserted directly rather than
-    trusted -- but as a property of the *design* (how many distinct
-    scales this recipe has been pulled at), not of one particular
-    converged fit's numerical Jacobian.
+def _welch_satterthwaite_df(var_a: float, df_a: float, var_b: float, df_b: float) -> float | None:
+    """Satterthwaite's approximation for the degrees of freedom of
+    `(mu_a - mu_b) / sqrt(var_a + var_b)` when `var_a`/`var_b` are
+    themselves ESTIMATED variances (not known exactly), each with its own
+    degrees of freedom `df_a`/`df_b` -- the general form of Welch's
+    t-test df formula (`pdt.analysis.rank_reversal.welch_satterthwaite_df`
+    is the special case where both variances are `sigma2/n_seeds` with a
+    shared `n_seeds`; here `var_a`/`var_b` are already-computed estimator
+    variances -- `analytic_v_k`'s sandwich-covariance output -- each with
+    its own, generally different, degrees of freedom).
+    """
+    if df_a <= 0 or df_b <= 0:
+        return None
+    if var_a == 0 and var_b == 0:
+        return None
+    numerator = (var_a + var_b) ** 2
+    denominator = (var_a**2) / df_a + (var_b**2) / df_b
+    if denominator == 0:
+        return None
+    return numerator / denominator
 
-    An earlier version of this check computed the fitted model's own
-    Jacobian at each distinct scale and asserted `matrix_rank(J) ==
-    n_params`. That was found to be the wrong check by direct testing:
-    a real nonlinear fit can converge to a numerically near-degenerate
-    point (e.g. `alpha` saturating near its bound, making the
-    `d/d(alpha)` and `d/d(a)` directions collinear at every observed
-    scale) even when the *design itself* -- the actual set of scales
-    pulled -- is perfectly identifiable in the sense Theorem 3 means
-    (>= n_params+1 distinct scales, which is what forced exploration
-    guarantees). Asserting on the converged Jacobian made this raise on
-    legitimate, well-designed runs for a reason having nothing to do
-    with the tracking rule's own correctness -- see docs/decisions.md.
+
+def _certification_radius(
+    var_a: float, df_a: float, var_b: float, df_b: float, beta_t: float
+) -> float:
+    """The certification radius `c_t` for `mu_hat_a - mu_hat_b`, accounting
+    for `var_a`/`var_b` (`analytic_v_k`'s HC0 sandwich-covariance output)
+    being ESTIMATED, not known exactly.
+
+    PR #29's review: the original formula, `sqrt(2*(var_a+var_b)*
+    log(1/beta_t))`, is a valid sub-Gaussian tail bound only if
+    `var_a+var_b` is the TRUE, known variance -- plugging in an estimate
+    as if it were exact silently drops the extra uncertainty that
+    estimate itself carries, understating the true radius. Reproduced
+    exactly as given (LogLinear, scales N=[1,2,3], target N=4, delta=.01,
+    single check with only n_params+1=3 pulls per arm, so each arm's own
+    HC0 estimate has just 3-2=1 residual degree of freedom): 1,000
+    independent trials gave 9.1% actual certification error against a
+    1% request, a ~9x violation.
+
+    Fixed with a Student-t radius, `t.ppf(1-beta_t, df) * sqrt(var_a+var_b)`,
+    using a Welch-Satterthwaite-combined `df` from each arm's own
+    HC0-residual degrees of freedom (`_welch_satterthwaite_df`) -- the
+    standard correction for a t-statistic built from independently
+    estimated variances with unequal/small degrees of freedom, the same
+    remedy this project already applied to P1-09's calibration bug (see
+    docs/decisions.md). As `df -> infinity` this converges to the
+    original formula's asymptotic regime (`t.ppf -> norm.ppf`, close to
+    but not identical to `sqrt(2*log(1/beta))`'s own Chernoff-style
+    bound), so the correction is concentrated exactly where the original
+    formula was most wrong: small-sample, few-distinct-scale certification
+    checks, precisely the reviewer's counterexample.
+
+    **Still not a rigorously PROVEN finite-sample radius** -- a fully
+    rigorous fix requires either a proper always-valid confidence sequence
+    for unknown variance (the literature the review points to) or
+    restricting the guarantee to the known-sigma2 case
+    `tests/theory/test_theorem4.py` already certifies; this is a
+    substantial, principled improvement over the invalid plug-in Gaussian
+    radius, verified empirically against the reviewer's own counterexample
+    (see docs/decisions.md), but should be read as a documented, tested
+    heuristic correction, not a certified guarantee -- flagged forward
+    for the Theorem 4 write-up (paper/sections/theorem4_algorithm.tex,
+    PR #26's own review of which independently found the same
+    "simultaneous adaptive confidence" gap at the proof level) to resolve
+    properly.
+    """
+    df = _welch_satterthwaite_df(var_a, df_a, var_b, df_b)
+    if df is None:
+        # Degenerate (a variance genuinely zero, or a residual-df <= 0
+        # that should not occur given _assert_design_identified, but
+        # guarded rather than assumed): fall back to the original
+        # known-variance-style radius rather than raising, since a
+        # zero-variance arm is a real (if unusual) input.
+        return float(np.sqrt(max(2 * (var_a + var_b) * np.log(1 / beta_t), 0.0)))
+    return float(_t_dist.ppf(1 - beta_t, df) * np.sqrt(max(var_a + var_b, 0.0)))
+
+
+#: Fixed local seed for `_assert_design_identified`'s generic-parameter
+#: rank probes, re-seeded FRESH on every call (never a shared, mutating
+#: module-level generator) -- deterministic and independent of caller
+#: order, since this is a validity check, not a statistical estimate. An
+#: earlier version shared one mutating generator across every call, so a
+#: call's own probe sequence (and thus whether it happened to hit a
+#: bad-luck streak of degenerate draws) depended on how many prior calls
+#: had already consumed from it elsewhere in the program -- a real,
+#: observed flakiness source (see docs/decisions.md).
+_DESIGN_RANK_PROBE_SEED = 0
+_N_DESIGN_RANK_PROBES = 8
+
+
+def _assert_design_identified(
+    model_factory: Callable[[], Extrapolator],
+    n_params: int,
+    model_name: str,
+    distinct_scales: list[Scale],
+) -> None:
+    """Theorem 3's rank condition, asserted directly rather than
+    trusted -- but as a property of the *design* (the actual scales this
+    recipe has been pulled at), not of one particular converged fit's
+    numerical Jacobian.
+
+    An earlier version of this check only counted distinct scales
+    (`len(distinct_scales) >= n_params+1`) after finding that asserting
+    on the CONVERGED fit's own Jacobian was the wrong check: a real
+    nonlinear fit can converge to a numerically near-degenerate point
+    (e.g. `alpha` saturating near its bound, making the `d/d(alpha)` and
+    `d/d(a)` directions collinear at every observed scale) even when the
+    design itself is perfectly identifiable -- asserting on that one
+    fit's Jacobian made this raise on legitimate, well-designed runs for
+    a reason having nothing to do with the tracking rule's own
+    correctness (see docs/decisions.md).
+
+    PR #29's review: the count-only check is necessary but NOT
+    sufficient -- `n_params+1` distinct `(N, D)` pairs does not imply the
+    model's Jacobian at those pairs has rank `n_params`. `LogLinear`'s
+    fit ignores `D` entirely, so `n_params+1` pairs sharing the same `N`
+    (different `D`) pass the count check while providing genuinely ZERO
+    information about the slope parameter. Fixed by ALSO checking the
+    Jacobian's rank at several GENERIC reference parameter values (drawn
+    from the model's own declared `_bounds`, from a fixed local seed --
+    not this run's own possibly-degenerate converged fit, which avoids
+    reintroducing the false-negative failure mode the count-only check
+    was adopted to fix): if the model exposes `_bounds` and its Jacobian
+    has rank `< n_params` at EVERY one of several generic
+    parameterizations, these scales cannot identify this model no matter
+    what the true parameters are, and the design is rejected regardless
+    of how many nominally-distinct scales it counts. Models without a
+    single unified `_bounds` (e.g. `ConstantExtrapolator`, whose n_params=1
+    Jacobian is trivially always full rank; `TwoStepLadder`'s two-stage
+    `_step1_bounds`/`_step2_bounds`) fall back to the count-only check.
     """
     if len(distinct_scales) < n_params + 1:
         raise FitFailure(
@@ -97,6 +211,47 @@ def _assert_design_identified(n_params: int, model_name: str, distinct_scales: l
             f">= {n_params + 1} to identify {n_params} parameters -- Theorem 3's design "
             f"rank condition is violated."
         )
+    probe_model = model_factory()
+    bounds = getattr(probe_model, "_bounds", None)
+    if bounds is None:
+        return
+    lo, hi = bounds
+    # Log-uniform, not linear-uniform, for any dimension whose lower
+    # bound is strictly positive -- a model-agnostic heuristic that
+    # reliably identifies decay-rate/exponent-like parameters (every
+    # `alpha`/`beta` bound seen in this project's fitters is strictly
+    # positive, e.g. PowerLawN's `[1e-3, 10]`) without needing per-fitter
+    # knowledge of which index is which. Necessary, not cosmetic: linear-
+    # uniform sampling over such a wide positive range puts the large
+    # majority of draws in the numerically-flat region where `N^-alpha`
+    # and its derivatives underflow to (numerical, not mathematical)
+    # zero for realistic scale magnitudes -- exactly `multi_start_fit`'s
+    # own `log_uniform_dims` fix (see docs/decisions.md, PR #12) for the
+    # identical reason. Checked directly: linear-uniform probes on a
+    # genuinely well-identified 4-scale PowerLawN design gave rank < 3
+    # on ~81% of individual draws (an 8-probe run has a ~20% chance of
+    # hitting 8-in-a-row and false-rejecting a legitimate design); log-
+    # uniform for the positive-bounded dimensions drops that to ~18% per
+    # draw (~1e-6 for 8-in-a-row).
+    probe_rng = np.random.default_rng(_DESIGN_RANK_PROBE_SEED)
+    for _ in range(_N_DESIGN_RANK_PROBES):
+        theta = np.empty(n_params)
+        for i in range(n_params):
+            if lo[i] > 0:
+                theta[i] = np.exp(probe_rng.uniform(np.log(lo[i]), np.log(hi[i])))
+            else:
+                theta[i] = probe_rng.uniform(lo[i], hi[i])
+        probe_model._theta = theta
+        jac = np.array([probe_model.jacobian(s) for s in distinct_scales])
+        if np.linalg.matrix_rank(jac) >= n_params:
+            return
+    raise FitFailure(
+        f"{model_name}: {len(distinct_scales)} distinct scales pulled, but the model's "
+        f"Jacobian has rank < {n_params} at every one of {_N_DESIGN_RANK_PROBES} generic "
+        "reference parameterizations -- these scales cannot identify this model's "
+        "parameters no matter what the true parameters are (e.g. scales that differ only "
+        "in a dimension the model ignores)."
+    )
 
 
 def _fit_recipe(
@@ -112,7 +267,7 @@ def _fit_recipe(
     separate ad hoc formula."""
     model = model_factory()
     distinct_scales = sorted(set(scales), key=lambda s: s.n)
-    _assert_design_identified(model.n_params, type(model).__name__, distinct_scales)
+    _assert_design_identified(model_factory, model.n_params, type(model).__name__, distinct_scales)
     model.fit(scales, values)
     mu_hat = model.predict(target_scale)
     v_hat = analytic_v_k(model, scales, values, target_scale)
@@ -432,13 +587,21 @@ def extrapolation_track_and_stop(
         k_hat = max(mu_hat, key=mu_hat.get)
         challengers = [r for r in recipes if r != k_hat]
 
+        # Residual degrees of freedom for each recipe's own HC0
+        # sandwich-covariance v_hat -- the classic regression-theory
+        # analogue (pulls minus fitted parameters) -- fed to
+        # `_certification_radius` so the certification check accounts for
+        # v_hat being ESTIMATED, not known (PR #29's review).
+        resid_df = {r: max(len(scales_data[r]) - models[r].n_params, 1) for r in recipes}
+
         certified_all = True
         abstain_any = False
         certificate: dict = {"k_hat": k_hat, "per_challenger": {}}
+        beta_t = _beta(t, delta)
         for k in challengers:
             delta_hat_k = mu_hat[k_hat] - mu_hat[k]
-            c_k = float(
-                np.sqrt(max(2 * (v_hat[k_hat] + v_hat[k]) * np.log(1 / _beta(t, delta)), 0.0))
+            c_k = _certification_radius(
+                v_hat[k_hat], resid_df[k_hat], v_hat[k], resid_df[k], beta_t
             )
             margin = delta_hat_k - eta[k_hat] - eta[k]
             certificate["per_challenger"][k] = {
