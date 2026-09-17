@@ -1535,3 +1535,41 @@ confirms the label *sets* genuinely differ at the smallest vs. largest scale in 
 real cached data, so this isn't a hypothetical the code merely tolerates.
 
 **Decided by:** Agent, while executing task P3-01.
+
+---
+
+## 2026-09-17 — SyntheticOracle's observation noise was not seeded per-instance
+
+**Context:** PR #27's reviewer found that `SyntheticOracle.pull()`'s
+noise seed (`_stable_seed(recipe, scale.n, scale.d, seed)`) depended only
+on the recipe, scale, and caller-supplied replicate `seed` -- never on
+which `SyntheticOracle` *instance* was calling it. The constructor's own
+`rng` draws different means/noise levels (`e`, `a`, `alpha`,
+`bias_at_target`, `sigma2_noise`) per instance, but that randomness never
+reached the observation draw. Two separate instances (e.g. two
+"independent trials" in a simulation study, each built from its own
+constructor seed) therefore reused the exact same standardized noise
+innovation for the same `(recipe, scale, seed)` -- correlating
+observations that were supposed to be independent repeated trials.
+
+**Fix:** `SyntheticOracle.__init__` now draws `self._instance_salt` (a
+64-bit int) once from the constructor's own `rng`, as the very first
+thing pulled from it, and `pull()` folds it into `_stable_seed(...)`
+alongside the existing `(recipe, scale.n, scale.d, seed)` key. Two
+instances built from the SAME constructor seed still draw the identical
+salt (it's the first deterministic draw from that seed's own stream), so
+`pull()` stays exactly reproducible given the same construction seed --
+`test_synthetic_pull_is_reproducible_across_fresh_instances` (same-seed
+case) is unaffected. Only cross-instance independence for *differently*
+seeded instances is what changes. Added
+`test_synthetic_pull_noise_is_independent_across_differently_seeded_instances`,
+which forces two differently-constructed instances to share identical
+recipe params (isolating the instance-identity effect from the
+already-different means/sigma) and confirms their pulls now differ.
+
+Only `SyntheticOracle` was affected -- `DataDecideOracle` and
+`LiveTrainingOracle` read from real/external data with no synthetic
+per-instance randomness to correlate.
+
+**Decided by:** Agent, addressing PR #27's review. Full suite: 22 passed
+in `tests/test_oracle.py`.
