@@ -1301,3 +1301,38 @@ converges.
 **Decided by:** Agent, while merging `phase1/bias-variance` forward into
 `phase1/bound-check`. Full suite: 220 passed, confirmed stable across
 repeated runs and running the file in isolation.
+
+---
+
+## 2026-09-18 — P1-07 results regenerated with all fixes: no bound violations, full 198-combo Monte-Carlo run clean
+
+**Context:** follow-up to this branch's own two review-fix commits
+(the invalid additive-bound formula, the estimator-rank-deficiency
+guard) and to every upstream fix merged forward (P1-04's fitter bugs,
+P1-06's three bootstrap-decomposition fixes, the group_by determinism
+fix, the P1-09 calibration fix). `results/p1_07_bound_coverage.json`
+regenerated via `PDT_OVERWRITE=1 uv run python experiments/p1_07_bound_coverage.py`
+on a clean tree: the analytic delta-method pass (6 fitters x 3 designs x
+11 tasks x 25 recipes, minus `ConstantExtrapolator`/`TwoStepLadder` now
+correctly excluded per this branch's own P2 fix) plus the full
+Monte-Carlo pass (198 work units, B=500 each) -- roughly 34 hours
+wall-clock this run (vs. the original run's much shorter time), almost
+entirely for the same reason P1-06's regeneration got slower: the
+fitter-initialization fix means restarts now do genuine optimization
+work instead of instantly "converging" in the flat high-alpha region.
+
+**`any_bound_violation: false`, `violations: []` -- the pairwise bound
+held (ratio >= 1) in every one of the 198 (fitter, design, task)
+cells, with all of this branch's own and every upstream fix applied
+together.** This is the same qualitative finding the original
+(pre-fix) run reported, now resting on a corrected additive-bound
+formula, corrected fitter initialization, corrected bootstrap
+decomposition, and a correctly-excluded set of estimators for the
+analytic cross-check -- the bound-holds conclusion was not an artifact
+of any of the bugs fixed across this whole review pass.
+
+**Decided by:** Agent. Regeneration completed cleanly (`git_dirty: false`,
+`git_sha` matches this branch's merge/fix commits).
+`results/p1_08_ceiling_prediction.json` and every other downstream
+results file computed from P1-07's output still need regenerating once
+their own branches merge this fix forward.
