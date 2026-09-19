@@ -90,7 +90,7 @@ An earlier draft of this bound (and \texttt{src/pdt/theory/bound.py}'s already-s
 $\sigma^2_{\mathrm{extrap}, k}$ directly into the denominator,
 $\exp(-\Delta_k^2 / (2(\sigma^2_{\mathrm{extrap}, k} + v_k)))$, using only arm $k$'s own
 quantities. \textbf{This additive form is not a valid worst-case bound}: a concrete
-counter-example (a fixed bias of $10$ against a gap of $5$ and noise variance $0.01$) %NUMBER-OK: hand-chosen illustrative constants, also in tests/test_bound.py::test_worst_case_form_corrects_a_real_violation_of_the_additive_form -- not a reported result
+counter-example (a fixed bias of $10$ against a gap of $5$ and noise variance $0.01$) %NUMBER-OK: hand-chosen illustrative constants, also in tests/test_bound.py::test_plug_in_and_worst_case_forms_both_reject_the_additive_counterexample -- not a reported result
 gives a true error probability of essentially $1$ against a claimed bound of $0.88$, %NUMBER-OK: same hand-chosen counter-example, computed value not a reported result
 a genuine violation, confirmed both by hand and by
 \texttt{tests/theory/test\_theorem1.py}'s 5000-instance numerical certificate before
