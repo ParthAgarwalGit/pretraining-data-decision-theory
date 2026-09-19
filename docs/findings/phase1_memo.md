@@ -6,6 +6,17 @@ question P1-12 asks to be settled before Phase 2 theory drafting hardens.
 This is not a formal GATE, but please read it before Phase 2's theorems get written
 around a specific framing — reversing that later is expensive.
 
+**Revision note (2026-09-19, external review of PR #21).** Two conclusions in the first
+version of this memo did not follow from the evidence and have been rewritten: (1) the
+plug-in bound's "never violated" result was read as confirmation of the theory, but every
+one of the 396 bounds is at least 1, so *any* empirical error probability passes — the
+check cannot distinguish a valid bound from an invalid one (and the original additive
+bound is in fact invalid, see below); (2) missing matched-compute comparisons were
+counted as losses. Numbers for P1-04 below come from the regenerated run on the repaired
+fitters; P1-06/07/08 numbers are from the runs before the bootstrap-calibration and
+identifiability fixes (PRs #16/#17) and are **being regenerated** — treat them as
+provisional until `docs/findings/p1_06.md` and the P1-07/08 result files are refreshed.
+
 ## What we found
 
 - **P1-01/P1-02 — the analysis frame, and how often there's a real winner to find.**
@@ -16,9 +27,13 @@ around a specific framing — reversing that later is expensive.
   well within seed noise. Most of the time, there is no single correct answer to recover.
 - **P1-03/P1-04 — reproduction.** Single-scale baseline reproduces at 76.3% decision
   accuracy at 150M (79.6% excluding ties) against DataDecide's published ~80%. The
-  headline negative result reproduces cleanly: **0 of 18 (fitter, design) combinations
+  headline negative result reproduces: **0 of 12 evaluable (fitter, design) combinations
   beat the single-scale frontier at matched compute**, across 6 scaling-law fitters and 3
-  designs.
+  designs. **6 further combinations are unassessed, not losses:** their design compute
+  lies past the single-scale frontier's range, so no matched-compute comparison exists. (An
+  earlier run of this analysis on the original fitters, whose power-law starts often failed
+  silently, is superseded; the conclusion is unchanged on the repaired fitters, but the
+  per-cell accuracies are not.)
 - **P1-05 — noise floor.** Seed variance does **not** shrink monotonically with model
   scale (median ~2.9e-5 to ~5.9e-5, 4M through 1B, no clear trend) — contradicts the
   naive "bigger models are less noisy" intuition the plan started from.
@@ -29,16 +44,23 @@ around a specific framing — reversing that later is expensive.
   `sigma2_extrap / v` moves **opposite** to the plan's own predicted signature: it *falls*
   as designs grow toward the target (e.g. PowerLawN: 9.6 -> 7.2 -> 5.2), because
   `sigma2_extrap` shrinks faster than `v` does, not slower.
-- **P1-07/P1-08 — does the theory explain the ceiling?** The plug-in selection-error
-  bound is **never violated** (396/396 cells) and the pairwise form is reliably tighter
-  than the marginal form, exactly as predicted (median tightness ratio ~20.6 vs. ~24.1) —
-  clean confirmation of the theory's qualitative structure. But taken literally as a
-  number, the bound is **vacuous**: it is a union bound over ~24 mostly-near-tied
-  per-task comparisons (a direct consequence of P1-02's ambiguity finding), so it exceeds
-  1 in all 396 cells and the resulting predicted accuracy clips to 0.0% everywhere. A
-  `sigma2_extrap = 0` counterfactual is more informative but narrow: even with bias
-  removed entirely, only **1 of 15** (fitter, design) pairs beat single-scale's own
-  bias-free counterfactual.
+- **P1-07/P1-08 — does the theory explain the ceiling?** **Not testable with these
+  bounds.** The plug-in selection-error bound is a union bound over ~24 mostly-near-tied
+  per-task comparisons (a direct consequence of P1-02's ambiguity finding) and is **at
+  least 1 in all 396 cells**. A bound that is at least 1 holds for every possible
+  empirical error probability, so "never violated" is *not* evidence the theory is
+  right — it would pass for an invalid formula too, and the original additive form
+  `exp(-Delta^2 / (2(bias^2 + v)))` is in fact invalid (a challenger with gap 5, bias 10,
+  variance .01 has error probability near 1 against a claimed 0.88; PR #17, acknowledged in
+  PR #23; the code now uses the gap-reduction form). The pairwise-vs-marginal tightness
+  ratios (~20.6 vs. ~24.1) compare two vacuous quantities and say little. The resulting
+  predicted accuracy clips to 0.0% everywhere. The `sigma2_extrap = 0` counterfactual
+  (only 1 of 15 pairs beat single-scale's own bias-free counterfactual) is computed on the
+  same vacuous bound and against a single-scale bound taken at the design's endpoint model
+  only — an **unmatched-compute** comparison — so it is not evidence about bias either
+  way. The valid same-event comparison is the bound versus P1-07's Monte-Carlo
+  P(select the best arm), which P1-08 now reports separately from the all-pairs ordering
+  accuracy.
 - **P1-09 — rank reversals.** Naive reversal rate across the 14-size ladder was 61.7%,
   but that used 14 uncorrected simultaneous per-pair tests; Bonferroni-corrected, it's
   **15.2%** (500/3,300 pairs) — still real and non-trivial, just not the inflated number.
@@ -66,16 +88,18 @@ across tasks. There is no task or fitter where it is negligible.
 **The evidence supports (A), but only qualitatively, with an important caveat the paper
 needs to be honest about.** `sigma2_extrap` is real and plausibly *a* cause of the
 observed gap — that part of framing (A) holds up. But its precise theoretical
-consequence, the plug-in bound, is too loose to be the paper's quantitative payoff: it's
-never wrong (P1-07), but it's also uninformative at these gap sizes (P1-08). More
-tellingly, the `sigma2_extrap = 0` counterfactual shows that *even completely removing
-bias* only flips the outcome in 1 of 15 cases — meaning `sigma2_extrap` alone cannot be
-the dominant explanation for *why* extrapolation loses 18/18 (now 17/18) matched-compute
-comparisons. Something else is doing most of that work, and P1-02 already identified the
-likely candidate: with 9 of 11 tasks statistically ambiguous at the target scale, "beat
-single-scale" is a demanding bar for *any* method to clear, extrapolation included,
-simply because there is usually no stable winner to correctly recover in the first
-place. P1-09's Bonferroni-corrected 15.2% reversal rate is a second, independent line of
+consequence, the plug-in bound, is vacuous at these gap sizes (P1-07/P1-08; "never
+violated" is uninformative when every bound is at least 1). More
+tellingly, the counterfactual that removes bias flips the outcome in only 1 of 15
+cases — but that counterfactual runs on the vacuous bound and an unmatched-compute
+baseline (above), so it does **not** establish that `sigma2_extrap` is a minor
+contributor; the honest reading is that it is *inconclusive*. What the matched-compute
+evidence does show is that extrapolation wins in **0 of 12 evaluable** comparisons (6 more
+unassessed). One candidate explanation for that, which P1-02 supports independently, is
+that with 9 of 11 tasks statistically ambiguous at the target scale, "beat single-scale"
+is a demanding bar for *any* method to clear, extrapolation included, simply because
+there is usually no stable winner to correctly recover in the first place. That is a
+hypothesis these data are consistent with, not one they isolate. P1-09's Bonferroni-corrected 15.2% reversal rate is a second, independent line of
 evidence for the same underlying picture: the ranking that "matters" at the target scale
 is often not stable even across seeds of the *same* method.
 
@@ -83,8 +107,8 @@ is often not stable even across seeds of the *same* method.
 headline by itself. The best-supported story is closer to an **impossibility/ambiguity
 regime**: decision-relevant differences between recipes are frequently smaller than the
 noise floor at practical scales, for reasons that are only partly about extrapolation
-quality (`sigma2_extrap`, real but not sufficient) and mostly about the underlying
-problem being genuinely close to a tie (P1-02, P1-09). Phase 2's theorems should treat
+quality (`sigma2_extrap`, real; whether it is sufficient is not established here) and plausibly
+also about the underlying problem being genuinely close to a tie (P1-02, P1-09). Phase 2's theorems should treat
 the bias/variance decomposition (Claim 1) and the near-tie/ambiguity structure (Claim 2)
 as **co-equal**, not lead with the plug-in bound's numeric tightness as if it were the
 main quantitative result — it isn't one, and presenting it that way would overstate what
@@ -121,7 +145,7 @@ with it, not in tension with it.
 ## Bottom line
 
 Ship the bias/variance decomposition and the near-tie/ambiguity finding together as the
-paper's two headline empirical claims. Do not lead with the plug-in bound's quantitative
-tightness — it's real and never wrong, but not informative at the gap sizes this data
-actually has. Phase 2's theorems should be built to support *both* claims, not just the
+paper's two headline empirical claims. Do not lead with the plug-in bound: it is vacuous at the gap sizes this data actually
+has, so its being "never violated" carries no evidential weight, and the theory's
+quantitative claims cannot be validated against these cells. Phase 2's theorems should be built to support *both* claims, not just the
 bound.

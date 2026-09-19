@@ -32,9 +32,14 @@ def _design_matrix(scales: np.ndarray) -> np.ndarray:
     return np.column_stack([np.ones_like(scales), scales])
 
 
+_N_ARMS = 2
+
+
 def _beta(t: int, delta: float) -> float:
-    # Standard union-bound-over-time anytime-valid threshold.
-    return delta / (t * (t + 1))
+    # Union bound over rounds AND over the K(K-1) ordered arm pairs (the leader is
+    # data-dependent, so every ordered pair could be the compared one) -- second-round
+    # review of PR #26. For the two-arm certificate K(K-1) = 2.
+    return delta / (t * (t + 1) * _N_ARMS * (_N_ARMS - 1))
 
 
 def _run_stopping_rule(

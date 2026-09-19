@@ -265,7 +265,18 @@ def make_instance(
     # eta_level can flip the true ranking -- a real, intended possibility
     # (Theorem 2 Part B's construction can do exactly this), not a bug.
 
-    eta_assumed = {r: (0.0 if r == k_star else abs(params[r]["bias_at_target"])) for r in recipes}
+    # eta_assumed[r] must be each recipe's OWN bias magnitude, regardless
+    # of whether r happens to be k_star -- a recipe can BE the (re-resolved)
+    # winner precisely BECAUSE its own target-only bump was large enough to
+    # overtake the original leader, so "is the winner" and "has zero bias"
+    # are not the same thing. An earlier version special-cased eta=0 for
+    # k_star unconditionally; PR #30's review reproduced a concrete case
+    # (make_instance(default_rng(0), 3, "well_separated", "large")) where
+    # the re-resolved winner's own bias_at_target is ~0.623, not 0 --
+    # falsely telling the algorithm the winner is bias-free breaks the
+    # "eta is given, exactly correct" calibration this whole pilot's
+    # claim-1 check depends on.
+    eta_assumed = {r: abs(params[r]["bias_at_target"]) for r in recipes}
     return instance, recipes, k_star, eta_assumed
 
 
@@ -281,6 +292,8 @@ def _run_one_cell(
     min_pulls_per_pair: int,
 ) -> dict:
     ets_outcomes: Counter[str] = Counter()
+    n_abstained_bias_floor = 0
+    n_abstained_timeout = 0
     ets_correct_given_certified = 0
     ets_compute_certified: list[float] = []
     ets_compute_all: list[float] = []
@@ -316,6 +329,21 @@ def _run_one_cell(
             ets_compute_certified.append(res.compute_spent)
             if res.recipe == k_star:
                 ets_correct_given_certified += 1
+        elif res.outcome == "abstained":
+            # ets.py's SelectionResult.certificate["reason"] distinguishes
+            # a genuine bias-floor abstention ("bias floor" -- Theorem 4's
+            # abstention condition, c_t <= epsilon_0 and the margin can't
+            # clear it) from simply running out of rounds
+            # ("max_rounds exhausted without certifying or abstaining").
+            # Lumping both under one "abstention rate" cannot support a
+            # claim about the algorithm RECOGNIZING an impossible instance
+            # (PR #30's review, P2) -- a timeout says nothing about
+            # whether Theorem 4's own abstention condition was ever met,
+            # only that this pilot's max_rounds budget was too small.
+            if res.certificate.get("reason") == "bias floor":
+                n_abstained_bias_floor += 1
+            else:
+                n_abstained_timeout += 1
 
         budget = 20 * sum(s.compute for s in _FIT_SCALES)
         single = single_scale_recommendation(instance, recipes, _FIT_SCALES[-1], n_replicates=3)
@@ -337,7 +365,14 @@ def _run_one_cell(
         "gap_structure": gap_structure,
         "n_runs": n_runs,
         "ets_outcomes": dict(ets_outcomes),
+        # NOT a valid proxy for "the algorithm recognized this instance
+        # was impossible" -- includes both genuine bias-floor abstention
+        # and simple round-cap timeout. Kept for backward-compatible
+        # context; use the two split rates below for anything claim-3
+        # actually needs to say.
         "ets_abstention_rate": ets_outcomes["abstained"] / n_runs,
+        "ets_abstention_rate_bias_floor": n_abstained_bias_floor / n_runs,
+        "ets_abstention_rate_timeout": n_abstained_timeout / n_runs,
         "ets_error_rate_given_certified": (
             1.0 - ets_correct_given_certified / n_certified if n_certified > 0 else None
         ),
@@ -417,7 +452,16 @@ def main() -> None:
             "eta_level": r["eta_level"],
             "delta": r["delta"],
             "k": r["k"],
+            # ets_abstention_rate alone (both reasons combined) cannot
+            # support "the algorithm recognized the instance was
+            # impossible" -- that claim needs the bias-floor rate
+            # specifically; the timeout rate is reported alongside so a
+            # reader can see when the pilot's max_rounds budget, not
+            # Theorem 4's abstention condition, is what's driving
+            # non-certification (PR #30's review, P2).
             "ets_abstention_rate": r["ets_abstention_rate"],
+            "ets_abstention_rate_bias_floor": r["ets_abstention_rate_bias_floor"],
+            "ets_abstention_rate_timeout": r["ets_abstention_rate_timeout"],
             "ets_error_rate_given_certified": r["ets_error_rate_given_certified"],
             "baseline_accuracy": r["baseline_accuracy"],
         }

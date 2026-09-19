@@ -26,8 +26,10 @@ from pdt.bai.ets import (
     SelectionResult,
     _assert_design_identified,
     _beta,
+    _certification_radius,
     _fit_recipe,
     _largest_observed_scale,
+    _pair_beta,
     extrapolation_track_and_stop,
     fixed_ladder_extrapolation,
     single_scale_recommendation,
@@ -215,17 +217,151 @@ def test_beta_matches_hand_formula():
 
 
 # ---------------------------------------------------------------------------
+# _pair_beta / _certification_radius -- second-round review of PR #29: a
+# known-variance Chernoff radius with simultaneous round AND ordered-pair
+# control, replacing the invalid HC0-variance + Student-t construction.
+# ---------------------------------------------------------------------------
+
+
+def test_pair_beta_splits_the_round_budget_over_ordered_pairs():
+    assert _pair_beta(1, 0.05, 2) == pytest.approx(_beta(1, 0.05) / 2)
+    assert _pair_beta(3, 0.05, 4) == pytest.approx(_beta(3, 0.05) / 12)
+
+
+def test_pair_beta_union_over_rounds_and_ordered_pairs_is_at_most_delta():
+    # sum_t sum_{ordered pairs} beta = delta * sum_t 1/(t(t+1)) = delta * (1 - 1/T)
+    delta, k = 0.05, 5
+    total = sum(_pair_beta(t, delta, k) * k * (k - 1) for t in range(1, 100_001))
+    assert total <= delta
+
+
+def test_certification_radius_matches_the_chernoff_formula():
+    v_sum, beta = 0.02, 0.005
+    assert _certification_radius(v_sum, beta) == pytest.approx(
+        float(np.sqrt(2 * v_sum * np.log(1 / beta)))
+    )
+
+
+def test_certification_radius_is_infinite_for_infinite_variance():
+    assert _certification_radius(float("inf"), 0.005) == float("inf")
+
+
+# ---------------------------------------------------------------------------
+# The reviewers' counterexamples: first check (max_rounds=1), constant true
+# means so the correct arm is known, 200 independent oracle seeds.
+# ---------------------------------------------------------------------------
+
+
+class _ConstantMeanOracle:
+    """Arm means constant in scale (so a LogLinear fit is exactly specified,
+    zero bias), independent N(0, sigma^2) noise, one normal variate per pull
+    from the oracle's own default_rng(seed) -- the reviewer's setup."""
+
+    def __init__(self, means, sigma, seed):
+        self._means = means
+        self._sigma = sigma
+        self._rng = np.random.default_rng(seed)
+
+    def pull(self, recipe, scale, seed):
+        return float(self._means[recipe] + self._rng.normal(0.0, self._sigma))
+
+    def cost(self, scale):
+        return 1.0
+
+    def available_scales(self):
+        return []
+
+
+def _first_check_outcomes(fit_ns, target_n, variance_mode, n_seeds=200):
+    means = {"a": 0.501, "b": 0.5}  # "a" is truly (barely) better
+    scales = [Scale(n=n, d=1.0) for n in fit_ns]
+    outcomes = []
+    for seed in range(n_seeds):
+        res = extrapolation_track_and_stop(
+            _ConstantMeanOracle(means, 0.05, seed),
+            ["a", "b"],
+            scales,
+            Scale(n=target_n, d=1.0),
+            delta=0.01,
+            eta={"a": 0.0, "b": 0.0},
+            sigma2=lambda s: 0.0025,
+            model_factory=LogLinear,
+            cost=lambda s: 1.0,
+            max_rounds=1,
+            solver_n_iter=1,
+            variance_mode=variance_mode,
+        )
+        outcomes.append((res.outcome, res.recipe))
+    return outcomes
+
+
+@pytest.mark.parametrize(
+    ("fit_ns", "target_n"),
+    [
+        pytest.param([1.0, 1.00001, 2.0], 2.001, id="high_leverage_near_target"),
+        pytest.param([1.0, 2.0, 3.0], 4.0, id="evenly_spaced"),
+    ],
+)
+def test_known_sigma2_certification_error_is_within_delta_on_the_reviewers_designs(
+    fit_ns, target_n
+):
+    # Joint P[certified AND wrong] must be <= delta = 0.01 (the guarantee is on
+    # the unconditional probability of certifying the wrong arm, not on the
+    # error among certified runs). The high-leverage design certified the wrong
+    # arm 98/200 times under the HC0 + Student-t rule.
+    outcomes = _first_check_outcomes(fit_ns, target_n, "known_sigma2")
+    n_wrong_certified = sum(1 for o, r in outcomes if o == "certified" and r != "a")
+    assert n_wrong_certified <= 4  # 200 runs at delta=.01 -> mean 2 at the very worst
+
+
+def test_hc0_heuristic_mode_never_reports_certified():
+    outcomes = _first_check_outcomes([1.0, 1.00001, 2.0], 2.001, "hc0_heuristic", n_seeds=40)
+    assert all(o != "certified" for o, _ in outcomes)
+    # ...and it is heuristic for a reason: it does stop (recommends) on this design.
+    assert any(o == "recommended" for o, _ in outcomes)
+
+
+def test_variance_mode_is_validated():
+    oracle = _ConstantMeanOracle({"a": 0.5, "b": 0.5}, 0.05, 0)
+    with pytest.raises(ValueError, match="variance_mode"):
+        extrapolation_track_and_stop(
+            oracle,
+            ["a", "b"],
+            [Scale(n=n, d=1.0) for n in (1.0, 2.0, 3.0)],
+            Scale(n=4.0, d=1.0),
+            delta=0.05,
+            eta={"a": 0.0, "b": 0.0},
+            sigma2=lambda s: 0.0025,
+            model_factory=LogLinear,
+            variance_mode="bogus",
+        )
+
+
+# ---------------------------------------------------------------------------
 # _assert_design_identified / _fit_recipe / _largest_observed_scale
 # ---------------------------------------------------------------------------
 
 
 def test_assert_design_identified_rejects_too_few_distinct_scales():
     with pytest.raises(FitFailure):
-        _assert_design_identified(2, "LogLinear", [_BUMP_SCALES[0]])
+        _assert_design_identified(LogLinear, 2, "LogLinear", [_BUMP_SCALES[0]])
 
 
 def test_assert_design_identified_accepts_exactly_n_params_plus_one():
-    _assert_design_identified(2, "LogLinear", _BUMP_SCALES[:3])  # must not raise
+    # must not raise -- 3 genuinely distinct N values identify LogLinear's
+    # [1, log(N)] jacobian.
+    _assert_design_identified(LogLinear, 2, "LogLinear", _BUMP_SCALES[:3])
+
+
+def test_assert_design_identified_rejects_scales_differing_only_in_an_ignored_dim():
+    # Regression for PR #29's review: LogLinear's fit ignores D entirely,
+    # so 3 distinct (N, D) pairs sharing the same N pass the naive
+    # count-only check while providing zero information about the slope
+    # parameter -- the exact counterexample given (LogLinear observed
+    # only at N=1, with varying D).
+    same_n_scales = [Scale(n=1.0, d=1.0), Scale(n=1.0, d=2.0), Scale(n=1.0, d=3.0)]
+    with pytest.raises(FitFailure, match="rank"):
+        _assert_design_identified(LogLinear, 2, "LogLinear", same_n_scales)
 
 
 def test_fit_recipe_raises_via_the_same_path_solve_uses():

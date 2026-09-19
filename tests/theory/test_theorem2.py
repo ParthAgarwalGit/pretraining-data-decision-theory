@@ -21,7 +21,7 @@ phi((s - s_max) / g), which realizes Holder constant *exactly*
 eta_budget (verified numerically below, not just asserted) -- so this
 construction saturates a given Holder(alpha, eta_budget) budget exactly,
 making it the right tool to test the sufficient condition
-`eta_budget * g**alpha >= Delta_k / 2` at its own boundary, not just
+`eta_budget * g**alpha > Delta_k / 2` at its own boundary, not just
 somewhere comfortably inside it.
 """
 
@@ -167,7 +167,7 @@ def test_sufficient_condition_predicts_flip_success_and_failure():
         eta_budget, delta_k = inst["eta_budget"], inst["delta_k"]
 
         eta_max = eta_budget * g**alpha  # max amplitude achievable within budget
-        predicted_flippable = 2 * eta_max >= delta_k  # sufficient condition
+        predicted_flippable = 2 * eta_max > delta_k  # sufficient condition (strict: == is a tie)
 
         # Split the budget evenly: push k* down by eta_max, arm k up by
         # eta_max (both realize modulus exactly eta_budget independently,
@@ -215,6 +215,68 @@ def test_impossibility_theorem_proof_is_a_pure_probability_argument():
             assert not feasible
         else:
             assert feasible
+
+
+# ---------------------------------------------------------------------------
+# Second-round review of PR #24 -- regression tests for the corrected statements.
+# ---------------------------------------------------------------------------
+
+
+def test_equality_at_the_boundary_is_a_tie_not_a_distinct_winner():
+    # eta * g**alpha == Delta_min / 2: pushing the winner down and one challenger up by
+    # the full budget leaves the two exactly tied, so there is no unique distinct winner
+    # under nu_2 and the impossibility construction does not apply at equality.
+    delta_min, eta_max = 0.2, 0.1
+    assert delta_min - 2 * eta_max == pytest.approx(0.0, abs=1e-15)
+    assert not (delta_min - 2 * eta_max < 0)
+
+
+def test_bump_must_vanish_on_every_accessible_scale_not_just_the_fitting_ones():
+    # A bump starting at max(S_fit) is visible to a policy that may query scales in
+    # (max(S_fit), s_star); one starting at the largest ACCESSIBLE scale is not.
+    s_fit_max, s_acc, s_star = 4.0, 7.0, 10.0
+    accessible = np.array([1.0, 2.0, 4.0, 5.5, 7.0])
+    bad = _holder_bump(accessible, s_fit_max, s_star - s_fit_max, amplitude=0.3)
+    good = _holder_bump(accessible, s_acc, s_star - s_acc, amplitude=0.3)
+    assert np.max(np.abs(bad)) > 0.0  # queries at 5.5 and 7.0 distinguish nu_1 from nu_2
+    assert np.max(np.abs(good)) == 0.0  # indistinguishable on everything accessible
+    assert _holder_bump(np.array([s_star]), s_acc, s_star - s_acc, 0.3)[0] == pytest.approx(0.3)
+
+
+def test_pull_counts_per_compute_allocation_gives_the_stated_fisher_information():
+    # w(k,s) = E[N]/E[C] (pulls per unit compute); sum_s w c = 1 and
+    # sum_s E[N] KL = E[C] * dtheta^T I(w) dtheta / 2 with I = sum w J J^T / sigma^2
+    # and NO extra factor of c(s). A cost-10 action must not change the identity.
+    rng = np.random.default_rng(1)
+    costs = np.array([1.0, 10.0, 3.0])
+    n_pulls = np.array([40.0, 5.0, 12.0])  # E[N_k(s)]
+    jac = rng.normal(size=(3, 2))  # J(theta_k, s) rows
+    sigma2 = np.array([0.04, 0.09, 0.01])
+    dtheta = np.array([0.3, -0.2])
+    total_compute = float(np.sum(n_pulls * costs))
+    w = n_pulls / total_compute
+    assert np.sum(w * costs) == pytest.approx(1.0)
+    info = sum(w[i] * np.outer(jac[i], jac[i]) / sigma2[i] for i in range(3))
+    total_kl = float(np.sum(n_pulls * (jac @ dtheta) ** 2 / (2 * sigma2)))
+    assert total_kl == pytest.approx(total_compute * dtheta @ info @ dtheta / 2)
+
+
+def test_challenger_only_bound_is_a_factor_four_weaker_than_the_joint_one_for_constant_arms():
+    # Two unit-cost Gaussian constant arms, variance sigma2, gap delta_gap.
+    sigma2, delta_gap = 0.25, 0.1
+    ws = np.linspace(0.0005, 0.9995, 4000)  # compute share on the challenger
+
+    # challenger-only: Delta^2 / (2 * sigma2 / w_chal), maximized by w_chal -> 1
+    rate_chal = delta_gap**2 / (2 * sigma2 / ws)
+    t_chal = 1.0 / rate_chal.max()
+    # joint: Delta^2 / (2 * (sigma2 / w_star + sigma2 / w_chal)), w_star = 1 - w_chal
+    rate_joint = delta_gap**2 / (2 * (sigma2 / (1 - ws) + sigma2 / ws))
+    t_joint = 1.0 / rate_joint.max()
+
+    assert t_chal == pytest.approx(2 * sigma2 / delta_gap**2, rel=2e-3)
+    assert t_joint == pytest.approx(8 * sigma2 / delta_gap**2, rel=1e-3)
+    assert t_joint / t_chal == pytest.approx(4.0, rel=3e-3)
+    assert ws[np.argmax(rate_joint)] == pytest.approx(0.5, abs=1e-3)  # equal allocation
 
 
 if __name__ == "__main__":
