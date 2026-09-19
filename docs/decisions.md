@@ -1490,3 +1490,26 @@ M-estimator setting (rather than per-arm sample means) is mechanical in structur
 was not written out line-by-line.
 
 **Decided by:** Agent, while executing task P2-05.
+
+## 2026-09-19 — Theorem 4: simultaneous confidence is an explicit condition; asymptotic optimality withdrawn (PR #26)
+
+Review findings on `paper/sections/theorem4_algorithm.tex`, both accepted:
+1. **Simultaneous adaptive confidence was asserted, not proved.** `beta = delta/[t(t+1)]` spends `delta`
+   over time for one fixed comparison, but the proof unions over arms, the leader is data-selected, and
+   the design is adaptive; Theorem 1 (fixed design) is not a confidence sequence. Now: the threshold is
+   `beta = delta / (t(t+1) K(K-1))` (rounds x ordered arm pairs); Theorem 4 is split into
+   (a) a *deterministic implication* (valid `eta` + simultaneous confidence event `E` => any stop is
+   correct), (b) `P[E^c] <= delta` **proved for a pre-committed, non-adaptive schedule** with linear `g`
+   and known sub-Gaussian noise, (c) **adaptive tracking: not proved** (needs a self-normalized /
+   martingale confidence sequence; stated as an assumption, matching A4 in `src/pdt/bai/ets.py`
+   and PR #29's decisions entry). The numerical certificate (test_theorem4.py) is scoped to (b) and
+   its `beta` updated to include the `K(K-1)` factor. `eta` is explicitly an *assumed* upper bound;
+   P1-06's clipped estimate is a heuristic and does not make it valid.
+2. **Fixed bias budgets do not vanish as `delta -> 0`.** The stopping margin tends to
+   `D_k^dagger - eta_{k*} - eta_k`, not `Delta_k`; even with `h = 0`, conservative `eta > 0`
+   permanently reduces it, changing the leading constant; and the tracked program omits the winner's
+   information (Theorem 2, challenger-only). The "asymptotic optimality = `T*`" theorem is
+   **withdrawn** and replaced by a labeled, unproved *conjecture* for the joint robust characteristic time
+   `T^eta` (robust gap `Delta_k^eta`). Abstention theorem restated as convergence in probability.
+
+**Decided by:** Agent, following the review.
