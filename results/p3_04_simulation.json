@@ -1,8 +1,8 @@
 {
   "provenance": {
-    "git_sha": "5e21581f66f41107a1fe65090099a9965f291098",
+    "git_sha": "bff337d8948e264820ee27acedd698716fcbdbbb",
     "git_dirty": false,
-    "utc_timestamp": "2026-09-11T15:47:42.541836+00:00",
+    "utc_timestamp": "2026-09-19T11:44:35.801568+00:00",
     "python_version": "3.12.10",
     "package_versions": {
       "numpy": "2.5.2",
@@ -78,13 +78,21 @@
         "gap_structure": "well_separated",
         "n_runs": 15,
         "ets_outcomes": {
-          "certified": 15
+          "abstained": 4,
+          "certified": 11
         },
-        "ets_abstention_rate": 0.0,
+        "ets_abstention_rate": 0.26666666666666666,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 0.26666666666666666,
         "ets_error_rate_given_certified": 0.0,
         "ets_error_rate_overall": 0.0,
-        "ets_mean_compute_given_certified": 2.9088e+18,
-        "ets_mean_compute_overall": 2.9088e+18,
+        "ets_n_wrong_certified": 0,
+        "ets_joint_error_ci95": [
+          0.0,
+          0.21801936091053403
+        ],
+        "ets_mean_compute_given_certified": 3.06708e+18,
+        "ets_mean_compute_overall": 3.288072e+18,
         "baseline_accuracy": {
           "SingleScale": 1.0,
           "FixedLadderExtrapolation": 1.0,
@@ -99,14 +107,20 @@
         "gap_structure": "reversing",
         "n_runs": 15,
         "ets_outcomes": {
-          "abstained": 14,
-          "certified": 1
+          "abstained": 15
         },
-        "ets_abstention_rate": 0.9333333333333333,
-        "ets_error_rate_given_certified": 1.0,
-        "ets_error_rate_overall": 0.06666666666666667,
-        "ets_mean_compute_given_certified": 2.91168e+18,
-        "ets_mean_compute_overall": 3.841672e+18,
+        "ets_abstention_rate": 1.0,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 1.0,
+        "ets_error_rate_given_certified": null,
+        "ets_error_rate_overall": 0.0,
+        "ets_n_wrong_certified": 0,
+        "ets_joint_error_ci95": [
+          0.0,
+          0.21801936091053403
+        ],
+        "ets_mean_compute_given_certified": null,
+        "ets_mean_compute_overall": 3.909192e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -124,10 +138,17 @@
           "abstained": 15
         },
         "ets_abstention_rate": 1.0,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 1.0,
         "ets_error_rate_given_certified": null,
         "ets_error_rate_overall": 0.0,
+        "ets_n_wrong_certified": 0,
+        "ets_joint_error_ci95": [
+          0.0,
+          0.21801936091053403
+        ],
         "ets_mean_compute_given_certified": null,
-        "ets_mean_compute_overall": 3.922344e+18,
+        "ets_mean_compute_overall": 3.99848e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -142,14 +163,20 @@
         "gap_structure": "reversing",
         "n_runs": 15,
         "ets_outcomes": {
-          "certified": 3,
-          "abstained": 12
+          "abstained": 15
         },
-        "ets_abstention_rate": 0.8,
-        "ets_error_rate_given_certified": 1.0,
-        "ets_error_rate_overall": 0.2,
-        "ets_mean_compute_given_certified": 2.91164e+18,
-        "ets_mean_compute_overall": 3.69516e+18,
+        "ets_abstention_rate": 1.0,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 1.0,
+        "ets_error_rate_given_certified": null,
+        "ets_error_rate_overall": 0.0,
+        "ets_n_wrong_certified": 0,
+        "ets_joint_error_ci95": [
+          0.0,
+          0.21801936091053403
+        ],
+        "ets_mean_compute_given_certified": null,
+        "ets_mean_compute_overall": 3.933016e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -164,13 +191,21 @@
         "gap_structure": "well_separated",
         "n_runs": 15,
         "ets_outcomes": {
-          "certified": 15
+          "certified": 13,
+          "abstained": 2
         },
-        "ets_abstention_rate": 0.0,
+        "ets_abstention_rate": 0.13333333333333333,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 0.13333333333333333,
         "ets_error_rate_given_certified": 0.0,
         "ets_error_rate_overall": 0.0,
+        "ets_n_wrong_certified": 0,
+        "ets_joint_error_ci95": [
+          0.0,
+          0.21801936091053403
+        ],
         "ets_mean_compute_given_certified": 2.9088e+18,
-        "ets_mean_compute_overall": 2.9088e+18,
+        "ets_mean_compute_overall": 3.05944e+18,
         "baseline_accuracy": {
           "SingleScale": 1.0,
           "FixedLadderExtrapolation": 1.0,
@@ -185,14 +220,20 @@
         "gap_structure": "reversing",
         "n_runs": 15,
         "ets_outcomes": {
-          "abstained": 13,
-          "certified": 2
+          "abstained": 15
         },
-        "ets_abstention_rate": 0.8666666666666667,
-        "ets_error_rate_given_certified": 1.0,
-        "ets_error_rate_overall": 0.13333333333333333,
-        "ets_mean_compute_given_certified": 2.91156e+18,
-        "ets_mean_compute_overall": 3.756976e+18,
+        "ets_abstention_rate": 1.0,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 1.0,
+        "ets_error_rate_given_certified": null,
+        "ets_error_rate_overall": 0.0,
+        "ets_n_wrong_certified": 0,
+        "ets_joint_error_ci95": [
+          0.0,
+          0.21801936091053403
+        ],
+        "ets_mean_compute_given_certified": null,
+        "ets_mean_compute_overall": 3.930024e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -210,10 +251,17 @@
           "abstained": 15
         },
         "ets_abstention_rate": 1.0,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 1.0,
         "ets_error_rate_given_certified": null,
         "ets_error_rate_overall": 0.0,
+        "ets_n_wrong_certified": 0,
+        "ets_joint_error_ci95": [
+          0.0,
+          0.21801936091053403
+        ],
         "ets_mean_compute_given_certified": null,
-        "ets_mean_compute_overall": 3.945312e+18,
+        "ets_mean_compute_overall": 3.989016e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -228,14 +276,20 @@
         "gap_structure": "reversing",
         "n_runs": 15,
         "ets_outcomes": {
-          "abstained": 13,
-          "certified": 2
+          "abstained": 15
         },
-        "ets_abstention_rate": 0.8666666666666667,
-        "ets_error_rate_given_certified": 1.0,
-        "ets_error_rate_overall": 0.13333333333333333,
-        "ets_mean_compute_given_certified": 2.91168e+18,
-        "ets_mean_compute_overall": 3.779256e+18,
+        "ets_abstention_rate": 1.0,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 1.0,
+        "ets_error_rate_given_certified": null,
+        "ets_error_rate_overall": 0.0,
+        "ets_n_wrong_certified": 0,
+        "ets_joint_error_ci95": [
+          0.0,
+          0.21801936091053403
+        ],
+        "ets_mean_compute_given_certified": null,
+        "ets_mean_compute_overall": 3.893568e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -248,14 +302,16 @@
       "holds": true,
       "violations": []
     },
-    "claim2_compute_to_stop_note": "compute-to-stop by delta (smaller delta should cost more, if the T*log(1/delta) scaling holds): delta=0.05: mean=2.91e+18, delta=0.2: mean=2.91e+18",
+    "claim2_compute_to_stop_note": "compute-to-stop by delta (smaller delta should cost more, if the T*log(1/delta) scaling holds): delta=0.05: mean=3.07e+18, delta=0.2: mean=2.91e+18",
     "claim3_reversing_regime_abstention_vs_baselines": [
       {
         "eta_level": "none",
         "delta": 0.05,
         "k": 3,
-        "ets_abstention_rate": 0.9333333333333333,
-        "ets_error_rate_given_certified": 1.0,
+        "ets_abstention_rate": 1.0,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 1.0,
+        "ets_error_rate_given_certified": null,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -267,8 +323,10 @@
         "eta_level": "large",
         "delta": 0.05,
         "k": 3,
-        "ets_abstention_rate": 0.8,
-        "ets_error_rate_given_certified": 1.0,
+        "ets_abstention_rate": 1.0,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 1.0,
+        "ets_error_rate_given_certified": null,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -280,8 +338,10 @@
         "eta_level": "none",
         "delta": 0.2,
         "k": 3,
-        "ets_abstention_rate": 0.8666666666666667,
-        "ets_error_rate_given_certified": 1.0,
+        "ets_abstention_rate": 1.0,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 1.0,
+        "ets_error_rate_given_certified": null,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -293,8 +353,10 @@
         "eta_level": "large",
         "delta": 0.2,
         "k": 3,
-        "ets_abstention_rate": 0.8666666666666667,
-        "ets_error_rate_given_certified": 1.0,
+        "ets_abstention_rate": 1.0,
+        "ets_abstention_rate_bias_floor": 0.0,
+        "ets_abstention_rate_timeout": 1.0,
+        "ets_error_rate_given_certified": null,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
