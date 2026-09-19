@@ -54,6 +54,25 @@ def test_synthetic_pull_is_reproducible_across_fresh_instances():
             assert o1.pull(recipe, scale, seed=0) == o2.pull(recipe, scale, seed=0)
 
 
+def test_synthetic_pull_noise_is_independent_across_differently_seeded_instances():
+    # Regression for PR #27's review: pull()'s noise seed must depend on
+    # WHICH oracle instance is calling it, not just (recipe, scale, seed)
+    # -- otherwise two separate instances (e.g. two "independent trials"
+    # in an experiment) would draw the exact same standardized noise
+    # innovation, correlating what's supposed to be independent
+    # simulations, even though their recipe params (means/noise levels)
+    # differ. Isolate this by forcing two DIFFERENTLY-constructed
+    # instances to share identical recipe params: with the bug, their
+    # pulls would then be identical (same mean, same noise draw); fixed,
+    # they differ (same mean, independent noise draw).
+    o1 = _make_synthetic(seed=42)
+    o2 = _make_synthetic(seed=99)
+    o2._params = o1._params
+    v1 = o1.pull("recipe_a", _FIT_SCALES[0], seed=0)
+    v2 = o2.pull("recipe_a", _FIT_SCALES[0], seed=0)
+    assert v1 != v2
+
+
 def test_synthetic_cost_matches_scale_compute():
     oracle = _make_synthetic()
     for scale in _FIT_SCALES:
