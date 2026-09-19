@@ -1388,3 +1388,34 @@ the test file rather than silently dropped; P3-04's simulation study should clos
 loop.
 
 **Decided by:** Agent, while executing task P2-03.
+
+## 2026-09-19 — Theorem 2: cost normalization, exact KL, challenger-only is weaker, accessible scales (PR #24)
+
+Review findings on `paper/sections/theorem2_lower_bound.tex`, all accepted:
+1. **Cost normalization.** The statement had `sum w c = 1` with `I = sum w J J^T/sigma^2` (requires
+   `w = E[N]/E[C]`, pulls per compute) but the proof defined `w = E[N] c / E[C]` and omitted `1/c`
+   -- a factor-`c` error for a cost-`c` action. The proof now uses pulls-per-compute throughout
+   (`P3-02`'s internal compute-fraction variable is converted by `w = p/c`; the code was already
+   correct). Regression test checks the identity for costs (1, 10, 3).
+2. **Fixed-gap KL is not local.** The change of measure needs a winner-flipping alternative at
+   a fixed distance; Taylor-expanding the KL and "taking delta -> 0" does not justify a local
+   Fisher form, sub-Gaussianity does not give Gaussian KL, and the alternative can leave the compact
+   `Theta`. Theorem 2 Part A is now stated with the exact KL over admissible alternatives
+   (Gaussian noise); the closed form `Delta^2 / (2 J^T I^-1 J)` is the linear-Gaussian special
+   case and only when the minimizing alternative is admissible.
+3. **Challenger-only vs joint alternatives.** Moving only the challenger yields a valid but *weaker*
+   bound: two unit-cost Gaussian constant arms give `T = 2 sigma^2/Delta^2` (all budget on the
+   challenger) vs `8 sigma^2/Delta^2` for joint alternatives (equal allocation) -- factor 4
+   (numerically checked). We keep the challenger-only program, since it is what P3-02 solves, but
+   rename it `T^chal`, state that it is not the tight characteristic time, and **withdraw every
+   claim that an allocation solving it is asymptotically optimal**. The tight (joint, pairwise)
+   program shares the winner's weights across challengers and is *not implemented*; this is a
+   known limitation of P3-02/P3-03 (the current leader's reserved share in ETS is exactly the
+   piece the challenger-only program cannot produce).
+4. **Accessible scale set / ties.** The impossibility bump must vanish on *every scale a policy can
+   query*, not only the fitting design's scales (queries inside `(s_max, s*)` would distinguish it);
+   the construction is restated over `max S_acc` and does not apply when accessible scales approach
+   `s*`. Equality `eta = Delta_min/2` (or `eta g^alpha = Delta_min/2`) is a tie, so the sufficient
+   conditions are now strict; test updated accordingly.
+
+**Decided by:** Agent, following the review.
