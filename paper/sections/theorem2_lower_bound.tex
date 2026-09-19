@@ -19,26 +19,85 @@
 \subsection{Part A: a change-of-measure lower bound}
 \label{sec:theorem2-parta}
 
-\begin{theorem}[Compute-weighted characteristic time lower bound]
+\begin{theorem}[Compute-weighted lower bound (challenger-perturbation form)]
 \label{thm:lower-bound}
-For any $\delta$-correct policy (Definition~\ref{def:delta-correct}, $\delta < 1/2$) and
-any instance $\nu$ (a full specification of every $\theta_k$ and $h_k \in \mathcal{H}$),
+Let observations at $(k,s)$ be Gaussian with mean $\mu_k(s)$ and variance $\sigma^2(s)$,
+and consider any $\delta$-correct policy (Definition~\ref{def:delta-correct},
+$\delta < 1/2$) and any instance $\nu$ (a full specification of every $\theta_k$ and
+$h_k \in \mathcal{H}$) with a unique best arm $k^\star$. Let
 \[
-  \mathbb{E}_\nu[C(\tau)] \;\ge\; \mathrm{kl}(\delta, 1-\delta) \cdot T^\star(\nu),
+  w(k,s) \;=\; \frac{\mathbb{E}_\nu[N_k(s,\tau)]}{\mathbb{E}_\nu[C(\tau)]},
+  \qquad \sum_{k,s} w(k,s)\, c(s) = 1,
 \]
-where $\mathrm{kl}(x, y) = x \log(x/y) + (1-x)\log((1-x)/(1-y))$ and $T^\star(\nu)$
-solves the compute-weighted optimal-design program
+be the expected number of pulls of $(k,s)$ \emph{per unit of compute} (so $c(s)$, the
+cost of one pull at scale $s$, converts pulls to compute exactly once, in the constraint
+and nowhere else). For $k \ne k^\star$ let $\mathrm{Alt}_k(\nu)$ be the admissible
+instances $\nu'$ that differ from $\nu$ only in arm $k$'s $(\theta_k, h_k)$ (kept inside
+$\Theta \times \mathcal{H}$) and make $k$ the best arm. Then
 \[
-  \frac{1}{T^\star(\nu)} \;=\; \sup_{w} \ \min_{k \ne k^\star} \
+  \mathbb{E}_\nu[C(\tau)] \;\ge\; \frac{\mathrm{kl}(\delta, 1-\delta)}
+  {\displaystyle \min_{k \ne k^\star}\ \inf_{\nu' \in \mathrm{Alt}_k(\nu)}
+  \sum_{s} w(k,s)\, \mathrm{KL}\big(P^{\nu}_{k,s}, P^{\nu'}_{k,s}\big)}
+  \;\ge\; \mathrm{kl}(\delta, 1-\delta)\; T^{\mathrm{chal}}(\nu),
+\]
+where $\mathrm{kl}(x,y) = x\log(x/y) + (1-x)\log((1-x)/(1-y))$,
+$1/T^{\mathrm{chal}}(\nu) = \sup_{w} \min_{k\ne k^\star} \inf_{\nu'\in\mathrm{Alt}_k(\nu)}
+\sum_s w(k,s)\,\mathrm{KL}(P^\nu_{k,s}, P^{\nu'}_{k,s})$, and the supremum runs over
+nonnegative allocations with $\sum_{k,s} w(k,s)\,c(s)=1$. Each inner infimum is a
+pointwise infimum of functions linear in $w$, so the program is concave in $w$
+(Lemma~\ref{lem:concave}).
+
+\textbf{Linear-in-$\theta$, Gaussian special case.} If $g$ is linear in $\theta$ and the
+minimizing alternative below is admissible (its $\theta_k + \Delta\theta^\star$ lies in
+$\Theta$ and $h_k$ is unchanged), the inner infimum is available in closed form and
+\[
+  \frac{1}{T^{\mathrm{chal}}(\nu)} \;=\; \sup_{w} \ \min_{k \ne k^\star} \
   \frac{\Delta_k^2}{2 \, J(\theta_k, s^\star)^\top I_k(w)^{-1} J(\theta_k, s^\star)},
   \qquad
   I_k(w) = \sum_{s \in \mathcal{S}} w(k, s) \, \frac{J(\theta_k, s) J(\theta_k, s)^\top}{\sigma^2(s)},
 \]
-the supremum over allocations $w$ (a measure on (arm, scale) pairs with
-$\sum_{k,s} w(k,s)\, c(s) = 1$). This program is concave in $w$ (Lemma~\ref{lem:concave}
-below) and therefore both a well-posed optimization problem and numerically solvable --
-exactly the program P3-02 solves.
+which is the program P3-02 solves (with $w$ the pulls-per-compute allocation above; the
+solver's internal compute-fraction variables $p = w\,c$ are converted back by $w = p/c$).
+When the minimizing alternative is \emph{not} admissible the true infimum is larger, so
+this formula would claim a lower bound larger than the truth and must not be used as one;
+for nonlinear $g$ the quadratic form is only a local (small-shift)
+approximation and is not a valid lower bound in general (see
+Remark~\ref{rem:fixed-gap-kl}).
 \end{theorem}
+
+\begin{remark}[Challenger-only perturbations give a valid but \emph{weaker} bound]
+\label{rem:challenger-only}
+$T^{\mathrm{chal}}$ perturbs only the challenger's parameters, keeping the winner
+$k^\star$ fixed. Any single alternative gives a valid lower bound, but the strongest
+bound takes the infimum over \emph{all} alternatives that flip the winner, including
+those that move $k^\star$ and $k$ jointly. In the linear-Gaussian case the joint
+alternative gives the pairwise rate
+$\Delta_k^2 \big/ \big(2(J_{k^\star}^\top I_{k^\star}(w)^{-1} J_{k^\star}
++ J_k^\top I_k(w)^{-1} J_k)\big)$, which contains \emph{the winner's own information}.
+Example (two unit-cost Gaussian constant arms, variance $\sigma^2$, gap $\Delta$):
+challenger-only gives $T^{\mathrm{chal}} = 2\sigma^2/\Delta^2$ with the whole budget on the
+challenger and none on the winner, whereas joint alternatives give
+$T = 8\sigma^2/\Delta^2$ with equal allocation -- a factor of $4$. Hence
+$T^{\mathrm{chal}}$ is a \emph{valid but not tight} characteristic time, and
+\textbf{this paper makes no claim that an allocation solving the $T^{\mathrm{chal}}$
+program is (asymptotically) optimal}; the algorithm of Theorem~\ref{thm:algorithm-correctness}
+uses it as a heuristic design, plus a reserved share for the current leader
+(\texttt{kstar\_reserve\_frac}) that the challenger-only program does not itself
+produce. A tight characterization would optimize the joint (pairwise) program, in which
+$w(k^\star, \cdot)$ is shared across all challengers; it is not attempted here.
+\end{remark}
+
+\begin{remark}[Fixed-gap KL is not local]
+\label{rem:fixed-gap-kl}
+The alternative must flip the winner, so its distance from $\nu$ is bounded below by a
+quantity fixed by the instance gap $\Delta_k$; it does not shrink with $\delta$.
+Consequently the change of measure cannot be justified by a small-shift (Taylor)
+expansion of $\mathrm{KL}$ around $\nu$, sub-Gaussianity of the noise does not determine
+the Gaussian KL, and a large flipping displacement can leave the compact parameter set
+$\Theta$. The theorem is therefore stated with the exact KL over admissible alternatives;
+only the linear-Gaussian case reduces it to the closed form, and for nonlinear $g$ the
+quadratic-form program is a local approximation and a heuristic design objective.
+\end{remark}
 
 \begin{remark}[Where this departs from classical best-arm identification]
 \label{rem:not-classical-bai}
@@ -72,56 +131,57 @@ is foundational BAI machinery, established well before this project and not spec
 the parametric setting here.
 
 \paragraph{Step 2 -- applying it to a confusing alternative.}
-Fix $k \ne k^\star$. Take $E = \{\hat{k} = k^\star\}$, so $\delta$-correctness gives
-$\mathbb{P}_\nu[E] \ge 1-\delta$. Construct $\nu'$ identical to $\nu$ except
-$\theta'_k = \theta_k + \Delta\theta$ for a perturbation chosen so that $k$ is optimal
-under $\nu'$ (i.e. $g(\theta'_k, s^\star) > \mu_{k^\star}(s^\star)$, at least
-marginally); $\delta$-correctness under $\nu'$ then gives
-$\mathbb{P}_{\nu'}[E] = \mathbb{P}_{\nu'}[\hat{k}=k^\star] \le \delta$. Plugging into
-Step 1's inequality: $\mathrm{kl}(\mathbb{P}_\nu[E], \mathbb{P}_{\nu'}[E]) \ge
-\mathrm{kl}(1-\delta, \delta) = \mathrm{kl}(\delta, 1-\delta)$ ($\mathrm{kl}$ is
-symmetric in this sense). Mechanical, given Step 1.
+Fix $k \ne k^\star$ and $\nu' \in \mathrm{Alt}_k(\nu)$. Take $E = \{\hat{k} = k^\star\}$, so
+$\delta$-correctness gives $\mathbb{P}_\nu[E] \ge 1-\delta$; under $\nu'$ arm $k$ (not
+$k^\star$) is best, so $\delta$-correctness gives $\mathbb{P}_{\nu'}[E] \le \delta$. Hence
+$\mathrm{kl}(\mathbb{P}_\nu[E], \mathbb{P}_{\nu'}[E]) \ge \mathrm{kl}(1-\delta, \delta) =
+\mathrm{kl}(\delta, 1-\delta)$. Since $\nu'$ differs from $\nu$ only in arm $k$, only the
+$(k, s)$ terms of Step 1's sum survive. Dividing Step 1's inequality by
+$\mathbb{E}_\nu[C(\tau)]$ and using $w(k,s) = \mathbb{E}_\nu[N_k(s,\tau)] /
+\mathbb{E}_\nu[C(\tau)]$ gives
+$\mathbb{E}_\nu[C(\tau)] \sum_s w(k,s)\,\mathrm{KL}(P^\nu_{k,s}, P^{\nu'}_{k,s})
+\ge \mathrm{kl}(\delta,1-\delta)$. This holds for every $k$ and every $\nu' \in
+\mathrm{Alt}_k(\nu)$; taking the infimum over $\nu'$ and the minimum over $k$ gives the
+first inequality of the theorem, and maximizing the resulting rate over $w$ (the policy's
+realized $w$ is one feasible point) gives the second.
 
-\paragraph{Step 3 -- the per-pull KL, linearized.}
-For Gaussian (or, to the same local-quadratic order, general sub-Gaussian)
-observations at $(k,s)$ with mean $g(\theta_k, s)$ and variance $\sigma^2(s)$,
-$\mathrm{KL}(P_{k,s}^\nu, P_{k,s}^{\nu'}) = (g(\theta_k,s) - g(\theta'_k,s))^2 /
-(2\sigma^2(s)) \approx (\Delta\theta^\top J(\theta_k,s))^2 / (2\sigma^2(s))$, exact for
-linear-in-$\theta$ $g$ and a first-order (in $\Delta\theta$) approximation otherwise --
-the same nonlinear-$g$ caveat as Theorem~\ref{thm:main-bound} Step 1
-(\needshuman{the exact same non-asymptotic gap: this expansion is exact as
-$\Delta\theta \to 0$ / $C \to \infty$ for a general nonlinear family, matching this
-theorem's role as an \emph{asymptotic} ($\delta \to 0$) characteristic-time result
-(Theorem~\ref{thm:algorithm-correctness}'s own "asymptotic optimality" framing is
-exactly this), but a fully explicit non-asymptotic version needs the same M-estimator
-technology flagged there, not a new derivation}). Summing over the design:
-$\sum_s \mathbb{E}_\nu[N_k(s,\tau)] \, \mathrm{KL}(\cdot) \approx \mathbb{E}_\nu[C(\tau)]
-\cdot \Delta\theta^\top I_k(w) \Delta\theta / 2$ where $w(k,s) = \mathbb{E}_\nu[N_k(s,\tau)]
-\, c(s) / \mathbb{E}_\nu[C(\tau)]$ is the (compute-normalized) empirical allocation.
-Mechanical algebra, given Step 3's linearization.
+\paragraph{Step 3 -- the per-pull KL (exact for Gaussian noise).}
+For Gaussian observations with means $\mu_k(s) = g(\theta_k,s) + h_k(s)$ and
+$\mu'_k(s) = g(\theta'_k,s) + h'_k(s)$ and common variance $\sigma^2(s)$,
+$\mathrm{KL}(P^\nu_{k,s}, P^{\nu'}_{k,s}) = (\mu_k(s) - \mu'_k(s))^2 / (2\sigma^2(s))$
+\emph{exactly}. For $g$ linear in $\theta$ and $h'_k = h_k$ this equals
+$(\Delta\theta^\top J(\theta_k,s))^2 / (2\sigma^2(s))$ with $\Delta\theta = \theta'_k -
+\theta_k$, so with $w$ the pulls-per-compute allocation,
+$\sum_s w(k,s)\,\mathrm{KL} = \Delta\theta^\top I_k(w) \Delta\theta / 2$ with
+$I_k(w) = \sum_s w(k,s) J J^\top / \sigma^2(s)$ -- \emph{no further factor of $c(s)$}.
+(Defining $w$ instead as a compute fraction, $\mathbb{E}[N]\,c/\mathbb{E}[C]$, would require
+$I_k = \sum_s (w/c(s))\, J J^\top/\sigma^2(s)$; a cost-10 action would otherwise contribute
+a factor-$10$ error.) For nonlinear $g$ the expression is exact but not quadratic in
+$\Delta\theta$, and the flipping displacement is not small (Remark~\ref{rem:fixed-gap-kl}).
 
-\paragraph{Step 4 -- optimizing the confusing alternative, and over $k$.}
-Combining Steps 2-3: $\mathbb{E}_\nu[C(\tau)] \ge \mathrm{kl}(\delta,1-\delta) \big/
-\big(\Delta\theta^\top I_k(w) \Delta\theta / 2\big)$ for \emph{any} $\Delta\theta$ with
-$J(\theta_k,s^\star)^\top \Delta\theta \ge \Delta_k$ (the minimum shift needed to flip
-the gap at $s^\star$). The adversary (seeking the \emph{weakest} such bound, i.e. the
-\emph{cheapest} confusing alternative) minimizes $\Delta\theta^\top I_k(w) \Delta\theta$
-subject to this constraint; by the standard quadratic-form identity
-$\min\{x^\top A x : b^\top x = c\} = c^2 / (b^\top A^{-1} b)$ (Lagrange multipliers; a
-D-optimal-design identity, mechanical given $I_k(w) \succ 0$), the minimum is
-$\Delta_k^2 / (J^\top I_k(w)^{-1} J)$, giving exactly the per-$k$ bound in the theorem
-statement. Taking the worst (smallest) bound over $k \ne k^\star$ -- since the policy
-must simultaneously guard against every alternative -- and the best allocation $w$ the
-policy could have used gives $T^\star(\nu)$ as stated. Mechanical.
-$\blacksquare$
+\paragraph{Step 4 -- optimizing the confusing alternative (linear-Gaussian case).}
+The alternative must satisfy $J(\theta_k,s^\star)^\top \Delta\theta > \Delta_k$ (strictly,
+so that $k$ is the unique best; the infimum below is approached, not attained). Minimizing
+$\Delta\theta^\top I_k(w) \Delta\theta / 2$ subject to $J^\top \Delta\theta = \Delta_k$ by
+the standard quadratic-form identity $\min\{x^\top A x : b^\top x = c\} = c^2 /
+(b^\top A^{-1} b)$ (Lagrange multipliers; needs $I_k(w) \succ 0$, and a
+target Jacobian in the range of $I_k(w)$ otherwise) gives the rate
+$\Delta_k^2 / (2\, J^\top I_k(w)^{-1} J)$, \emph{provided the minimizer
+$\theta_k + \Delta\theta^\star$ lies in $\Theta$}; otherwise the constrained infimum is
+larger and the formula is not a valid lower bound. Taking the worst $k \ne k^\star$ and
+the best $w$ gives the theorem's closed form. $\blacksquare$
 
 \begin{lemma}[Concavity of the characteristic-time program]
 \label{lem:concave}
-$w \mapsto \min_{k \ne k^\star} \Delta_k^2 / (2 J_k^\top I_k(w)^{-1} J_k)$ is concave.
+$w \mapsto \min_{k \ne k^\star} \inf_{\nu' \in \mathrm{Alt}_k(\nu)} \sum_s w(k,s)\,
+\mathrm{KL}(P^\nu_{k,s}, P^{\nu'}_{k,s})$ is concave; in the linear-Gaussian case this is
+$\min_{k \ne k^\star} \Delta_k^2 / (2 J_k^\top I_k(w)^{-1} J_k)$.
 \end{lemma}
 \begin{proof}
-For fixed $k$, $I_k(w)$ is linear in $w$ (Theorem~\ref{thm:lower-bound}'s definition),
-so, by Step 4's identity read in reverse,
+For fixed $k$ and $\nu'$, $\sum_s w(k,s)\,\mathrm{KL}$ is linear in $w$, so the infimum
+over $\nu'$ is an infimum of linear (hence concave) functions of $w$, hence concave; and a
+minimum over $k$ of concave functions is concave. In the linear-Gaussian case, by Step 4's
+identity read in reverse,
 $\Delta_k^2 / (2J_k^\top I_k(w)^{-1} J_k) = \min_{\Delta\theta : J_k^\top \Delta\theta =
 \Delta_k} \Delta\theta^\top I_k(w) \Delta\theta / 2$, an infimum over a family of
 functions each \emph{linear} (hence concave) in $w$ -- an infimum of concave functions
@@ -136,16 +196,20 @@ re-derived from scratch).
 
 \begin{theorem}[Impossibility below the observed range]
 \label{thm:impossibility}
-Suppose $\mathcal{H}$ and $\mathcal{S}$ admit two instances $\nu_1, \nu_2$ that (i)
-induce \emph{identical} observation distributions at every $(k, s)$ with $s < s^\star$,
-and (ii) have $k^\star(\nu_1) \ne k^\star(\nu_2)$. Then no policy using only scales
-$s < s^\star$ is $\delta$-correct simultaneously on $\nu_1$ and $\nu_2$, for any
-$\delta < 1/2$, at any finite compute.
+Let $\mathcal{S}_{\mathrm{acc}}$ be the set of scales a policy may query, and suppose
+$\mathcal{H}$ and $\mathcal{S}_{\mathrm{acc}}$ admit two instances $\nu_1, \nu_2$ that
+(i) induce \emph{identical} observation distributions at every $(k, s)$ with $s \in
+\mathcal{S}_{\mathrm{acc}}$, and (ii) have distinct unique winners
+$k^\star(\nu_1) \ne k^\star(\nu_2)$. Then no policy querying only
+$\mathcal{S}_{\mathrm{acc}}$ is $\delta$-correct simultaneously on $\nu_1$ and $\nu_2$,
+for any $\delta < 1/2$, at any finite compute. (Condition (i) is about the scales the
+policy can actually query -- \emph{all} of them -- not only the scales of some
+particular fitting design.)
 \end{theorem}
 
 \begin{proof}
-Since every $(k,s)$ observation with $s<s^\star$ has an identical distribution under
-$\nu_1$ and $\nu_2$, and the policy (its choice of pulls, its stopping time $\tau$, and
+Since every $(k,s)$ observation with $s \in \mathcal{S}_{\mathrm{acc}}$ has an identical
+distribution under $\nu_1$ and $\nu_2$, and the policy (its choice of pulls, its stopping time $\tau$, and
 its recommendation $\hat{k}$) is a measurable function of those observations alone, the
 \emph{joint law} of $(\tau, \hat{k})$ is identical under $\nu_1$ and $\nu_2$. Write
 $k_1^\star = k^\star(\nu_1) \ne k_2^\star = k^\star(\nu_2)$. Then
@@ -177,38 +241,47 @@ human's judgement on how far to generalize it for the paper.}
 \subsubsection{A worked candidate construction}
 \label{sec:theorem2-construction}
 
-Fix the largest fitting scale $s_{\max} = \max S_{\mathrm{fit}} < s^\star$ and gap
-$g = s^\star - s_{\max} > 0$. Let $\nu_1$ have $h_k \equiv 0$ (arm $k$ exactly
-in-family) and $\nu_2$ have $h_k(s) = \eta_k \cdot \phi\big((s - s_{\max})/g\big)$ for a
-bump function $\phi: \mathbb{R} \to [0,1]$ with $\phi(x) = 0$ for $x \le 0$ and
-$\phi(1) = 1$ (so $h_k \equiv 0$ on $S_{\mathrm{fit}}$ -- both instances agree exactly
-on every fitting scale -- and $h_k(s^\star) = \eta_k$). Both instances share the same
-$\theta_k$'s, so the two arms' orderings differ only through $h$'s effect at $s^\star$:
-choosing $\eta_k$'s that reverse the sign of $\mu_{k^\star}(s^\star) - \mu_k(s^\star)$
-for the true winner $k^\star$ (under $\nu_1$) gives $k^\star(\nu_2) \ne k^\star(\nu_1)$.
+Let $\mathcal{S}_{\mathrm{acc}} \subset (-\infty, s^\star)$ be the accessible scales and
+suppose it has a largest element $s_{\mathrm{acc}} = \max \mathcal{S}_{\mathrm{acc}} <
+s^\star$ (a finite ladder or a known cutoff; if $\mathcal{S}_{\mathrm{acc}}$ has points
+arbitrarily close to $s^\star$, or a policy may query the whole interval
+$(s_{\mathrm{acc}}, s^\star)$, there is no gap and \emph{this construction does not
+apply} -- a bump that vanishes only up to $s_{\mathrm{acc}}$ would be distinguished by
+queries inside $(s_{\mathrm{acc}}, s^\star)$). Put $g = s^\star - s_{\mathrm{acc}} > 0$.
+Let $\nu_1$ have $h_k \equiv 0$ (arm $k$ exactly in-family) and $\nu_2$ have
+$h_k(s) = \eta_k \cdot \phi\big((s - s_{\mathrm{acc}})/g\big)$ for a bump function $\phi:
+\mathbb{R} \to [0,1]$ with $\phi(x) = 0$ for $x \le 0$ and $\phi(1) = 1$ (so $h_k \equiv
+0$ on \emph{every accessible scale} -- both instances agree exactly on everything a
+policy can query -- and $h_k(s^\star) = \eta_k$). Both instances share the same
+$\theta_k$'s, so the two arms' orderings differ only through $h$'s effect at $s^\star$.
+To obtain a \emph{unique} distinct winner under $\nu_2$ the perturbation must
+\emph{strictly} reverse the gap: pushing the winner down by $\eta$ and one challenger up
+by $\eta$ closes a gap $\Delta_{\min}$ exactly when $2\eta = \Delta_{\min}$, which is a
+\emph{tie}, not a distinct winner, so strict inequality is required.
 
 \begin{itemize}
   \item \textbf{Sup-norm class} ($\mathcal{H} = \{h : \sup_s |h(s)| \le \eta\}$, no
     smoothness requirement beyond boundedness): any $\phi$ works, including a step
     function ($\phi(x) = \mathbb{1}[x > 0]$) if $\mathcal{H}$ does not require
     continuity, or any continuous bump otherwise. \textbf{Sufficient condition for
-    impossibility: $\eta \ge \Delta_{\min} / 2$} where $\Delta_{\min} = \min_{k \ne
+    impossibility: $\eta > \Delta_{\min} / 2$} where $\Delta_{\min} = \min_{k \ne
     k^\star} \Delta_k$ under $\nu_1$ (enough perturbation budget, split between the
-    two competing arms, to close a gap of $\Delta_{\min}$ and reverse it). This
-    condition does not depend on the gap $g$ at all -- with no smoothness tying
-    behaviour at $s^\star$ to behaviour at $s_{\max}$, impossibility is purely a
+    two competing arms, to strictly reverse a gap of $\Delta_{\min}$; at
+    $\eta = \Delta_{\min}/2$ the two arms tie and there is no unique distinct winner).
+    This condition does not depend on the gap $g$ at all -- with no smoothness tying
+    behaviour at $s^\star$ to behaviour at $s_{\mathrm{acc}}$, impossibility is purely a
     question of how much perturbation budget $\mathcal{H}$ allows, however close
-    $s^\star$ is to the fitted region.
+    $s^\star$ is to the accessible region.
   \item \textbf{H\"older-$\alpha$ ball} ($\mathcal{H} = \{h : |h(s) - h(s')| \le
     \eta\, |s-s'|^\alpha\}$): a bump function respecting this modulus can rise from $0$
-    at $s_{\max}$ to at most $\eta \, g^\alpha$ by $s^\star$ (the H\"older condition
-    applied directly to the pair $(s_{\max}, s^\star)$, or, for a bump with the
-    standard $\mathrm{dist}(x, \{0,1\})^\alpha$-type profile, exactly this order).
-    \textbf{Sufficient condition for impossibility: $\eta \, g^\alpha \ge
+    at $s_{\mathrm{acc}}$ to at most $\eta \, g^\alpha$ by $s^\star$ (the H\"older
+    condition applied directly to the pair $(s_{\mathrm{acc}}, s^\star)$, or, for a bump
+    with the standard $\mathrm{dist}(x, \{0,1\})^\alpha$-type profile, exactly this
+    order). \textbf{Sufficient condition for impossibility: $\eta \, g^\alpha >
     \Delta_{\min}/2$} -- unlike the sup-norm case, this is a genuine \emph{phase
     transition in $g$}: for fixed $\eta, \alpha, \Delta_{\min}$, impossibility
     (via \emph{this construction}) holds once the target is far enough past the
-    fitted region ($g$ large enough), and this specific construction fails for smaller
+    accessible region ($g$ large enough), and this specific construction fails for smaller
     $g$. Whether the regime is then actually \emph{solvable} for small $g$, or merely
     that this particular construction does not witness impossibility there, is exactly
     the open direction flagged in Remark~\ref{rem:impossibility-construction}.
@@ -227,7 +300,7 @@ under $\nu_1$ and $\nu_2$, mechanically (not something that needs a "large class
 estimators" checked one by one: the fitted $\hat\theta$ is a deterministic function of
 data that is identical under both instances, full stop); (b) the true winner flips
 ($k^\star(\nu_1) \ne k^\star(\nu_2)$); (c) the H\"older construction's sufficient
-condition ($\eta g^\alpha \ge \Delta_{\min}/2$) correctly predicts, on both sides, which
+condition ($\eta g^\alpha > \Delta_{\min}/2$, strict) correctly predicts, on both sides, which
 randomly generated instances succeed at flipping the winner while retaining the
 Hölder-$\alpha$ modulus and which do not. Verifying $T^\star$ against the P3 algorithm's
 achieved sample complexity in the solvable regime is deferred to P3-04's simulation

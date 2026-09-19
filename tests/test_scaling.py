@@ -113,6 +113,40 @@ def test_constant_extrapolator_ignores_scale_argument_shape():
     assert model.predict(Scale(n=1e15, d=1e16)) == model.predict(Scale(n=1e9, d=1e10))
 
 
+def test_constant_extrapolator_averages_replicates_at_the_largest_scale():
+    # Regression test for a real bug found by external review: an earlier
+    # version took `values[idx]` for whichever row happened to be first
+    # at the largest scale, rather than averaging every replicate there --
+    # order-dependent and wrong for the replicate histories (e.g. several
+    # seeds at the same size) every real caller passes. Exact
+    # counterexample from the review: scales [(1,1),(2,1),(2,1)],
+    # y=[0,0.1,0.9] must predict the mean of the two n=2 replicates
+    # (0.5), not 0.1 (the first one in this order).
+    scales = [Scale(n=1, d=1), Scale(n=2, d=1), Scale(n=2, d=1)]
+    values = [0.0, 0.1, 0.9]
+    model = fitters.ConstantExtrapolator().fit(scales, values)
+    assert model.predict(Scale(n=2, d=1)) == pytest.approx(0.5)
+
+
+def test_constant_extrapolator_is_order_independent():
+    scales_a = [Scale(n=1, d=1), Scale(n=2, d=1), Scale(n=2, d=1)]
+    values_a = [0.0, 0.1, 0.9]
+    scales_b = [Scale(n=1, d=1), Scale(n=2, d=1), Scale(n=2, d=1)]
+    values_b = [0.0, 0.9, 0.1]  # the two n=2 replicates swapped
+
+    pred_a = fitters.ConstantExtrapolator().fit(scales_a, values_a).predict(Scale(n=2, d=1))
+    pred_b = fitters.ConstantExtrapolator().fit(scales_b, values_b).predict(Scale(n=2, d=1))
+    assert pred_a == pytest.approx(pred_b)
+
+
+def test_constant_extrapolator_respects_weights_at_the_largest_scale():
+    scales = [Scale(n=1, d=1), Scale(n=2, d=1), Scale(n=2, d=1)]
+    values = [0.0, 0.0, 1.0]
+    model = fitters.ConstantExtrapolator().fit(scales, values, weights=[1.0, 3.0, 1.0])
+    # Weighted mean of the two n=2 replicates: (3*0 + 1*1) / 4 = 0.25.
+    assert model.predict(Scale(n=2, d=1)) == pytest.approx(0.25)
+
+
 # ---------------------------------------------------------------------------
 # PowerLawN
 # ---------------------------------------------------------------------------
@@ -131,6 +165,63 @@ def test_power_law_n_recovers_a_clean_synthetic_curve():
         true_pred, abs=0.02
     )
     assert model.fit_diagnostics["n_converged"] >= 1
+
+
+def test_power_law_n_recovers_a_small_alpha_noiseless_curve_across_seeds():
+    # Regression test for a real bug found by external review: uniform
+    # random-restart initialization over alpha in [1e-3, 10] spends
+    # almost all its mass on alpha values where N^-alpha underflows to
+    # numerically zero for this project's real parameter counts
+    # (1e6-1e9) -- a flat region with no gradient signal, where
+    # scipy's least_squares can still report success=True (the step
+    # size, not the residual, went to zero). Exact counterexample from
+    # the review: PowerLawN(rng=np.random.default_rng(1)) fit to a
+    # noiseless y = 0.9 - 2*N^-0.1 curve on N from 1e6 to 1.5e8 --
+    # every one of the 8 default restarts converged to the identical
+    # wrong prediction at N=1e9 (0.504 instead of the true 0.648),
+    # objective_spread ~1e-18 (all 8 restarts agreeing with each other
+    # made this look like a converged, validated fit). Checked across
+    # several seeds, not just the one in the report, since the bug was
+    # about *initialization landing badly by chance*, not this one seed
+    # specifically.
+    true_e, true_a, true_alpha = 0.9, -2.0, 0.1
+    ns = np.geomspace(1e6, 1.5e8, 10)
+    ys = true_e + true_a * ns ** (-true_alpha)
+    held_out = Scale(n=1e9, d=20e9)
+    true_pred = true_e + true_a * held_out.n ** (-true_alpha)
+
+    for seed in range(5):
+        model = fitters.PowerLawN(rng=np.random.default_rng(seed)).fit(_scales(list(ns)), list(ys))
+        assert model.predict(held_out) == pytest.approx(true_pred, abs=1e-3), f"seed={seed}"
+        # best_cost (not objective_spread -- some restarts can still land
+        # on a genuinely worse local optimum even with the fix; what
+        # matters is that the *best* one found the true global minimum)
+        # near zero confirms the global optimum was actually reached.
+        assert model.fit_diagnostics["best_cost"] < 1e-6, f"seed={seed}"
+
+
+def test_multi_start_fit_log_uniform_dims_avoids_the_flat_high_alpha_region():
+    # A direct, model-agnostic check of the fix itself: with
+    # log_uniform_dims naming the exponent parameter, random restarts on
+    # the exact P1-04 counterexample recover the true curve; without it
+    # (the old behavior), reproduce the original failure to confirm this
+    # test would have caught it.
+    true_e, true_a, true_alpha = 0.9, -2.0, 0.1
+    ns = np.geomspace(1e6, 1.5e8, 10)
+    ys = true_e + true_a * ns ** (-true_alpha)
+    bounds = (np.array([-2.0, -10.0, 1e-3]), np.array([3.0, 10.0, 10.0]))
+
+    def residual(theta):
+        e, a, alpha = theta
+        return (e + a * ns ** (-alpha)) - ys
+
+    fixed_theta, _ = multi_start_fit(
+        residual, 3, bounds, np.random.default_rng(1), log_uniform_dims=(2,)
+    )
+    assert fixed_theta == pytest.approx([true_e, true_a, true_alpha], abs=1e-3)
+
+    broken_theta, _ = multi_start_fit(residual, 3, bounds, np.random.default_rng(1))
+    assert broken_theta[0] != pytest.approx(true_e, abs=1e-3)  # reproduces the original bug
 
 
 def test_power_law_n_jacobian_has_three_entries():
@@ -248,3 +339,66 @@ def test_two_step_ladder_diagnostics_include_both_steps():
     )
     assert "step1" in model.fit_diagnostics
     assert "step2" in model.fit_diagnostics
+
+
+# ---------------------------------------------------------------------------
+# Second-round external review: randomized log-uniform starts still failed
+# on the compute-based PowerLawC (2/100 seeds) -- informative starts fix it.
+# ---------------------------------------------------------------------------
+
+
+def _noiseless_power_law_case(alpha: float, use_compute: bool):
+    ns = np.geomspace(1e6, 1.5e8, 10)
+    scales = [Scale(n=n, d=20 * n) for n in ns]
+    x = np.array([s.compute for s in scales]) if use_compute else ns
+    target = Scale(n=1e9, d=20e9)
+    x_target = target.compute if use_compute else target.n
+    return scales, list(0.9 - 2 * x ** (-alpha)), target, 0.9 - 2 * x_target ** (-alpha)
+
+
+def test_power_law_c_recovers_the_reviewers_exact_failing_seeds():
+    # Reproduction from the review: default_rng(30) and default_rng(54)
+    # predicted 0.2463 instead of 0.4004 with every restart "converged".
+    scales, ys, target, truth = _noiseless_power_law_case(0.03, use_compute=True)
+    for seed in (30, 54):
+        model = fitters.PowerLawC(rng=np.random.default_rng(seed)).fit(scales, ys)
+        assert model.predict(target) == pytest.approx(truth, abs=1e-3)
+
+
+@pytest.mark.parametrize("use_compute", [False, True], ids=["PowerLawN", "PowerLawC"])
+@pytest.mark.parametrize("alpha", [0.01, 0.03, 0.1, 0.3, 0.6])
+def test_power_law_recovers_noiseless_curves_across_many_seeds(alpha, use_compute):
+    scales, ys, target, truth = _noiseless_power_law_case(alpha, use_compute)
+    cls = fitters.PowerLawC if use_compute else fitters.PowerLawN
+    for seed in range(40):
+        model = cls(rng=np.random.default_rng(seed)).fit(scales, ys)
+        assert model.predict(target) == pytest.approx(truth, abs=1e-3), f"seed {seed}"
+
+
+def test_chinchilla_nd_recovers_a_noiseless_curve_across_seeds():
+    ns = np.geomspace(1e6, 1.5e8, 10)
+    scales = [Scale(n=n, d=20 * n) for n in ns]
+    ys = list(0.9 - 2 * ns ** (-0.1) - 3 * (20 * ns) ** (-0.15))
+    target = Scale(n=1e9, d=20e9)
+    truth = 0.9 - 2 * target.n ** (-0.1) - 3 * target.d ** (-0.15)
+    for seed in range(8):
+        model = fitters.ChinchillaND(rng=np.random.default_rng(seed)).fit(scales, ys)
+        assert model.predict(target) == pytest.approx(truth, abs=5e-3), f"seed {seed}"
+
+
+def test_multi_start_fit_refines_deterministic_extra_starts_first():
+    # A start placed exactly at the optimum must be refined and win even
+    # when zero random restarts are requested.
+    def residual(theta):
+        return np.array([theta[0] - 3.0, theta[1] + 1.0])
+
+    theta, diag = multi_start_fit(
+        residual,
+        2,
+        (np.array([-10.0, -10.0]), np.array([10.0, 10.0])),
+        np.random.default_rng(0),
+        n_restarts=0,
+        extra_starts=(np.array([3.0, -1.0]),),
+    )
+    assert theta == pytest.approx([3.0, -1.0])
+    assert diag["n_restarts"] == 1
