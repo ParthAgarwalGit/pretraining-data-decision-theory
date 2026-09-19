@@ -23,6 +23,38 @@ rounds). This module reserves a fixed fraction `kstar_reserve_frac`
 the tracking weight for the current leader, spread uniformly across its
 own candidate scales -- a simple, explicit heuristic, not something
 Theorem 4 specifies, and not tuned here.
+
+**What "certified" does and does not mean (second-round review of PR #29).**
+The stopping statistic needs the variance of each arm's extrapolated
+prediction. An earlier version estimated it from the fit's own residuals
+(HC0 sandwich) and inflated the radius with a Student-t quantile. That is not
+a valid construction: at a high-leverage observation near the target the
+fitted residual is almost forced to zero, so HC0 deletes exactly the
+uncertainty that dominates the prediction, and no t quantile restores
+coverage (reproduced: `LogLinear`, `N=[1, 1.00001, 2]`, target `N=2.001`,
+sigma=.05, delta=.01, first check only -- 198/200 runs certified and 98 of
+them certified the WRONG arm: 49% unconditional error against a requested 1%).
+The default `variance_mode="known_sigma2"` instead uses the caller-supplied
+noise variance function `sigma2` as the *known* noise level
+(`pdt.theory.bound.known_noise_v_k`: influence-weight variance
+`sum_i g_i^2 sigma2(s_i)`) with the Gaussian/Chernoff radius
+`sqrt(2 (v_a + v_b) log(1/beta))`, `beta = delta / (t (t+1) K (K-1))`: a union
+bound over rounds `t` AND over the `K (K-1)` ordered arm pairs (the
+leader is data-dependent, so every ordered pair must be covered
+simultaneously). A `"certified"` outcome is then a delta-level claim ONLY under
+the assumptions listed in `certificate["assumptions"]`: (A1) `sigma2` is a
+valid sub-Gaussian variance proxy for the oracle's noise (it is an INPUT,
+not estimated); (A2) each arm's extrapolation bias is at most `eta`; (A3) the
+prediction is linear in the observations -- exact for `LogLinear`, a
+first-order delta-method approximation for the nonlinear power-law
+fits, whose curvature error is not covered by `eta` unless the caller folds it
+in; (A4) the pulled design at each check is independent of the noise in the
+data being certified -- exactly true only for the non-adaptive warm-up
+design (the first check); once the tracking rule adapts scales to earlier
+noise, A4 is a heuristic (its effect is small in the simulations recorded in
+docs/decisions.md but is not bounded by any argument here). Use
+`variance_mode="hc0_heuristic"` for the residual-based variance: it never
+returns `"certified"`, only `"recommended"`, with no error-probability claim.
 """
 
 from __future__ import annotations
@@ -36,7 +68,11 @@ from pdt.bai.allocation import solve_allocation
 from pdt.bai.oracle import PullOracle
 from pdt.scaling.base import Extrapolator, FitFailure, Scale
 from pdt.scaling.fitters import PowerLawN
-from pdt.theory.bound import analytic_v_k
+from pdt.theory.bound import (
+    UnidentifiedTargetError,
+    analytic_v_k,
+    known_noise_v_k,
+)
 
 
 @dataclass(frozen=True)
@@ -45,9 +81,12 @@ class SelectionResult:
     baselines and `extrapolation_track_and_stop`), so P3-04/P3-05 can
     compare them uniformly.
 
-    `outcome` is one of `"certified"` (a delta-correct decision, only
-    possible for `extrapolation_track_and_stop`), `"abstained"`
-    (ETS declined to certify; `recipe` is then the single-scale
+    `outcome` is one of `"certified"` (a delta-level decision under the
+    assumptions in the module docstring / `certificate["assumptions"]`; only
+    `extrapolation_track_and_stop` in `variance_mode="known_sigma2"` can return
+    it), `"recommended"` (ETS stopped on a residual-variance HEURISTIC rule,
+    `variance_mode="hc0_heuristic"` -- no error-probability claim at all),
+    `"abstained"` (ETS declined to certify; `recipe` is then the single-scale
     fallback, per theorem4_algorithm.tex), or `"decided"` (a baseline's
     unconditional pick -- no statistical guarantee is claimed).
     `certificate` carries method-specific diagnostics (e.g. ETS's final
@@ -72,24 +111,81 @@ def _beta(t: int, delta: float) -> float:
     return delta / (t * (t + 1))
 
 
-def _assert_design_identified(n_params: int, model_name: str, distinct_scales: list[Scale]) -> None:
-    """Theorem 3's rank condition, asserted directly rather than
-    trusted -- but as a property of the *design* (how many distinct
-    scales this recipe has been pulled at), not of one particular
-    converged fit's numerical Jacobian.
+def _pair_beta(t: int, delta: float, n_recipes: int) -> float:
+    """Per-(round, ordered arm pair) error budget: `_beta(t, delta)` split over
+    the `K (K-1)` ordered pairs `(k_hat, k)` that could be (wrongly) certified
+    at round `t`. The leader `k_hat` is data-dependent, so the union must run
+    over every ordered pair, not just the `K-1` pairs of one fixed leader."""
+    return _beta(t, delta) / (n_recipes * (n_recipes - 1))
 
-    An earlier version of this check computed the fitted model's own
-    Jacobian at each distinct scale and asserted `matrix_rank(J) ==
-    n_params`. That was found to be the wrong check by direct testing:
-    a real nonlinear fit can converge to a numerically near-degenerate
-    point (e.g. `alpha` saturating near its bound, making the
-    `d/d(alpha)` and `d/d(a)` directions collinear at every observed
-    scale) even when the *design itself* -- the actual set of scales
-    pulled -- is perfectly identifiable in the sense Theorem 3 means
-    (>= n_params+1 distinct scales, which is what forced exploration
-    guarantees). Asserting on the converged Jacobian made this raise on
-    legitimate, well-designed runs for a reason having nothing to do
-    with the tracking rule's own correctness -- see docs/decisions.md.
+
+def _certification_radius(v_sum: float, beta: float) -> float:
+    """Gaussian/Chernoff radius `sqrt(2 * v_sum * log(1/beta))` for the noise
+    part of `mu_hat_a - mu_hat_b`, whose variance (proxy) is `v_sum = v_a +
+    v_b` with the arms' noise independent: `P[noise > c] <= beta`.
+
+    Valid only when `v_sum` is the TRUE (known) variance proxy -- which is why
+    the default mode feeds it `known_noise_v_k(sigma2)` and not a residual
+    estimate. An infinite `v_sum` (unidentified target) gives an infinite
+    radius: never certifies."""
+    if not np.isfinite(v_sum):
+        return float("inf")
+    return float(np.sqrt(max(2.0 * v_sum * np.log(1.0 / beta), 0.0)))
+
+
+#: Fixed local seed for `_assert_design_identified`'s generic-parameter
+#: rank probes, re-seeded FRESH on every call (never a shared, mutating
+#: module-level generator) -- deterministic and independent of caller
+#: order, since this is a validity check, not a statistical estimate. An
+#: earlier version shared one mutating generator across every call, so a
+#: call's own probe sequence (and thus whether it happened to hit a
+#: bad-luck streak of degenerate draws) depended on how many prior calls
+#: had already consumed from it elsewhere in the program -- a real,
+#: observed flakiness source (see docs/decisions.md).
+_DESIGN_RANK_PROBE_SEED = 0
+_N_DESIGN_RANK_PROBES = 8
+
+
+def _assert_design_identified(
+    model_factory: Callable[[], Extrapolator],
+    n_params: int,
+    model_name: str,
+    distinct_scales: list[Scale],
+) -> None:
+    """Theorem 3's rank condition, asserted directly rather than
+    trusted -- but as a property of the *design* (the actual scales this
+    recipe has been pulled at), not of one particular converged fit's
+    numerical Jacobian.
+
+    An earlier version of this check only counted distinct scales
+    (`len(distinct_scales) >= n_params+1`) after finding that asserting
+    on the CONVERGED fit's own Jacobian was the wrong check: a real
+    nonlinear fit can converge to a numerically near-degenerate point
+    (e.g. `alpha` saturating near its bound, making the `d/d(alpha)` and
+    `d/d(a)` directions collinear at every observed scale) even when the
+    design itself is perfectly identifiable -- asserting on that one
+    fit's Jacobian made this raise on legitimate, well-designed runs for
+    a reason having nothing to do with the tracking rule's own
+    correctness (see docs/decisions.md).
+
+    PR #29's review: the count-only check is necessary but NOT
+    sufficient -- `n_params+1` distinct `(N, D)` pairs does not imply the
+    model's Jacobian at those pairs has rank `n_params`. `LogLinear`'s
+    fit ignores `D` entirely, so `n_params+1` pairs sharing the same `N`
+    (different `D`) pass the count check while providing genuinely ZERO
+    information about the slope parameter. Fixed by ALSO checking the
+    Jacobian's rank at several GENERIC reference parameter values (drawn
+    from the model's own declared `_bounds`, from a fixed local seed --
+    not this run's own possibly-degenerate converged fit, which avoids
+    reintroducing the false-negative failure mode the count-only check
+    was adopted to fix): if the model exposes `_bounds` and its Jacobian
+    has rank `< n_params` at EVERY one of several generic
+    parameterizations, these scales cannot identify this model no matter
+    what the true parameters are, and the design is rejected regardless
+    of how many nominally-distinct scales it counts. Models without a
+    single unified `_bounds` (e.g. `ConstantExtrapolator`, whose n_params=1
+    Jacobian is trivially always full rank; `TwoStepLadder`'s two-stage
+    `_step1_bounds`/`_step2_bounds`) fall back to the count-only check.
     """
     if len(distinct_scales) < n_params + 1:
         raise FitFailure(
@@ -97,6 +193,58 @@ def _assert_design_identified(n_params: int, model_name: str, distinct_scales: l
             f">= {n_params + 1} to identify {n_params} parameters -- Theorem 3's design "
             f"rank condition is violated."
         )
+    probe_model = model_factory()
+    bounds = getattr(probe_model, "_bounds", None)
+    if bounds is None:
+        return
+    lo, hi = bounds
+    # Log-uniform, not linear-uniform, for any dimension whose lower
+    # bound is strictly positive -- a model-agnostic heuristic that
+    # reliably identifies decay-rate/exponent-like parameters (every
+    # `alpha`/`beta` bound seen in this project's fitters is strictly
+    # positive, e.g. PowerLawN's `[1e-3, 10]`) without needing per-fitter
+    # knowledge of which index is which. Necessary, not cosmetic: linear-
+    # uniform sampling over such a wide positive range puts the large
+    # majority of draws in the numerically-flat region where `N^-alpha`
+    # and its derivatives underflow to (numerical, not mathematical)
+    # zero for realistic scale magnitudes -- exactly `multi_start_fit`'s
+    # own `log_uniform_dims` fix (see docs/decisions.md, PR #12) for the
+    # identical reason. Checked directly: linear-uniform probes on a
+    # genuinely well-identified 4-scale PowerLawN design gave rank < 3
+    # on ~81% of individual draws (an 8-probe run has a ~20% chance of
+    # hitting 8-in-a-row and false-rejecting a legitimate design); log-
+    # uniform for the positive-bounded dimensions drops that to ~18% per
+    # draw (~1e-6 for 8-in-a-row).
+    probe_rng = np.random.default_rng(_DESIGN_RANK_PROBE_SEED)
+    for _ in range(_N_DESIGN_RANK_PROBES):
+        theta = np.empty(n_params)
+        for i in range(n_params):
+            if lo[i] > 0:
+                theta[i] = np.exp(probe_rng.uniform(np.log(lo[i]), np.log(hi[i])))
+            else:
+                theta[i] = probe_rng.uniform(lo[i], hi[i])
+        probe_model._theta = theta
+        jac = np.array([probe_model.jacobian(s) for s in distinct_scales])
+        if np.linalg.matrix_rank(jac) >= n_params:
+            return
+    raise FitFailure(
+        f"{model_name}: {len(distinct_scales)} distinct scales pulled, but the model's "
+        f"Jacobian has rank < {n_params} at every one of {_N_DESIGN_RANK_PROBES} generic "
+        "reference parameterizations -- these scales cannot identify this model's "
+        "parameters no matter what the true parameters are (e.g. scales that differ only "
+        "in a dimension the model ignores)."
+    )
+
+
+_VARIANCE_MODES = ("known_sigma2", "hc0_heuristic")
+
+_CERTIFICATE_ASSUMPTIONS = (
+    "A1: sigma2 is a valid sub-Gaussian variance proxy for the oracle noise (input, not estimated)",
+    "A2: each arm's extrapolation bias is at most eta",
+    "A3: prediction linear in observations (exact for LogLinear; first-order for nonlinear fits)",
+    "A4: pulled design independent of the noise being certified (exact only at the warm-up "
+    "check; a heuristic once tracking adapts)",
+)
 
 
 def _fit_recipe(
@@ -104,18 +252,35 @@ def _fit_recipe(
     scales: list[Scale],
     values: list[float],
     target_scale: Scale,
+    sigma2: Callable[[Scale], float] | None = None,
+    variance_mode: str = "known_sigma2",
 ) -> tuple[Extrapolator, float, float]:
     """Fit one recipe's model on its raw (possibly-duplicated-scale)
     pull history, assert design identifiability, and return `(model,
-    mu_hat, v_hat)` at `target_scale` -- `v_hat` via the same analytic
-    delta-method machinery as P1-07/Theorem 1 (`analytic_v_k`), not a
-    separate ad hoc formula."""
+    mu_hat, v_hat)` at `target_scale`.
+
+    `v_hat` is `known_noise_v_k(model, scales, sigma2, target)` in
+    `"known_sigma2"` mode (needs `sigma2`), `analytic_v_k`'s HC0 residual
+    sandwich in `"hc0_heuristic"` mode, and `nan` when `sigma2` is `None`
+    in the default mode (baselines, which never use it). A target outside the
+    row space of the pulled design has unbounded variance: `v_hat = inf`,
+    never a finite pseudo-inverse artifact."""
+    if variance_mode not in _VARIANCE_MODES:
+        raise ValueError(f"variance_mode must be one of {_VARIANCE_MODES}, got {variance_mode!r}")
     model = model_factory()
     distinct_scales = sorted(set(scales), key=lambda s: s.n)
-    _assert_design_identified(model.n_params, type(model).__name__, distinct_scales)
+    _assert_design_identified(model_factory, model.n_params, type(model).__name__, distinct_scales)
     model.fit(scales, values)
     mu_hat = model.predict(target_scale)
-    v_hat = analytic_v_k(model, scales, values, target_scale)
+    if variance_mode == "known_sigma2" and sigma2 is None:
+        return model, mu_hat, float("nan")
+    try:
+        if variance_mode == "known_sigma2":
+            v_hat = known_noise_v_k(model, scales, sigma2, target_scale)
+        else:
+            v_hat = analytic_v_k(model, scales, values, target_scale)
+    except UnidentifiedTargetError:
+        v_hat = float("inf")
     return model, mu_hat, v_hat
 
 
@@ -349,9 +514,10 @@ def extrapolation_track_and_stop(
     kstar_reserve_frac: float | None = None,
     min_pulls_per_pair: int = 1,
     rng: np.random.Generator | None = None,
+    variance_mode: str = "known_sigma2",
 ) -> SelectionResult:
-    """Extrapolation-Track-and-Stop, exactly as specified in
-    paper/sections/theorem4_algorithm.tex: at each round, refit every
+    """Extrapolation-Track-and-Stop, following
+    paper/sections/theorem4_algorithm.tex's tracking rule: at each round, refit every
     recipe's extrapolator on data so far, recompute the plug-in T*(nu)
     weights from `solve_allocation` using the current fits as the
     "instance", track the most-under-sampled (recipe, scale) pair
@@ -362,10 +528,16 @@ def extrapolation_track_and_stop(
     magnitude, `eta_k >= sqrt(sigma2_extrap_k)`), per P2-05's decision
     (route (b): condition on a known/estimated eta rather than inflate
     delta) -- not discovered by this function. `sigma2` is the
-    per-scale noise-variance function `solve_allocation` also expects
-    (the *planning*-time instance); the stopping rule's own `v_k(t)`
-    is estimated from data via the sandwich covariance
-    (`analytic_v_k`), not assumed to equal `sigma2`.
+    per-scale noise-variance function; it is used BOTH as the planning-time
+    instance `solve_allocation` needs AND, in the default
+    `variance_mode="known_sigma2"`, as the *known* noise level in the
+    stopping rule's `v_k(t)` (see the module docstring for the exact
+    assumptions a `"certified"` outcome rests on). `variance_mode=
+    "hc0_heuristic"` instead estimates `v_k(t)` from the fit's residuals
+    (HC0 sandwich) -- explicitly a heuristic: it returns `"recommended"`,
+    never `"certified"`, because its error probability is not controlled
+    (49% unconditional error against a requested 1% on a high-leverage
+    design, PR #29's second review).
 
     `solver_n_restarts`/`solver_n_iter` default far below
     `solve_allocation`'s own defaults (6 x 4000): T* is re-solved every
@@ -375,6 +547,8 @@ def extrapolation_track_and_stop(
     """
     if len(recipes) < 2:
         raise ValueError("need at least 2 recipes to compare")
+    if variance_mode not in _VARIANCE_MODES:
+        raise ValueError(f"variance_mode must be one of {_VARIANCE_MODES}, got {variance_mode!r}")
     if len(candidate_scales) < model_factory().n_params + 1:
         raise ValueError(
             f"need at least {model_factory().n_params + 1} candidate scales to identify "
@@ -422,7 +596,14 @@ def extrapolation_track_and_stop(
 
     for t in range(1, max_rounds + 1):
         fits = {
-            r: _fit_recipe(model_factory, scales_data[r], values_data[r], target_scale)
+            r: _fit_recipe(
+                model_factory,
+                scales_data[r],
+                values_data[r],
+                target_scale,
+                sigma2=sigma2,
+                variance_mode=variance_mode,
+            )
             for r in recipes
         }
         mu_hat = {r: fits[r][1] for r in recipes}
@@ -434,12 +615,17 @@ def extrapolation_track_and_stop(
 
         certified_all = True
         abstain_any = False
-        certificate: dict = {"k_hat": k_hat, "per_challenger": {}}
+        beta_t = _pair_beta(t, delta, len(recipes))
+        certificate: dict = {
+            "k_hat": k_hat,
+            "per_challenger": {},
+            "variance_mode": variance_mode,
+            "round": t,
+            "pair_beta": beta_t,
+        }
         for k in challengers:
             delta_hat_k = mu_hat[k_hat] - mu_hat[k]
-            c_k = float(
-                np.sqrt(max(2 * (v_hat[k_hat] + v_hat[k]) * np.log(1 / _beta(t, delta)), 0.0))
-            )
+            c_k = _certification_radius(v_hat[k_hat] + v_hat[k], beta_t)
             margin = delta_hat_k - eta[k_hat] - eta[k]
             certificate["per_challenger"][k] = {
                 "delta_hat": delta_hat_k,
@@ -452,9 +638,15 @@ def extrapolation_track_and_stop(
                 abstain_any = True
 
         if certified_all:
+            if variance_mode == "known_sigma2":
+                certificate["assumptions"] = list(_CERTIFICATE_ASSUMPTIONS)
+            else:
+                certificate["assumptions"] = [
+                    "HC0 residual-variance heuristic: no error-probability guarantee"
+                ]
             return SelectionResult(
                 method="ExtrapolationTrackAndStop",
-                outcome="certified",
+                outcome="certified" if variance_mode == "known_sigma2" else "recommended",
                 recipe=k_hat,
                 compute_spent=compute_spent,
                 n_pulls=n_pulls,

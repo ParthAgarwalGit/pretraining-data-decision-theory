@@ -12,7 +12,8 @@
 % (`exp(-Delta_k^2/(2*(sigma2_extrap_k+v_k)))`, additive in
 % sigma^2_extrap), and not the form already implemented as
 % `marginal_bound_term`/`pairwise_bound_term` in src/pdt/theory/bound.py
-% (used throughout P1-07/P1-08). That additive form was checked with
+% as first shipped (used in the first P1-07/P1-08 runs; since corrected to the
+% gap-reduction form by PR #17). That additive form was checked with
 % tests/theory/test_theorem1.py's numerical certificate and found to be a
 % genuinely INVALID worst-case bound -- see the remark after the proof, and
 % docs/decisions.md, 2026-09-10, for the full account of how this was
@@ -28,39 +29,70 @@
 
 \begin{theorem}[Extrapolation-aware selection-error bound]
 \label{thm:main-bound}
-Fix a design $S_{\mathrm{fit}}$ with total compute $C$, and suppose each arm's
-estimate $\hat\mu_k(s^\star) = g(\hat\theta_k, s^\star)$ is obtained by (weighted)
-least squares within the family (Assumption~\ref{asn:family}) on noisy observations
-(Assumption~\ref{asn:noise}) of an arm whose true trend is
+Fix a design $S_{\mathrm{fit}}$ with total compute $C$. Arm $k$'s true trend is
 $\mu_k(s) = g(\theta_k, s) + h_k(s)$ with $h_k \in \mathcal{H}$
-(Assumption~\ref{asn:misspec}). Let $v_k(C) = J(\theta_k^{\dagger}, s^\star)^\top
-\Sigma_{\theta_k}(C) \, J(\theta_k^{\dagger}, s^\star)$ be the delta-method estimation
-variance of $\hat\mu_k(s^\star)$ (Section~\ref{sec:theorem1-step2} below), and
-$\sigma^2_{\mathrm{extrap}, k} = \sigma^2_{\mathrm{extrap}, k}(S_{\mathrm{fit}})$ as in
-Definition~\ref{def:sigma2-extrap}. Then
+(Assumption~\ref{asn:misspec}); $\hat\mu_k(s^\star) = g(\hat\theta_k, s^\star)$, with
+$\hat\theta_k$ the (weighted) least-squares fit within the family
+(Assumption~\ref{asn:family}) on noisy observations (Assumption~\ref{asn:noise}), and the
+projection $\theta_k^{\dagger}$ of Definition~\ref{def:projection} taken with $\pi$ the
+design's own weighting. Write $\sigma^2_{\mathrm{extrap}, k}
+= \sigma^2_{\mathrm{extrap}, k}(S_{\mathrm{fit}})$ (Definition~\ref{def:sigma2-extrap}),
+$\Delta_k = \mu_{k^\star}(s^\star) - \mu_k(s^\star)$, and let
+$v_k(C) = J(\theta_k^{\dagger}, s^\star)^\top \Sigma_{\theta_k}(C) \, J(\theta_k^{\dagger},
+s^\star)$ be the delta-method variance (Section~\ref{sec:theorem1-step2}). Define
 \[
-  \mathbb{P}[\hat{k} \ne k^\star]
-  \;\le\; \sum_{k \ne k^\star}
+  B(\rho_k, \rho_{k^\star}, v_k, v_{k^\star}) \;=\; \sum_{k \ne k^\star}
   \exp\!\left(
     -\, \frac{\Big( \Delta_k - \sqrt{\sigma^2_{\mathrm{extrap}, k}}
-      - \sqrt{\sigma^2_{\mathrm{extrap}, k^\star}} \Big)_+^2}
-    {2 \big( v_k(C) + v_{k^\star}(C) \big)}
+      - \sqrt{\sigma^2_{\mathrm{extrap}, k^\star}} - \rho_k - \rho_{k^\star} \Big)_+^2}
+    {2 \big( v_k + v_{k^\star} \big)}
   \right),
+  \qquad (x)_+ = \max(x, 0).
 \]
-where $(x)_+ = \max(x, 0)$. As $C \to \infty$ with the design shape (the relative
-weighting of $S_{\mathrm{fit}}$ across scales) held fixed, $v_k(C) \to 0$ for every
-$k$, while $\sigma^2_{\mathrm{extrap}, k}(S_{\mathrm{fit}})$ does not depend on $C$ at
-all.
+
+\textbf{(i) Linear-in-$\theta$ family, independent sub-Gaussian noise (proved).} If
+$g(\theta, s)$ is linear in $\theta$ and the observation noise is independent
+sub-Gaussian with variance proxy $\sigma^2(s)$ at each fitting observation, the fit is
+a fixed linear function of the noise, $\hat\mu_k(s^\star)$ is exactly sub-Gaussian
+around $g(\theta_k^{\dagger}, s^\star)$ with variance proxy $v_k(C)$, and
+\[
+  \mathbb{P}[\hat{k} \ne k^\star] \;\le\; B(0, 0, v_k(C), v_{k^\star}(C)).
+\]
+\textbf{(ii) Nonlinear $g$ (conditional, not proved here).} For nonlinear $g$ the
+delta-method variance $v_k(C)$ is a first-order approximation and the fitted prediction
+is neither exactly sub-Gaussian nor centred at $g(\theta_k^{\dagger}, s^\star)$: the
+Taylor remainder and the finite-sample bias of the nonlinear least-squares estimator
+shift its centre by some $\rho_k(C)$, and its true tails are governed by some proxy
+$\bar v_k(C)$ that need not equal $v_k(C)$. \emph{If} one assumes
+\begin{quote}
+\textbf{(H)} $\hat\mu_k(s^\star) - g(\theta_k^{\dagger}, s^\star)$ is sub-Gaussian with
+mean of magnitude at most $\rho_k(C)$ and variance proxy $\bar v_k(C)$, for every arm,
+independently across arms,
+\end{quote}
+\emph{then} $\mathbb{P}[\hat{k} \ne k^\star] \le B(\rho_k, \rho_{k^\star}, \bar v_k,
+\bar v_{k^\star})$. Hypothesis (H) is not established by smoothness or a bounded
+Jacobian; it is stated as a hypothesis, and the six fitters of
+\texttt{src/pdt/scaling/fitters.py} are treated as satisfying it only heuristically
+(P1-07 found the delta-method $v_k$ close to the bootstrap variance on real cells, which
+is evidence about the variance proxy, not about (H)'s concentration or about $\rho_k$).
+Every reported use of Theorem~\ref{thm:main-bound} with a nonlinear fitter --
+\texttt{pdt.theory.bound}, P1-07/P1-08 -- is therefore an \emph{empirical diagnostic
+built on this conditional statement}, with $\rho_k = 0$ and $\bar v_k = v_k$.
+
+As $C \to \infty$ with the design shape (the relative weighting of $S_{\mathrm{fit}}$
+across scales) held fixed, $v_k(C) \to 0$ for every $k$, while
+$\sigma^2_{\mathrm{extrap}, k}(S_{\mathrm{fit}})$ does not depend on $C$ at all.
 \end{theorem}
 
 \begin{remark}[This is not the additive form]
 \label{rem:not-additive}
-An earlier draft of this bound (and \texttt{src/pdt/theory/bound.py}'s already-shipped
-\texttt{marginal\_bound\_term}, used throughout P1-07/P1-08's analysis) instead adds
+An earlier draft of this bound (and \texttt{src/pdt/theory/bound.py}'s originally shipped
+\texttt{marginal\_bound\_term}, used in the first P1-07/P1-08 runs; PR~\#17 has since corrected
+the plug-in to the gap-reduction form) instead adds
 $\sigma^2_{\mathrm{extrap}, k}$ directly into the denominator,
 $\exp(-\Delta_k^2 / (2(\sigma^2_{\mathrm{extrap}, k} + v_k)))$, using only arm $k$'s own
 quantities. \textbf{This additive form is not a valid worst-case bound}: a concrete
-counter-example (a fixed bias of $10$ against a gap of $5$ and noise variance $0.01$) %NUMBER-OK: hand-chosen illustrative constants, also in tests/test_bound.py::test_worst_case_form_corrects_a_real_violation_of_the_additive_form -- not a reported result
+counter-example (a fixed bias of $10$ against a gap of $5$ and noise variance $0.01$) %NUMBER-OK: hand-chosen illustrative constants, also in tests/test_bound.py::test_plug_in_and_worst_case_forms_both_reject_the_additive_counterexample -- not a reported result
 gives a true error probability of essentially $1$ against a claimed bound of $0.88$, %NUMBER-OK: same hand-chosen counter-example, computed value not a reported result
 a genuine violation, confirmed both by hand and by
 \texttt{tests/theory/test\_theorem1.py}'s 5000-instance numerical certificate before
@@ -85,28 +117,22 @@ linear in $\theta$), $\hat\theta_k$ is an exact linear function of the noise
 $\{\varepsilon_{k,i}(s)\}$, hence exactly Gaussian (if $\varepsilon$ is Gaussian) or
 exactly sub-Gaussian with the stated parameter (for general sub-Gaussian $\varepsilon$,
 via sub-Gaussian linearity) -- no approximation is involved, and
-Step~\ref{sec:theorem1-step2}'s delta method is exact rather than a linearization. For
-a \emph{nonlinear} $g$, $\hat\theta_k$ is an M-estimator minimizing a (noisy,
-misspecified) sum of squares; under Assumption~\ref{asn:family}'s smoothness plus a
-local strong-convexity condition on the population objective
-$\theta \mapsto \mathbb{E}_{s \sim \pi}[(g(\theta, s) - \mu_k(s))^2]$ near
-$\theta_k^{\dagger}$ (i.e. a non-degenerate Hessian there -- without this, the fit is
-not even locally identifiable, and Theorem~\ref{thm:identifiability} is precisely about
-when it holds), standard M-estimator theory
-\needshuman{Concentration of $\hat\theta_k$ around $\theta_k^\dagger$ for a general
-nonlinear, misspecified $g$ is asymptotically standard (van der Vaart, 1998, Ch.~5:
-consistency and asymptotic normality of $Z$-/$M$-estimators), but making the
-\emph{non-asymptotic} sub-Gaussian concentration radius fully explicit -- with
-constants tied to the local Hessian's condition number and $g$'s Lipschitz constants,
-valid at finite $C$ rather than only as $C \to \infty$ -- for an arbitrary member of
-Assumption~\ref{asn:family}'s family is genuine technical work, not a citation lookup.
-The six concrete fitters in \texttt{src/pdt/scaling/fitters.py} are well-behaved in
-practice (P1-07 cross-checked the delta-method variance against bootstrap variance and
-found close agreement), which is evidence the condition holds for them at the sample
-sizes DataDecide provides, but is not a substitute for the explicit non-asymptotic
-statement.} gives $\hat\theta_k - \theta_k^{\dagger}$ sub-Gaussian with covariance
-(governed by) $\Sigma_{\theta_k}(C)$, the sandwich covariance of
-Section~\ref{sec:theorem1-step2}.
+Step~\ref{sec:theorem1-step2}'s delta method is exact rather than a linearization. This
+is the whole of Theorem~\ref{thm:main-bound}(i)'s proof of concentration.
+
+For a \emph{nonlinear} $g$ this step is \textbf{not proved}. $\hat\theta_k$ is an
+M-estimator minimizing a (noisy, misspecified) sum of squares; consistency and
+asymptotic normality as $C \to \infty$ are standard under smoothness and a non-degenerate
+Hessian of the population objective near $\theta_k^{\dagger}$ (van der Vaart, 1998,
+Ch.~5), but an asymptotic normal limit gives neither a non-asymptotic sub-Gaussian tail
+nor a finite-$C$ bound on the centring error $\rho_k(C)$ (Taylor remainder plus
+finite-sample estimator bias), and smoothness with a bounded Jacobian does not supply
+them. Theorem~\ref{thm:main-bound}(ii) therefore takes exactly that concentration
+statement as hypothesis (H) rather than deriving it.
+\needshuman{Making (H) a theorem for a concrete nonlinear family means deriving explicit
+non-asymptotic constants (local Hessian condition number, Lipschitz constants,
+$\rho_k(C)$, $\bar v_k(C)$) valid at finite $C$. That is genuine technical work, not a
+citation lookup, and is deliberately not attempted here.}
 
 \paragraph{Step 2 -- delta-method propagation to $s^\star$.}
 \label{sec:theorem1-step2}
@@ -135,7 +161,8 @@ drawn at each point in its support.
 \label{sec:theorem1-step3}
 Write $Z_k = \hat\mu_k(s^\star) - \mu_k(s^\star)$, so $Z_k$ has (population) mean
 $\mathrm{bias}_k := g(\theta_k^\dagger, s^\star) - \mu_k(s^\star)$, with
-$\mathrm{bias}_k^2 = \sigma^2_{\mathrm{extrap}, k}$, and is (by Steps 1--2)
+$\mathrm{bias}_k^2 = \sigma^2_{\mathrm{extrap}, k}$, and is (by Steps 1--2 in case~(i); by hypothesis (H) in case~(ii), where
+$\mathrm{bias}_k$ is shifted by at most $\rho_k$ and $v_k$ replaced by $\bar v_k$)
 sub-Gaussian around $\mathrm{bias}_k$ with parameter $v_k(C)$. The event
 $\{\hat{k} \ne k^\star\}$ is contained in $\bigcup_{k \ne k^\star}
 \{\hat\mu_k(s^\star) \ge \hat\mu_{k^\star}(s^\star)\}
@@ -166,8 +193,8 @@ $\mathbb{P}[\hat{k}\ne k^\star] = \mathbb{P}\big[\bigcup_{k\ne k^\star}\{\cdot\}
 \le \sum_{k \ne k^\star} \mathbb{P}[\cdot]$ by subadditivity -- mechanical, no
 independence or further structure required. $\blacksquare$
 
-\subsection{Corollary 1 -- consistency as \texorpdfstring{$C \to \infty$}{C to infinity}
-iff the pairwise-ordering condition holds}
+\subsection{Corollary 1 -- consistency as \texorpdfstring{$C \to \infty$}{C to infinity}:
+a strict pairwise-ordering condition is sufficient}
 \label{sec:corollary1}
 
 \begin{definition}[Pairwise difference statistic and its population bias]
@@ -179,11 +206,22 @@ g(\theta_k^\dagger, s^\star)$, and $\mathrm{bias}(D_k) = D_k^\dagger - \Delta_k$
 
 \begin{corollary}[Asymptotic consistency: a pairwise, not per-arm, condition]
 \label{cor:pairwise}
-As $C \to \infty$ (fixed design shape), $\hat{k} \to k^\star$ (selection is eventually
-always correct) if and only if, for every $k \ne k^\star$:
-\[
-  \Delta_k + \mathrm{bias}(D_k) > 0.
-\]
+Assume Theorem~\ref{thm:main-bound}(i) (or (ii) with $\rho_k \to 0$ and
+$\bar v_k \to 0$), and fix the design shape as $C \to \infty$. Then:
+\begin{enumerate}
+  \item[(a)] \emph{Sufficient.} If $D_k^\dagger = \Delta_k + \mathrm{bias}(D_k) > 0$ for
+    every $k \ne k^\star$, then $\mathbb{P}[\hat{k} = k^\star] \to 1$ (consistency in
+    probability).
+  \item[(b)] \emph{Failure.} If $D_k^\dagger < 0$ for some $k \ne k^\star$, then
+    $\mathbb{P}[\hat{k} = k^\star] \to 0$ for that pair's comparison: selection converges
+    to a wrong arm.
+  \item[(c)] \emph{Boundary.} If $D_k^\dagger = 0$ for some $k$ (a limiting tie), neither
+    conclusion follows from this argument: whether $\hat{k} = k^\star$ depends on the
+    $O(\sqrt{v})$ fluctuations and on the tie-breaking rule, or, for a deterministic
+    limiting tie, on how the tie is resolved. A tie resolved in favour of the true
+    winner is consistent without a strictly positive gap, so strict positivity is
+    \emph{not} necessary; it is only what this argument can guarantee.
+\end{enumerate}
 In particular, consistency does \emph{not} require $\sigma^2_{\mathrm{extrap}, k} = 0$
 for every $k$: two arms whose individual biases are both nonzero but (nearly) equal at
 $s^\star$ have $\mathrm{bias}(D_k) \approx 0$ even though neither
@@ -196,10 +234,15 @@ cancel in $D_k$ in exactly the cases this corollary identifies as consistency-pr
 \end{corollary}
 
 \begin{proof}
-As $C \to \infty$, $v_k(C), v_{k^\star}(C) \to 0$ (Step 2), so $D_k \to D_k^\dagger$
-a.s. $\hat{k} = k^\star$ for all $k \ne k^\star$ iff $D_k > 0$ for all $k \ne k^\star$,
-which in the limit holds iff $D_k^\dagger > 0$, i.e. $\Delta_k + \mathrm{bias}(D_k) > 0$
-(Definition~\ref{def:pairwise-d}). Mechanical.
+Convergence is in \emph{probability}, not almost surely: $v_k(C) \to 0$ alone does not
+give almost-sure convergence, which would additionally need summable tail probabilities
+along the sequence of designs. By the sub-Gaussian tail underlying
+Theorem~\ref{thm:main-bound}, $\mathbb{P}[|D_k - D_k^\dagger| > \epsilon] \le
+2\exp(-\epsilon^2 / (2(v_k + v_{k^\star})))$ (exactly in case~(i)), which tends to $0$
+for every fixed $\epsilon > 0$ as $v \to 0$. Under~(a), taking $\epsilon = \min_k
+D_k^\dagger / 2$ gives $\mathbb{P}[D_k > 0 \ \forall k] \to 1$, i.e.\ $\hat{k} = k^\star$
+with probability tending to $1$. Under~(b), taking $\epsilon = |D_k^\dagger|/2$ gives
+$\mathbb{P}[D_k < 0] \to 1$ for that pair. Case~(c) is not resolved by the argument.
 \end{proof}
 
 \subsection{Corollary 2 -- single-scale as a degenerate case}
@@ -244,7 +287,10 @@ Theorem~\ref{thm:main-bound}'s bound (the corrected, gap-reduction form). Every
 population quantity ($\theta_k^\dagger$, $\sigma^2_{\mathrm{extrap},k}$, $v_k$) is
 computed in exact closed form (ordinary least squares on a linear-in-$\theta$ family),
 so this certificate isolates Steps~\ref{sec:theorem1-step2}--\ref{sec:theorem1-step4}
-of the proof from Step~\ref{sec:theorem1-step1}'s nonlinear-$g$ caveat.
+of the proof from Step~\ref{sec:theorem1-step1}'s nonlinear-$g$ caveat. It is a check of
+Theorem~\ref{thm:main-bound}(i) only, in a linear Gaussian setting; it is \emph{not}
+evidence for the conditional nonlinear statement~(ii), whose hypothesis (H) it never
+exercises.
 
 \textbf{Result: 0 violations across all 5000 instances.} Of these, 1801 instances had a
 theoretical bound large enough ($\ge 10^{-3}$) for 20000 Monte-Carlo trials to say
