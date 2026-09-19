@@ -75,8 +75,8 @@ names which task introduced it.
 
 | Symbol | Meaning | Code identifier |
 |---|---|---|
-| marginal bound term | `exp(-Delta_k^2 / (2*(sigma2_extrap_k + v_k)))` | `pdt.theory.bound.marginal_bound_term()` |
-| pairwise bound term | `exp(-Delta_k^2 / (2*(bias(D_k)^2 + v(D_k))))` | `pdt.theory.bound.pairwise_bound_term()` |
+| marginal bound term | `exp(-max(0, abs(Delta_k) - sqrt(sigma2_extrap_k))^2 / (2*v_k))` (gap-reduction form; the earlier additive `exp(-Delta_k^2 / (2*(sigma2_extrap_k + v_k)))` is invalid, PR #17) | `pdt.theory.bound.marginal_bound_term()` |
+| pairwise bound term | `exp(-max(0, abs(Delta_k) - abs(bias(D_k)))^2 / (2*v(D_k)))` | `pdt.theory.bound.pairwise_bound_term()` |
 | union bound | `sum over k != k*` of either term | `pdt.theory.bound.marginal_bound()` / `.pairwise_bound()` |
 
 Symbols introduced by Theorems 2-4 (P2-03 through P2-05) will be appended here as
