@@ -3162,3 +3162,18 @@ is a delta-level statement under A1-A4, not an unconditional guarantee for the a
 `paper/sections/theorem4_algorithm.tex` (PR #26) is being brought into line with this scope.
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-19 — P3-05 replay regenerated on the corrected wrappers and the known-noise ETS (PR #31)
+
+`results/p3_05_replay.json` regenerated on a clean tree (`git_dirty: false`) with the guarded baseline
+oracle, complete seed remapping, the explicit pool-exhausted outcome (no recycling of already-observed values),
+and the known-`sigma2` ETS rule (`sigma2 = 1e-4` here is an *approximation* of the real seed noise, which is not known
+exactly -- so this real-data run does not satisfy A1 of the certification assumptions and is an empirical replay,
+not a check of a guarantee). Pilot of 4 tasks (2 reversal-heavy, 2 stable), `delta = .1`, `eta = .02`, one ETS run per task.
+**ETS certified on none of the 4 tasks**: 2 (winogrande, arc_easy) exhausted DataDecide's finite replicate pool
+and are reported as `pool_exhausted` (previously counted as rounds), 2 (boolq, mmlu) hit the round cap; genuine
+bias-floor abstention rate 0.0 in both groups. Round-cap rate fell from 1.0 to 0.5 in each group and pool-exhausted rose from
+n/a to 0.5; baseline single-scale accuracies moved slightly (e.g. winogrande 0.20 -> 0.15) because the baseline
+oracle is now guarded and remapped. No previously reported certification survives, so no invalid certification is presented as evidence.
+
+**Decided by:** Agent, following the review.

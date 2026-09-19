@@ -62,6 +62,7 @@ from collections import Counter  # noqa: E402
 import numpy as np  # noqa: E402
 
 from pdt import provenance  # noqa: E402
+from pdt.analysis.intervals import clopper_pearson  # noqa: E402
 from pdt.bai.ets import (  # noqa: E402
     extrapolation_track_and_stop,
     fixed_ladder_extrapolation,
@@ -377,6 +378,14 @@ def _run_one_cell(
             1.0 - ets_correct_given_certified / n_certified if n_certified > 0 else None
         ),
         "ets_error_rate_overall": (n_certified - ets_correct_given_certified) / n_runs,
+        # The delta-correctness guarantee bounds the JOINT rate P[certified AND wrong],
+        # i.e. `ets_error_rate_overall`; an exact 95% interval on it is what a
+        # violation must be judged against (the conditional rate above can rest on
+        # one certified run).
+        "ets_n_wrong_certified": n_certified - ets_correct_given_certified,
+        "ets_joint_error_ci95": list(
+            clopper_pearson(n_certified - ets_correct_given_certified, n_runs)
+        ),
         "ets_mean_compute_given_certified": (
             float(np.mean(ets_compute_certified)) if ets_compute_certified else None
         ),
@@ -427,11 +436,10 @@ def main() -> None:
 
     # --- Claim checks -------------------------------------------------
     well_specified_cells = [r for r in results if r["gap_structure"] != "reversing"]
+    # A violation of the JOINT guarantee P[certified AND wrong] <= delta is detected
+    # only when the exact interval's lower end exceeds delta.
     claim1_violations = [
-        r
-        for r in well_specified_cells
-        if r["ets_error_rate_given_certified"] is not None
-        and r["ets_error_rate_given_certified"] > r["delta"]
+        r for r in well_specified_cells if r["ets_joint_error_ci95"][0] > r["delta"]
     ]
     claim1_holds = len(claim1_violations) == 0
 
