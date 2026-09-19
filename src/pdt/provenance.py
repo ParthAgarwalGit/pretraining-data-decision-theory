@@ -136,8 +136,17 @@ class _ProvenanceEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-def write_result(path: str | Path, payload: dict[str, Any], config: dict[str, Any]) -> None:
-    """Write `{"provenance": stamp(config), "data": payload}` as pretty JSON.
+def write_result(
+    path: str | Path,
+    payload: dict[str, Any],
+    config: dict[str, Any],
+    *,
+    indent: int | None = 2,
+) -> None:
+    """Write `{"provenance": stamp(config), "data": payload}` as pretty JSON
+    (`indent=None` for a compact single-line file, for very large
+    machine-generated tables that would otherwise exceed the repository's
+    file-size limit).
 
     Creates parent directories. Refuses to overwrite an existing file unless
     the PDT_OVERWRITE=1 environment variable is set, so a re-run never
@@ -152,7 +161,13 @@ def write_result(path: str | Path, payload: dict[str, Any], config: dict[str, An
     out_path.parent.mkdir(parents=True, exist_ok=True)
     document = {"provenance": stamp(config), "data": payload}
     with out_path.open("w", encoding="utf-8") as f:
-        json.dump(document, f, indent=2, cls=_ProvenanceEncoder)
+        json.dump(
+            document,
+            f,
+            indent=indent,
+            separators=None if indent is not None else (",", ":"),
+            cls=_ProvenanceEncoder,
+        )
         f.write("\n")
 
 

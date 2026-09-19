@@ -18,6 +18,35 @@ import math
 from pdt.analysis.ground_truth import AMBIGUOUS_EFFECT_SIZE_THRESHOLD
 
 
+def welch_satterthwaite_df(sigma2_a: float, sigma2_b: float, n_seeds: int) -> float | None:
+    """Satterthwaite-approximated degrees of freedom for the Welch
+    two-sample comparison `pair_effect_size` computes the numerator/
+    denominator of -- **needed because `effect_size` is a *t*-like
+    statistic (both variances are estimated from only `n_seeds=3`
+    observations each), not a known-variance z-statistic**, a real
+    calibration bug found by external review: an earlier version of
+    `experiments/p1_09_rank_reversals.py` compared this statistic
+    against a standard-normal quantile regardless. For equal `sigma2_a
+    == sigma2_b` and equal `n_seeds` on both sides this reduces to the
+    classical pooled two-sample df, `2*(n_seeds-1)` (4, at this
+    project's real `n_seeds=3` everywhere) -- but real per-recipe seed
+    variances differ, so the *actual* df per (task, size, pair) cell is
+    computed here rather than assumed. Returns `None` when both
+    variances are zero (degenerate, matching `pair_effect_size`'s own
+    convention) or when `n_seeds <= 1` (undefined).
+    """
+    if n_seeds <= 1:
+        return None
+    if sigma2_a == 0 and sigma2_b == 0:
+        return None
+    var_a, var_b = sigma2_a / n_seeds, sigma2_b / n_seeds
+    numerator = (var_a + var_b) ** 2
+    denominator = (var_a**2 + var_b**2) / (n_seeds - 1)
+    if denominator == 0:
+        return None
+    return numerator / denominator
+
+
 def pair_effect_size(
     mu_a: float, mu_b: float, sigma2_a: float, sigma2_b: float, n_seeds: int
 ) -> float | None:
