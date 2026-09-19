@@ -7,11 +7,13 @@ baselines; the crossing point where baselines become confidently
 wrong"). Writes results/p3_07_baseline_vs_misspecification.json.
 
 **Scope note:** P3-06's own sweep (results/p3_06_eta_sensitivity.json)
-already gives ETS's side of this story cleanly at two points -- eta=0
-(20/20 confident wrong certifications) and eta>=0.25x true bias (never
-falsely certifies, though round-cap-limited on reaching a genuine
-resolution within this session's compute budget, same finding as
-P3-05). F8 additionally needs baselines' own accuracy as the *true*
+gives ETS's side of this story, with independent trials: at eta=0 and
+0.25x true bias one run of 20 certified (wrongly) -- not a statistically
+detectable violation of delta at n=20 -- and at eta>=0.5x true bias nothing
+certified (round-cap-limited within this session's compute budget, the
+same finding as P3-05). An earlier version of that file reported 20/20 wrong
+certifications; that came from 20 copies of one noise realization and is
+withdrawn (see docs/decisions.md). F8 additionally needs baselines' own accuracy as the *true*
 misspecification (bias) magnitude grows, to show the "crossing point"
 -- baselines don't take an eta input at all (they have no notion of a
 bias budget), so what varies for them is the actual bias in the
