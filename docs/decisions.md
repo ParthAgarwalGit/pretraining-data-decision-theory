@@ -1434,3 +1434,23 @@ numerical solver.
 numerically (a grid search over the second scale's position) before being written into
 the theorem as a claimed finding, not assumed from the "spread scales out" intuition
 that motivated looking at this in the first place.
+
+## 2026-09-19 — Theorem 3: rank is sufficient (not necessary) for identifiability; restore the 1/C in the minimax rate (PR #25)
+
+Review findings on `paper/sections/theorem3_identifiability.tex`, both accepted:
+1. **"iff rank(X) = p" was wrong.** Counterexample `g(theta, s) = theta^3` on `[-1, 1]`, `theta_k = 0`:
+   uniquely identifiable from noiseless data, yet `J = 0`, rank `0 < p = 1`. Theorem 3 is now
+   (a) rank `= p` **sufficient** for local identifiability, (b) a **constant-rank** converse
+   (zero set is a `(p-r)`-dimensional submanifold => a continuum of equivalent parameters), and
+   (c) the explicit note that a rank drop at a point alone gives no converse. Two-failure-modes
+   remark reworded to "first-order identifiability fails".
+2. **Missing `1/C`.** `I_k(w)` is per unit compute (`sum w c = 1`), so `J^T I_k(w)^-1 J` is constant
+   in `C`, while risk is that quantity divided by `C` (the proof's own joint KL is proportional to `C`).
+   The minimax display is now `(1/C) J^T I_k(w)^-1 J = v_k(C)`, the proof carries the factor through,
+   the estimator achieving it is stated as *weighted* least squares (`1/sigma^2` weights; unweighted
+   LS has the larger sandwich variance, with equality under homoscedasticity), and the in-family
+   target risk is distinguished from misspecified `mu_k(s*)` risk (which adds
+   `sigma^2_extrap`, not decreasing in `C`). Tests: 1/C scaling under replication, OLS >= WLS variance,
+   the `theta^3` and constant-rank cases.
+
+**Decided by:** Agent, following the review.
