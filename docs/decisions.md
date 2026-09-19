@@ -1230,3 +1230,17 @@ and `71f659e1a21f980c86f4bf940d7baf33d719985e` (the updated card).
 describing exactly what would be pushed (the 11 already-provenance-validated
 result files plus an updated dataset card) before any Hub-side action was
 taken.
+
+## 2026-09-19 — Setup: the bootstrap "debiasing" of sigma2_extrap was mis-described (PR #22)
+
+Second-source review of `paper/sections/setup.tex` (Remark `rem:sigma2-extrap-estimator`): the
+text said `- v_hat/B - sigma2_target` debiases `bias_hat^2`. It removes only Monte Carlo noise of
+the bootstrap mean (which vanishes as `B -> infinity`) and the ground-truth noise, but not the
+sampling variance of the *original* fit, which the bootstrap mean converges to and which
+survives every `B` (unbiased sample mean, exact target: `E[bias_hat^2] -> sigma^2/n`, not 0).
+The remark now separates the three noise sources, gives the `n/(n-1)`-corrected estimator now
+implemented in P1-06 (#16), and labels the clipped `sigma2_extrap_hat` a heuristic and the
+unclipped value the approximately-unbiased squared-bias estimate (exact for a sample mean,
+first-order for smooth fits). `docs/notation.md` updated to match.
+
+**Decided by:** Agent, following the review.
