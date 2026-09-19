@@ -183,6 +183,22 @@ def _checkpoint_jitter(long_frame: pl.DataFrame) -> dict[tuple[str, str, str], f
     }
 
 
+def _pairwise_difference_series(
+    k_star_predictions: list[tuple[int, float]], k_other_predictions: list[tuple[int, float]]
+) -> list[float]:
+    """D_k^(b) = pred_k_star^(b) - pred_k_other^(b) for every replicate id
+    `b` that succeeded for BOTH recipes. Intersects by replicate id rather
+    than zipping by list position: `standard` and `deduped` can fail on
+    different replicates, and zipping by position would then subtract
+    predictions from two different replicates as if they were the same
+    one -- the same bootstrap-ID-alignment defect PR #16's review caught
+    in `p1_06_decomposition.py`'s pairwise decomposition."""
+    k_star_by_id = dict(k_star_predictions)
+    k_other_by_id = dict(k_other_predictions)
+    common_ids = sorted(set(k_star_by_id) & set(k_other_by_id))
+    return [k_star_by_id[i] - k_other_by_id[i] for i in common_ids]
+
+
 def _final_values(long_frame: pl.DataFrame) -> dict[tuple[str, str, str], float]:
     finals = long_frame.filter(pl.col("is_final"))
     return {
@@ -217,17 +233,32 @@ def main() -> None:
             by_fitter: dict[str, dict] = {}
             for fitter_name in design["fitters"]:
                 fitter_cls = _FITTER_CLASSES[fitter_name]
-                replicate_predictions: dict[str, list[float]] = {r: [] for r in _RECIPES}
+                # (replicate id, prediction) pairs, not bare predictions --
+                # the pairwise decomposition below needs to intersect by
+                # replicate id, since standard/deduped can fail on
+                # different replicates.
+                replicate_predictions: dict[str, list[tuple[int, float]]] = {
+                    r: [] for r in _RECIPES
+                }
 
                 for b in range(_B_REPLICATES):
-                    replicate_seed = _seed_for(design_name, task, str(b))
-                    replicate_rng = np.random.default_rng(replicate_seed)
-                    shared_zs = [bs.draw_parametric_noise_z(replicate_rng) for _ in sizes]
-
+                    # Independent per-recipe noise draws, NOT one shared z
+                    # reused across standard/deduped: reusing a single z
+                    # forces an unjustified exact +1 correlation between
+                    # the two recipes' bootstrap noise (the same defect
+                    # PR #16's review caught in p1_06_decomposition.py --
+                    # see docs/decisions.md). Pythia's single-seed data
+                    # gives no measured cross-recipe covariance to justify
+                    # anything else, so independent draws are the honest
+                    # default.
                     for recipe in _RECIPES:
+                        recipe_seed = _seed_for(design_name, task, recipe, "noise", str(b))
+                        recipe_rng = np.random.default_rng(recipe_seed)
+                        recipe_zs = [bs.draw_parametric_noise_z(recipe_rng) for _ in sizes]
+
                         scales = []
                         values = []
-                        for size, z in zip(sizes, shared_zs, strict=True):
+                        for size, z in zip(sizes, recipe_zs, strict=True):
                             mu = final_values.get((recipe, size, task))
                             sigma2 = jitter.get((recipe, size, task), 0.0)
                             if mu is None:
@@ -248,11 +279,11 @@ def main() -> None:
                             pred = model.predict(Scale(n=target_n, d=20 * target_n))
                         except FitFailure:
                             continue
-                        replicate_predictions[recipe].append(pred)
+                        replicate_predictions[recipe].append((b, pred))
 
                 marginal = {}
                 for recipe in _RECIPES:
-                    preds = replicate_predictions[recipe]
+                    preds = [p for _, p in replicate_predictions[recipe]]
                     if len(preds) < _MIN_SUCCESSFUL_REPLICATES:
                         marginal[recipe] = {"insufficient_replicates": True}
                         continue
@@ -261,14 +292,10 @@ def main() -> None:
                     )
                     marginal[recipe]["insufficient_replicates"] = False
 
-                n_common = min(
-                    len(replicate_predictions[k_star]), len(replicate_predictions[k_other])
+                d_k = _pairwise_difference_series(
+                    replicate_predictions[k_star], replicate_predictions[k_other]
                 )
-                if n_common >= _MIN_SUCCESSFUL_REPLICATES:
-                    d_k = [
-                        replicate_predictions[k_star][i] - replicate_predictions[k_other][i]
-                        for i in range(n_common)
-                    ]
+                if len(d_k) >= _MIN_SUCCESSFUL_REPLICATES:
                     pairwise = bs.bias_variance_decomposition(d_k, true_gap, 0.0)
                     pairwise["insufficient_replicates"] = False
                 else:

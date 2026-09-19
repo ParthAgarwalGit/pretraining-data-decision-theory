@@ -57,7 +57,7 @@ names which task introduced it.
 | `H`, `eta` | the perturbation class and its bound | not yet estimated in code; P2-06 measures empirical `h_k(s)` residuals against DataDecide to check whether an assumed `H` actually contains them | P2-01 / P2-06 |
 | `theta_k^dagger(S_fit)` | population-level in-family projection | the *infinite-replicate limit* of `Extrapolator._theta` for a given design; never computed directly (only its noisy estimate is) | P2-01 |
 | `sigma^2_extrap,k(S_fit)` | extrapolation bias at `s*`, population level | the quantity `bias_variance_decomposition()`'s `sigma2_extrap_hat` estimates | P2-01 |
-| `sigma2_extrap_hat` | the empirical estimator of the above | `pdt.analysis.bootstrap.bias_variance_decomposition()`'s return field; `max(0, bias_hat**2 - v_hat/B - sigma2_target)` | P2-01, estimator built in P1-06 |
+| `sigma2_extrap_hat` | the empirical estimator of the above | `pdt.analysis.bootstrap.bias_variance_decomposition()`'s return field; `max(0, sigma2_extrap_unclipped)`, `sigma2_extrap_unclipped = bias_hat**2 - variance_inflation*v_hat - v_hat/B - sigma2_target`, `variance_inflation = n/(n-1)` (3/2 for 3 seeds; 1 for a parametric bootstrap). The clipped field is a nonnegative heuristic (upward-biased for small bias); the unclipped field is the approximately-unbiased squared-bias estimate (setup.tex Remark `rem:sigma2-extrap-estimator`) | P2-01, estimator built in P1-06 |
 | `v_k(C)` | estimation variance of `mu_hat_k(s*)` | bootstrap: `bias_variance_decomposition()`'s `v_hat` field. Analytic (delta-method): `pdt.theory.bound.analytic_v_k()`, `= J_target^T Sigma_theta J_target` | P2-01 / P2-02, both built in P1-06/P1-07 |
 | `Sigma_theta` | sandwich covariance of the fitted `theta` | `pdt.theory.bound.sandwich_covariance()` | P1-07, reused by P2-02 |
 | `D_k` | pairwise difference statistic `mu_hat_{k*}(s*) - mu_hat_k(s*)` | the per-replicate difference series bootstrapped in P1-06 step 4; `bias(D_k)`, `v(D_k)` are `bias_variance_decomposition()` called on that series | P1-06, used in P2-02's Corollary 1 |
@@ -75,8 +75,8 @@ names which task introduced it.
 
 | Symbol | Meaning | Code identifier |
 |---|---|---|
-| marginal bound term | `exp(-Delta_k^2 / (2*(sigma2_extrap_k + v_k)))` | `pdt.theory.bound.marginal_bound_term()` |
-| pairwise bound term | `exp(-Delta_k^2 / (2*(bias(D_k)^2 + v(D_k))))` | `pdt.theory.bound.pairwise_bound_term()` |
+| marginal bound term | `exp(-max(0, abs(Delta_k) - sqrt(sigma2_extrap_k))^2 / (2*v_k))` (gap-reduction form; the earlier additive `exp(-Delta_k^2 / (2*(sigma2_extrap_k + v_k)))` is invalid, PR #17) | `pdt.theory.bound.marginal_bound_term()` |
+| pairwise bound term | `exp(-max(0, abs(Delta_k) - abs(bias(D_k)))^2 / (2*v(D_k)))` | `pdt.theory.bound.pairwise_bound_term()` |
 | union bound | `sum over k != k*` of either term | `pdt.theory.bound.marginal_bound()` / `.pairwise_bound()` |
 
 Symbols introduced by Theorems 2-4 (P2-03 through P2-05) will be appended here as

@@ -105,3 +105,47 @@ def test_pairwise_difference_series_handles_asymmetric_failures():
 def test_pairwise_difference_series_empty_when_no_ids_in_common():
     result = _pairwise_difference_series([(0, 1.0)], [(1, 2.0)])
     assert result == []
+
+
+# ---------------------------------------------------------------------------
+# _variance_inflation() -- n/(n-1) calibration for the seed bootstrap only
+# ---------------------------------------------------------------------------
+
+
+def test_variance_inflation_is_n_over_n_minus_one_for_seed_bootstrap():
+    from experiments.p1_06_decomposition import _variance_inflation
+
+    seed_trajectory = {
+        "recipe-a": [
+            (Scale(n=1e6, d=2e7), [0.1, 0.2, 0.3]),
+            (Scale(n=1e7, d=2e8), [0.2, 0.3, 0.4]),
+        ],
+        "recipe-b": [
+            (Scale(n=1e6, d=2e7), [0.1, 0.2, 0.3]),
+            (Scale(n=1e7, d=2e8), [0.2, 0.3, 0.4]),
+        ],
+    }
+    work = _work_with_avg_trajectory({})
+    work.scheme = "seed_bootstrap"
+    work.seed_trajectory = seed_trajectory
+
+    assert _variance_inflation(work) == pytest.approx(1.5)
+
+
+def test_variance_inflation_is_one_for_parametric_bootstrap():
+    from experiments.p1_06_decomposition import _variance_inflation
+
+    assert _variance_inflation(_work_with_avg_trajectory({})) == 1.0
+
+
+def test_variance_inflation_rejects_inconsistent_seed_counts():
+    from experiments.p1_06_decomposition import _variance_inflation
+
+    work = _work_with_avg_trajectory({})
+    work.scheme = "seed_bootstrap"
+    work.seed_trajectory = {
+        "recipe-a": [(Scale(n=1e6, d=2e7), [0.1, 0.2, 0.3])],
+        "recipe-b": [(Scale(n=1e6, d=2e7), [0.1, 0.2])],
+    }
+    with pytest.raises(ValueError, match="one common n"):
+        _variance_inflation(work)
