@@ -11,6 +11,69 @@ def _weights_or_ones(values: list[float], weights: list[float] | None) -> np.nda
     return np.ones(len(values)) if weights is None else np.asarray(weights, dtype=float)
 
 
+_N_PROFILE_KEEP = 3
+
+
+def _power_law_starts(
+    x: np.ndarray,
+    ys: np.ndarray,
+    w: np.ndarray,
+    bounds: tuple[np.ndarray, np.ndarray],
+    n_grid: int = 48,
+) -> tuple[np.ndarray, ...]:
+    """Informative starts for `y = E + A * x^-alpha` by variable
+    projection: for each candidate `alpha` on a dense log grid over its own
+    bounds, the linear parameters `(E, A)` are solved *exactly* by
+    weighted least squares (then clipped to their bounds), and the
+    `_N_PROFILE_KEEP` lowest-cost grid points are returned as starting
+    points `[E, A, alpha]`. Every start already fits the data as well as
+    its exponent allows, so a start can no longer be uninformative by bad
+    luck -- the failure mode second-round external review reproduced on
+    `PowerLawC` (all random starts landing in a flat region and agreeing
+    with each other). See `multi_start_fit`'s docstring."""
+    lo, hi = bounds
+    scored = []
+    for alpha in np.geomspace(lo[2], hi[2], n_grid):
+        z = x ** (-alpha)
+        design = np.column_stack([np.ones_like(z), z]) * w[:, None]
+        coef, *_ = np.linalg.lstsq(design, w * ys, rcond=None)
+        e = float(np.clip(coef[0], lo[0], hi[0]))
+        a = float(np.clip(coef[1], lo[1], hi[1]))
+        cost = 0.5 * float(np.sum((w * (e + a * z - ys)) ** 2))
+        scored.append((cost, np.array([e, a, alpha])))
+    scored.sort(key=lambda t: t[0])
+    return tuple(theta for _, theta in scored[:_N_PROFILE_KEEP])
+
+
+def _chinchilla_starts(
+    ns: np.ndarray,
+    ds: np.ndarray,
+    ys: np.ndarray,
+    w: np.ndarray,
+    bounds: tuple[np.ndarray, np.ndarray],
+    n_grid: int = 10,
+) -> tuple[np.ndarray, ...]:
+    """Variable-projection starts for `E - A*N^-alpha - B*D^-beta`: a
+    `(alpha, beta)` log grid, with `(E, A, B)` solved exactly per grid
+    point and clipped to bounds (`A, B >= 0`). Same rationale as
+    `_power_law_starts`."""
+    lo, hi = bounds
+    scored = []
+    for alpha in np.geomspace(lo[2], hi[2], n_grid):
+        zn = ns ** (-alpha)
+        for beta in np.geomspace(lo[4], hi[4], n_grid):
+            zd = ds ** (-beta)
+            design = np.column_stack([np.ones_like(zn), -zn, -zd]) * w[:, None]
+            coef, *_ = np.linalg.lstsq(design, w * ys, rcond=None)
+            e = float(np.clip(coef[0], lo[0], hi[0]))
+            a = float(np.clip(coef[1], lo[1], hi[1]))
+            b = float(np.clip(coef[2], lo[3], hi[3]))
+            cost = 0.5 * float(np.sum((w * (e - a * zn - b * zd - ys)) ** 2))
+            scored.append((cost, np.array([e, a, alpha, b, beta])))
+    scored.sort(key=lambda t: t[0])
+    return tuple(theta for _, theta in scored[:_N_PROFILE_KEEP])
+
+
 class ConstantExtrapolator(Extrapolator):
     """Predicts the value at the largest fitted scale -- the single-scale
     baseline expressed as an extrapolator. Conceptually important (state
@@ -24,8 +87,21 @@ class ConstantExtrapolator(Extrapolator):
     n_params = 1
 
     def _fit_theta(self, scales, values, weights):
-        idx = max(range(len(scales)), key=lambda i: scales[i].n)
-        theta = np.array([values[idx]])
+        # Average every observation *at* the largest scale, not just the
+        # first one in the input order -- a real bug found by external
+        # review: the interface accepts repeated scales (a replicate
+        # history, e.g. several seeds at the same size), and callers
+        # throughout this project pass exactly that. Taking `values[idx]`
+        # for whichever row happens to be first at the max scale made the
+        # prediction depend on input order (reproduced: scales
+        # [(1,1),(2,1),(2,1)], y=[0,0.1,0.9] predicted 0.1, not the mean
+        # 0.5, and reordering the last two rows changed the answer) --
+        # see docs/decisions.md.
+        n_max = max(s.n for s in scales)
+        w = _weights_or_ones(values, weights)
+        largest_values = [v for s, v in zip(scales, values, strict=True) if s.n == n_max]
+        largest_weights = [wi for s, wi in zip(scales, w, strict=True) if s.n == n_max]
+        theta = np.array([float(np.average(largest_values, weights=largest_weights))])
         diagnostics = {
             "n_restarts": 1,
             "n_converged": 1,
@@ -54,7 +130,15 @@ class PowerLawN(Extrapolator):
             e, a, alpha = theta
             return w * ((e + a * ns ** (-alpha)) - ys)
 
-        return multi_start_fit(residual, self.n_params, self._bounds, self._rng)
+        return multi_start_fit(
+            residual,
+            self.n_params,
+            self._bounds,
+            self._rng,
+            n_restarts=5,
+            log_uniform_dims=(2,),
+            extra_starts=_power_law_starts(ns, ys, w, self._bounds),
+        )
 
     def _predict_from_theta(self, theta, scale):
         e, a, alpha = theta
@@ -77,7 +161,15 @@ class PowerLawC(Extrapolator):
             e, a, alpha = theta
             return w * ((e + a * cs ** (-alpha)) - ys)
 
-        return multi_start_fit(residual, self.n_params, self._bounds, self._rng)
+        return multi_start_fit(
+            residual,
+            self.n_params,
+            self._bounds,
+            self._rng,
+            n_restarts=5,
+            log_uniform_dims=(2,),
+            extra_starts=_power_law_starts(cs, ys, w, self._bounds),
+        )
 
     def _predict_from_theta(self, theta, scale):
         e, a, alpha = theta
@@ -114,7 +206,15 @@ class ChinchillaND(Extrapolator):
             pred = e - a * ns ** (-alpha) - b * ds ** (-beta)
             return w * (pred - ys)
 
-        return multi_start_fit(residual, self.n_params, self._bounds, self._rng)
+        return multi_start_fit(
+            residual,
+            self.n_params,
+            self._bounds,
+            self._rng,
+            n_restarts=5,
+            log_uniform_dims=(2, 4),
+            extra_starts=_chinchilla_starts(ns, ds, ys, w, self._bounds),
+        )
 
     def _predict_from_theta(self, theta, scale):
         e, a, alpha, b, beta = theta
@@ -185,7 +285,15 @@ class TwoStepLadder(Extrapolator):
             e1, a1, alpha1 = theta
             return w * ((e1 + a1 * cs ** (-alpha1)) - ys)
 
-        step1_theta, step1_diag = multi_start_fit(step1_residual, 3, self._step1_bounds, self._rng)
+        step1_theta, step1_diag = multi_start_fit(
+            step1_residual,
+            3,
+            self._step1_bounds,
+            self._rng,
+            n_restarts=5,
+            log_uniform_dims=(2,),
+            extra_starts=_power_law_starts(cs, ys, w, self._step1_bounds),
+        )
         e1, a1, alpha1 = step1_theta
         proxy = e1 + a1 * cs ** (-alpha1)
 

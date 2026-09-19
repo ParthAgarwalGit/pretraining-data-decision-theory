@@ -103,18 +103,62 @@ def multi_start_fit(
     rng: np.random.Generator,
     *,
     n_restarts: int = 8,
+    log_uniform_dims: tuple[int, ...] = (),
+    extra_starts: tuple[np.ndarray, ...] = (),
 ) -> tuple[np.ndarray, dict]:
     """Bounded nonlinear least squares from `n_restarts` random starting
     points, keeping the lowest-cost converged result. Scaling-law fits are
     notoriously multi-modal -- a single-start fit is a bug, per the plan.
 
-    Returns (best theta, diagnostics dict with n_restarts/n_converged/
-    best_cost/objective_spread). Raises FitFailure if zero restarts
-    converge -- never silently returns a degenerate or unconverged result.
+    `log_uniform_dims` names parameter indices (decay-rate exponents like
+    `alpha` in `E + A*N^-alpha`) that are drawn log-uniformly over their
+    own `[lower, upper]` bounds instead of linear-uniformly -- **a real
+    bug found by external review, not a stylistic choice**. Plain
+    `rng.uniform` over a wide exponent range like `[1e-3, 10]` spends
+    almost all of its mass on `alpha >~ 1`, where `N^-alpha` and its
+    derivatives underflow to numerically zero for the parameter counts
+    this project fits over (1e6-1e9) -- a flat region with no gradient
+    signal, not a real local optimum. `least_squares` can report
+    `success=True` there anyway (it stops because the step size, not the
+    residual, went to zero), so **every one of the default 8 restarts can
+    land in that flat region and agree with each other**, which passed
+    this function's own `objective_spread`-based multi-start sanity check
+    while still being badly wrong: reproduced directly with
+    `PowerLawN(rng=np.random.default_rng(1))` fit to a noiseless
+    `y = 0.9 - 2*N^-0.1` curve on `N` from 1e6 to 1.5e8 -- all 8 restarts
+    converged to the identical wrong prediction at the target scale
+    (0.504 instead of the true 0.648), `objective_spread` on the order of
+    1e-18 (see `tests/test_scaling.py`,
+    `docs/decisions.md`). Log-uniform sampling concentrates restarts in
+    the small-alpha region where the signal actually lives, without
+    narrowing the bounds a legitimately large true alpha would need.
+
+    **Randomized starts alone are not enough (second external review of
+    the same fix).** Log-uniform sampling only lowers the probability that
+    every start lands in a flat region; it does not remove it. Reproduced
+    on the compute-based `PowerLawC` with a noiseless in-family curve
+    (`y = 0.9 - 2*C^-0.03`, `default_rng(30)` and `default_rng(54)` of 100
+    seeds tried): all 8 restarts converged to the same wrong constant-ish
+    fit (prediction 0.246 vs true 0.400), `objective_spread ~ 1e-11`,
+    indistinguishable from success by any diagnostic here.
+    `extra_starts` takes *deterministic informative starting points* --
+    for the power-law families, `fitters._power_law_starts` builds them by
+    variable projection (for each candidate exponent on a dense log grid,
+    the linear parameters are solved exactly by least squares, so every
+    start already fits the data as well as its exponent allows) -- and they
+    are refined first, in addition to (not instead of) the random
+    restarts. A start is informative by construction, not by luck.
     """
     results = []
+    starts = [np.asarray(x0, dtype=float) for x0 in extra_starts]
     for _ in range(n_restarts):
         x0 = rng.uniform(bounds[0], bounds[1])
+        for dim in log_uniform_dims:
+            x0[dim] = np.exp(rng.uniform(np.log(bounds[0][dim]), np.log(bounds[1][dim])))
+        starts.append(x0)
+    n_starts = len(starts)
+    for x0 in starts:
+        x0 = np.clip(x0, bounds[0], bounds[1])
         try:
             res = least_squares(residual_fn, x0, bounds=bounds, max_nfev=2000)
         except Exception:  # noqa: BLE001 -- a single bad restart must not abort the others
@@ -123,12 +167,12 @@ def multi_start_fit(
             results.append(res)
 
     if not results:
-        raise FitFailure(f"no restart converged out of {n_restarts} attempts")
+        raise FitFailure(f"no restart converged out of {n_starts} attempts")
 
     best = min(results, key=lambda r: r.cost)
     costs = [r.cost for r in results]
     diagnostics = {
-        "n_restarts": n_restarts,
+        "n_restarts": n_starts,
         "n_converged": len(results),
         "best_cost": float(best.cost),
         "objective_spread": float(max(costs) - min(costs)),
