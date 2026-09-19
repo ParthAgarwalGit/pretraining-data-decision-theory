@@ -1,8 +1,8 @@
 {
   "provenance": {
-    "git_sha": "d86ca82850b326820b5d7b5ef42a8637dbd14abb",
+    "git_sha": "6a560d91552f61a4257f7639eb1d51df6530659e",
     "git_dirty": false,
-    "utc_timestamp": "2026-09-11T20:44:26.576548+00:00",
+    "utc_timestamp": "2026-09-19T10:58:17.896491+00:00",
     "python_version": "3.12.10",
     "package_versions": {
       "numpy": "2.5.2",
@@ -45,14 +45,22 @@
         },
         "n_runs": 20,
         "outcomes": {
-          "certified": 20
+          "abstained": 19,
+          "certified": 1
         },
         "error_rate_given_certified": 1.0,
-        "abstention_rate": 0.0,
+        "n_certified": 1,
+        "n_wrong_certified": 1,
+        "joint_wrong_certified_rate": 0.05,
+        "joint_wrong_certified_ci95": [
+          0.0012650894979498038,
+          0.24873276277202777
+        ],
+        "abstention_rate": 0.95,
         "genuine_abstention_rate": 0.0,
-        "round_cap_exhausted_rate": 0.0,
+        "round_cap_exhausted_rate": 0.95,
         "mean_compute_given_certified": 2.112e+17,
-        "mean_compute_overall": 2.112e+17,
+        "mean_compute_overall": 1.142112e+18,
         "multiplier": 0.0,
         "under_estimated": true
       },
@@ -63,14 +71,22 @@
         },
         "n_runs": 20,
         "outcomes": {
-          "abstained": 20
+          "abstained": 19,
+          "certified": 1
         },
-        "error_rate_given_certified": null,
-        "abstention_rate": 1.0,
+        "error_rate_given_certified": 1.0,
+        "n_certified": 1,
+        "n_wrong_certified": 1,
+        "joint_wrong_certified_rate": 0.05,
+        "joint_wrong_certified_ci95": [
+          0.0012650894979498038,
+          0.24873276277202777
+        ],
+        "abstention_rate": 0.95,
         "genuine_abstention_rate": 0.0,
-        "round_cap_exhausted_rate": 1.0,
-        "mean_compute_given_certified": null,
-        "mean_compute_overall": 1.16028e+18,
+        "round_cap_exhausted_rate": 0.95,
+        "mean_compute_given_certified": 2.112e+17,
+        "mean_compute_overall": 1.142064e+18,
         "multiplier": 0.25,
         "under_estimated": true
       },
@@ -84,11 +100,18 @@
           "abstained": 20
         },
         "error_rate_given_certified": null,
+        "n_certified": 0,
+        "n_wrong_certified": 0,
+        "joint_wrong_certified_rate": 0.0,
+        "joint_wrong_certified_ci95": [
+          0.0,
+          0.16843347098308528
+        ],
         "abstention_rate": 1.0,
         "genuine_abstention_rate": 0.0,
         "round_cap_exhausted_rate": 1.0,
         "mean_compute_given_certified": null,
-        "mean_compute_overall": 1.16028e+18,
+        "mean_compute_overall": 1.189566e+18,
         "multiplier": 0.5,
         "under_estimated": true
       },
@@ -102,11 +125,18 @@
           "abstained": 20
         },
         "error_rate_given_certified": null,
+        "n_certified": 0,
+        "n_wrong_certified": 0,
+        "joint_wrong_certified_rate": 0.0,
+        "joint_wrong_certified_ci95": [
+          0.0,
+          0.16843347098308528
+        ],
         "abstention_rate": 1.0,
         "genuine_abstention_rate": 0.0,
         "round_cap_exhausted_rate": 1.0,
         "mean_compute_given_certified": null,
-        "mean_compute_overall": 1.16028e+18,
+        "mean_compute_overall": 1.189566e+18,
         "multiplier": 1.0,
         "under_estimated": false
       },
@@ -120,11 +150,18 @@
           "abstained": 20
         },
         "error_rate_given_certified": null,
+        "n_certified": 0,
+        "n_wrong_certified": 0,
+        "joint_wrong_certified_rate": 0.0,
+        "joint_wrong_certified_ci95": [
+          0.0,
+          0.16843347098308528
+        ],
         "abstention_rate": 1.0,
         "genuine_abstention_rate": 0.0,
         "round_cap_exhausted_rate": 1.0,
         "mean_compute_given_certified": null,
-        "mean_compute_overall": 1.16028e+18,
+        "mean_compute_overall": 1.189518e+18,
         "multiplier": 2.0,
         "under_estimated": false
       },
@@ -138,11 +175,18 @@
           "abstained": 20
         },
         "error_rate_given_certified": null,
+        "n_certified": 0,
+        "n_wrong_certified": 0,
+        "joint_wrong_certified_rate": 0.0,
+        "joint_wrong_certified_ci95": [
+          0.0,
+          0.16843347098308528
+        ],
         "abstention_rate": 1.0,
         "genuine_abstention_rate": 0.0,
         "round_cap_exhausted_rate": 1.0,
         "mean_compute_given_certified": null,
-        "mean_compute_overall": 1.16028e+18,
+        "mean_compute_overall": 1.189566e+18,
         "multiplier": 3.0,
         "under_estimated": false
       }
@@ -150,12 +194,12 @@
     "plugin": {
       "n_runs": 20,
       "eta_hat_mean": {
-        "leader": 0.04207552584962325,
-        "underdog": 0.05093235865890504
+        "leader": 0.0491694918219931,
+        "underdog": 0.049627290546200103
       },
       "eta_hat_std": {
-        "leader": 0.0,
-        "underdog": 1.3877787807814457e-17
+        "leader": 0.00764202458407039,
+        "underdog": 0.0074514000003448695
       },
       "true_bias": {
         "leader": 0.0,
@@ -170,27 +214,9 @@
       "round_cap_exhausted_rate": 1.0,
       "mean_compute_given_certified": null
     },
-    "under_estimation_causes_violations": true,
-    "under_estimation_violations": [
-      {
-        "eta_assumed": {
-          "leader": 0.0,
-          "underdog": 0.0
-        },
-        "n_runs": 20,
-        "outcomes": {
-          "certified": 20
-        },
-        "error_rate_given_certified": 1.0,
-        "abstention_rate": 0.0,
-        "genuine_abstention_rate": 0.0,
-        "round_cap_exhausted_rate": 0.0,
-        "mean_compute_given_certified": 2.112e+17,
-        "mean_compute_overall": 2.112e+17,
-        "multiplier": 0.0,
-        "under_estimated": true
-      }
-    ],
+    "under_estimation_causes_violations": false,
+    "under_estimation_max_joint_wrong_certified_rate": 0.05,
+    "under_estimation_violations": [],
     "well_specified_regime_holds": true,
     "well_specified_regime_violations": []
   }
