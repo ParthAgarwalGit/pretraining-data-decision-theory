@@ -2923,7 +2923,7 @@ criterion with an exact Clopper-Pearson interval. 8 cells (K = 3; delta in {.05,
   (all timeouts). The earlier "claim 1 holds" was a statement about a conditional rate on few certified runs.
 - **Claim 2 (compute ~ T* log(1/delta)):** not supported -- mean compute-to-stop 3.07e18 (delta .05) vs 2.91e18 (delta .2); dominated by the warm-up.
 - **Claim 3 (abstention in the impossible regime):** not observed -- every reversing cell ended at the round cap; bias-floor abstention rate 0.0, timeout rate 1.0 in all four.
-  Baselines were wrong on the reversing instances as before.
+  On the reversing instances SingleScale, FixedLadder and Uniform were wrong in every run (accuracy 0.0); SuccessiveHalving was right in all runs at `eta=none` and wrong at `eta=large` (an instance-construction effect, not a method advantage to lean on).
 - Scope is a pilot (K = 3, 15 runs); nothing here calibrates delta or tests the abstention theorem. A real study needs the plan's grid, more rounds and >= 200 runs per cell.
 
 **Decided by:** Agent, following the review.
