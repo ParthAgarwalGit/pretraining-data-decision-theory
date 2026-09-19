@@ -128,6 +128,14 @@ def _compute_analytic_v_k(
             model = fitter_cls(rng=np.random.default_rng(seed))
             model.fit(scales, values)
             v_k = bound.analytic_v_k(model, scales, values, target_scale)
+        except bound.UnidentifiedTargetError as exc:
+            result[recipe] = {
+                "ok": False,
+                "unsupported_estimator": False,
+                "unidentified_target": True,
+                "error": str(exc),
+            }
+            continue
         except bound.UnsupportedEstimatorError as exc:
             result[recipe] = {"ok": False, "unsupported_estimator": True, "error": str(exc)}
             continue

@@ -281,5 +281,55 @@ def test_analytic_v_k_rejects_two_step_ladder():
         bound.analytic_v_k(model, scales, ys, Scale(n=1e10, d=2e11))
 
 
+def _log_linear_fit(ns, ds):
+    scales = [Scale(n=n, d=d) for n, d in zip(ns, ds, strict=True)]
+    ys = [0.3 + 0.02 * np.log(n) for n in ns]
+    model = fitters.LogLinear(rng=np.random.default_rng(0)).fit(scales, ys)
+    return model, scales, ys
+
+
+@pytest.mark.parametrize("target_n", [1e9, 1e9 * np.exp(0.05), 1e9 * np.exp(1e-3), 1e12])
+def test_analytic_v_k_rejects_target_outside_observed_row_space(target_n):
+    # LogLinear only sees log(N): a design observed at a SINGLE N (varying only
+    # D) has jacobian rows all equal to [1, log N0], so a target at any other N
+    # has a jacobian component the design never observes and its variance is
+    # unbounded. pinv would silently report a small finite value instead
+    # (second-round review of PR #17). The check must fire even when the
+    # missing component is tiny relative to ||J_target|| (target_n =
+    # N0 * exp(0.05) -> 0.25% of the norm, exp(1e-3) -> 0.005%), not only when
+    # the design is grossly wrong.
+    model, scales, ys = _log_linear_fit([1e9] * 4, [1e10, 2e10, 4e10, 8e10])
+    target = Scale(n=target_n, d=1e11)
+    if target_n == 1e9:
+        # Same N: target jacobian IS in the row space, so this must NOT raise.
+        assert bound.analytic_v_k(model, scales, ys, target) >= 0.0
+        return
+    with pytest.raises(bound.UnidentifiedTargetError, match="not identified"):
+        bound.analytic_v_k(model, scales, ys, target)
+
+
+def test_unidentified_target_is_an_unsupported_estimator_error():
+    # Callers that already catch UnsupportedEstimatorError (p1_07) keep working.
+    assert issubclass(bound.UnidentifiedTargetError, bound.UnsupportedEstimatorError)
+
+
+def test_analytic_v_k_accepts_identified_log_linear_design():
+    ns = [1e8, 2e8, 4e8, 8e8]
+    model, scales, ys = _log_linear_fit(ns, [20 * n for n in ns])
+    v = bound.analytic_v_k(model, scales, ys, Scale(n=1e12, d=2e13))
+    assert np.isfinite(v)
+    assert v >= 0.0
+
+
+def test_analytic_v_k_ill_conditioned_but_identified_design_is_not_rejected():
+    # Two nearby Ns: the weighted information is badly conditioned, but the
+    # design IS structurally identified -- a large finite variance is the
+    # honest answer, not a rejection.
+    ns = [1e9, 1e9 * (1 + 1e-4), 1e9 * (1 + 2e-4)]
+    model, scales, ys = _log_linear_fit(ns, [2e10, 2e10, 2e10])
+    v = bound.analytic_v_k(model, scales, ys, Scale(n=1e12, d=2e13))
+    assert np.isfinite(v)
+
+
 def test_unsupported_sandwich_estimators_matches_the_two_flagged_fitters():
     assert bound.UNSUPPORTED_SANDWICH_ESTIMATORS == {"ConstantExtrapolator", "TwoStepLadder"}

@@ -1336,3 +1336,25 @@ of any of the bugs fixed across this whole review pass.
 `results/p1_08_ceiling_prediction.json` and every other downstream
 results file computed from P1-07's output still need regenerating once
 their own branches merge this fix forward.
+
+## 2026-09-19 — P1-07 second-round review: `analytic_v_k` requires the target to be identified (PR #17)
+
+**Problem.** `sandwich_covariance` inverts `J^T J` with `np.linalg.pinv`,
+which treats a parameter direction that no observed scale moves as
+carrying *zero* variance. A `LogLinear` fit observed at one N (varying
+only D) therefore reported a small finite `analytic_v_k` for any target N,
+when the true delta-method variance is unbounded.
+
+**Change.** New `pdt.theory.identifiability.target_in_row_space` tests
+whether the target Jacobian lies in the row space of the fitting-scale
+Jacobians (column-equilibrated SVD, `max(shape) * eps` rank cutoff,
+relative residual `<= 1e-8`). `analytic_v_k` raises
+`UnidentifiedTargetError` (an `UnsupportedEstimatorError`) when it does
+not; `p1_07` records these as `unidentified_target: true` instead of a
+number. The check is on the *unweighted* design support (structural), so
+a badly conditioned but identified design still returns a large finite
+variance rather than being rejected. Regression tests cover targets whose
+missing component is 5% / 0.25% / 0.005% of `||J_target||`, an
+identified design, and an ill-conditioned identified design.
+
+**Decided by:** Agent, following the second-round review.

@@ -33,6 +33,7 @@ import math
 import numpy as np
 
 from pdt.scaling.base import Extrapolator, Scale
+from pdt.theory.identifiability import target_in_row_space
 
 #: Fitters whose actual estimation procedure `sandwich_covariance` cannot
 #: describe -- see `analytic_v_k`'s docstring.
@@ -41,6 +42,13 @@ UNSUPPORTED_SANDWICH_ESTIMATORS = frozenset({"ConstantExtrapolator", "TwoStepLad
 
 class UnsupportedEstimatorError(ValueError):
     """Raised by `analytic_v_k` for a fitter in `UNSUPPORTED_SANDWICH_ESTIMATORS`."""
+
+
+class UnidentifiedTargetError(UnsupportedEstimatorError):
+    """Raised by `analytic_v_k` when the target scale's parameter Jacobian is
+    not in the row space of the fitting scales' Jacobians: some direction that
+    moves the target prediction is unobserved, so its variance is infinite,
+    not the finite number a pseudo-inverse would report."""
 
 
 def _bound_term(delta_k: float, bias_magnitude: float, variance: float) -> float:
@@ -172,6 +180,14 @@ def analytic_v_k(
     fabricated-looking analytic `v_k` for either would let it be silently
     "cross-checked" against P1-06's bootstrap estimate as if they measured
     the same thing.
+
+    Also raises `UnidentifiedTargetError` (an `UnsupportedEstimatorError`)
+    when the target Jacobian is not in the row space of the fitting scales'
+    Jacobians (`pdt.theory.identifiability`): `sandwich_covariance` uses a
+    pseudo-inverse, which treats an unobserved direction as *zero* variance,
+    so a `LogLinear` fit observed at a single N (varying only D) would report
+    a small finite `v_k` for any target N -- the opposite of the truth, which
+    is unbounded. Second-round review of PR #17.
     """
     fitter_name = type(model).__name__
     if fitter_name in UNSUPPORTED_SANDWICH_ESTIMATORS:
@@ -181,6 +197,14 @@ def analytic_v_k(
             "UNSUPPORTED_SANDWICH_ESTIMATORS docstring) -- refusing to report a "
             "fabricated analytic v_k rather than silently mismeasuring it."
         )
+    j_target = np.asarray(model.jacobian(target_scale), dtype=float)
+    jacobian_rows = np.array([model.jacobian(s) for s in scales], dtype=float)
+    if not target_in_row_space(jacobian_rows, j_target):
+        raise UnidentifiedTargetError(
+            f"{fitter_name}: the target scale {target_scale} is not identified by the "
+            "fitting scales (its parameter Jacobian is outside their row space), so the "
+            "delta-method variance is unbounded -- refusing to report the pseudo-inverse's "
+            "finite (and wrong) value."
+        )
     sigma_theta = sandwich_covariance(model, scales, values)
-    j_target = model.jacobian(target_scale)
     return float(j_target @ sigma_theta @ j_target)
