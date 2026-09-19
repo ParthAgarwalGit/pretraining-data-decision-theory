@@ -29,7 +29,7 @@ from pdt.bai.ets import (
     _certification_radius,
     _fit_recipe,
     _largest_observed_scale,
-    _welch_satterthwaite_df,
+    _pair_beta,
     extrapolation_track_and_stop,
     fixed_ladder_extrapolation,
     single_scale_recommendation,
@@ -217,56 +217,124 @@ def test_beta_matches_hand_formula():
 
 
 # ---------------------------------------------------------------------------
-# _welch_satterthwaite_df / _certification_radius -- PR #29's review: the
-# certification radius must account for v_hat being ESTIMATED, not known.
+# _pair_beta / _certification_radius -- second-round review of PR #29: a
+# known-variance Chernoff radius with simultaneous round AND ordered-pair
+# control, replacing the invalid HC0-variance + Student-t construction.
 # ---------------------------------------------------------------------------
 
 
-def test_welch_satterthwaite_df_equal_variance_and_df_matches_pooled():
-    # numerator=(1+1)^2=4, denominator=1^2/4+1^2/4=0.5 -> df=8: combining
-    # two independent, equal-variance, equal-df estimates roughly doubles
-    # the effective degrees of freedom, the expected pooled-df behavior.
-    df = _welch_satterthwaite_df(1.0, 4.0, 1.0, 4.0)
-    assert df == pytest.approx(8.0)
+def test_pair_beta_splits_the_round_budget_over_ordered_pairs():
+    assert _pair_beta(1, 0.05, 2) == pytest.approx(_beta(1, 0.05) / 2)
+    assert _pair_beta(3, 0.05, 4) == pytest.approx(_beta(3, 0.05) / 12)
 
 
-def test_welch_satterthwaite_df_none_for_nonpositive_df():
-    assert _welch_satterthwaite_df(1.0, 0.0, 1.0, 4.0) is None
-    assert _welch_satterthwaite_df(1.0, 4.0, 1.0, -1.0) is None
+def test_pair_beta_union_over_rounds_and_ordered_pairs_is_at_most_delta():
+    # sum_t sum_{ordered pairs} beta = delta * sum_t 1/(t(t+1)) = delta * (1 - 1/T)
+    delta, k = 0.05, 5
+    total = sum(_pair_beta(t, delta, k) * k * (k - 1) for t in range(1, 100_001))
+    assert total <= delta
 
 
-def test_welch_satterthwaite_df_none_for_degenerate_zero_variance():
-    assert _welch_satterthwaite_df(0.0, 4.0, 0.0, 4.0) is None
+def test_certification_radius_matches_the_chernoff_formula():
+    v_sum, beta = 0.02, 0.005
+    assert _certification_radius(v_sum, beta) == pytest.approx(
+        float(np.sqrt(2 * v_sum * np.log(1 / beta)))
+    )
 
 
-def test_certification_radius_is_much_larger_than_the_known_variance_formula_at_low_df():
-    # The whole point of the fix: at very low degrees of freedom (the
-    # reviewer's counterexample has df=1 per arm), the t-based radius
-    # must be substantially larger than the original known-variance
-    # Gaussian-tail formula it replaces -- that's what closes the gap
-    # between the requested and actual certification error rate.
-    var_a, var_b, beta_t = 0.01, 0.01, 0.005
-    radius = _certification_radius(var_a, 1.0, var_b, 1.0, beta_t)
-    known_variance_formula = float(np.sqrt(2 * (var_a + var_b) * np.log(1 / beta_t)))
-    assert radius > 2.5 * known_variance_formula
+def test_certification_radius_is_infinite_for_infinite_variance():
+    assert _certification_radius(float("inf"), 0.005) == float("inf")
 
 
-def test_certification_radius_converges_to_known_variance_formula_at_high_df():
-    # As df -> infinity, t.ppf(1-beta, df) -> norm.ppf(1-beta), which is
-    # close to (though not identical to) the original Chernoff-style
-    # sqrt(2*log(1/beta)) bound -- the correction should matter far less
-    # once each arm has plenty of data.
-    var_a, var_b, beta_t = 0.01, 0.01, 0.005
-    radius = _certification_radius(var_a, 1e6, var_b, 1e6, beta_t)
-    known_variance_formula = float(np.sqrt(2 * (var_a + var_b) * np.log(1 / beta_t)))
-    assert radius == pytest.approx(known_variance_formula, rel=0.5)
+# ---------------------------------------------------------------------------
+# The reviewers' counterexamples: first check (max_rounds=1), constant true
+# means so the correct arm is known, 200 independent oracle seeds.
+# ---------------------------------------------------------------------------
 
 
-def test_certification_radius_falls_back_when_df_is_degenerate():
-    var_a, var_b, beta_t = 0.01, 0.01, 0.005
-    radius = _certification_radius(var_a, 0.0, var_b, 4.0, beta_t)
-    expected = float(np.sqrt(2 * (var_a + var_b) * np.log(1 / beta_t)))
-    assert radius == pytest.approx(expected)
+class _ConstantMeanOracle:
+    """Arm means constant in scale (so a LogLinear fit is exactly specified,
+    zero bias), independent N(0, sigma^2) noise, one normal variate per pull
+    from the oracle's own default_rng(seed) -- the reviewer's setup."""
+
+    def __init__(self, means, sigma, seed):
+        self._means = means
+        self._sigma = sigma
+        self._rng = np.random.default_rng(seed)
+
+    def pull(self, recipe, scale, seed):
+        return float(self._means[recipe] + self._rng.normal(0.0, self._sigma))
+
+    def cost(self, scale):
+        return 1.0
+
+    def available_scales(self):
+        return []
+
+
+def _first_check_outcomes(fit_ns, target_n, variance_mode, n_seeds=200):
+    means = {"a": 0.501, "b": 0.5}  # "a" is truly (barely) better
+    scales = [Scale(n=n, d=1.0) for n in fit_ns]
+    outcomes = []
+    for seed in range(n_seeds):
+        res = extrapolation_track_and_stop(
+            _ConstantMeanOracle(means, 0.05, seed),
+            ["a", "b"],
+            scales,
+            Scale(n=target_n, d=1.0),
+            delta=0.01,
+            eta={"a": 0.0, "b": 0.0},
+            sigma2=lambda s: 0.0025,
+            model_factory=LogLinear,
+            cost=lambda s: 1.0,
+            max_rounds=1,
+            solver_n_iter=1,
+            variance_mode=variance_mode,
+        )
+        outcomes.append((res.outcome, res.recipe))
+    return outcomes
+
+
+@pytest.mark.parametrize(
+    ("fit_ns", "target_n"),
+    [
+        pytest.param([1.0, 1.00001, 2.0], 2.001, id="high_leverage_near_target"),
+        pytest.param([1.0, 2.0, 3.0], 4.0, id="evenly_spaced"),
+    ],
+)
+def test_known_sigma2_certification_error_is_within_delta_on_the_reviewers_designs(
+    fit_ns, target_n
+):
+    # Joint P[certified AND wrong] must be <= delta = 0.01 (the guarantee is on
+    # the unconditional probability of certifying the wrong arm, not on the
+    # error among certified runs). The high-leverage design certified the wrong
+    # arm 98/200 times under the HC0 + Student-t rule.
+    outcomes = _first_check_outcomes(fit_ns, target_n, "known_sigma2")
+    n_wrong_certified = sum(1 for o, r in outcomes if o == "certified" and r != "a")
+    assert n_wrong_certified <= 4  # 200 runs at delta=.01 -> mean 2 at the very worst
+
+
+def test_hc0_heuristic_mode_never_reports_certified():
+    outcomes = _first_check_outcomes([1.0, 1.00001, 2.0], 2.001, "hc0_heuristic", n_seeds=40)
+    assert all(o != "certified" for o, _ in outcomes)
+    # ...and it is heuristic for a reason: it does stop (recommends) on this design.
+    assert any(o == "recommended" for o, _ in outcomes)
+
+
+def test_variance_mode_is_validated():
+    oracle = _ConstantMeanOracle({"a": 0.5, "b": 0.5}, 0.05, 0)
+    with pytest.raises(ValueError, match="variance_mode"):
+        extrapolation_track_and_stop(
+            oracle,
+            ["a", "b"],
+            [Scale(n=n, d=1.0) for n in (1.0, 2.0, 3.0)],
+            Scale(n=4.0, d=1.0),
+            delta=0.05,
+            eta={"a": 0.0, "b": 0.0},
+            sigma2=lambda s: 0.0025,
+            model_factory=LogLinear,
+            variance_mode="bogus",
+        )
 
 
 # ---------------------------------------------------------------------------

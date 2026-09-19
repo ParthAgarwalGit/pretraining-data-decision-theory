@@ -2326,3 +2326,42 @@ tests: missing component 5% / 0.5% / 0.01%, brute-force path, ill-conditioned
 identified design, unit invariance.
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-19 — ETS: known-variance certification replaces HC0 + Student-t (PR #29, second review)
+
+**Problem (reproduced exactly).** `LogLinear`, two arms with constant means .501/.5, N(0,.05^2)
+noise, fitting scales `N=[1,1.00001,2]`, target `N=2.001`, `eta=0`, `delta=.01`,
+`max_rounds=1`, `solver_n_iter=1`, oracle RNG seeds 0..199: the HC0-variance + Student-t rule
+certified 198/200 runs and 98 of them the wrong arm (49% unconditional error vs 1% requested).
+The high-leverage point near the target makes the fitted residual ~0, so HC0 deletes the
+dominant uncertainty; a t quantile cannot restore it. (Our re-run of the old rule in
+`variance_mode="hc0_heuristic"` gives the same 98 wrong picks.)
+
+**Change.**
+- `pdt.theory.bound.known_noise_v_k`: prediction variance from the *known* noise function,
+  `v = sum_i g_i^2 sigma2(s_i)` with influence weights `g = pinv(J)^T J_target` (exact for
+  linear-in-`theta` fits, first-order otherwise; equals the OLS closed form, checked against it and
+  against Monte Carlo). Unidentified targets give `v = inf` (never certifies).
+- Radius `sqrt(2 (v_a + v_b) log(1/beta))`, `beta = delta / (t (t+1) K (K-1))`: a union over rounds
+  *and* over the `K(K-1)` ordered pairs, because the leader is data-dependent.
+- `variance_mode="known_sigma2"` (default) may return `"certified"`; the certificate lists the
+  assumptions: A1 `sigma2` is a valid sub-Gaussian proxy (an *input*), A2 bias <= `eta`, A3
+  prediction linear in the data (exact for LogLinear; first-order for nonlinear fits, curvature not
+  covered by `eta`), A4 design independent of the certified noise (exact only at the non-adaptive
+  warm-up check).
+- `variance_mode="hc0_heuristic"` keeps the residual-based variance but returns `"recommended"`,
+  never `"certified"`; no error-probability claim.
+
+**Evidence.** Reviewer's high-leverage design and the original evenly spaced design, 200 seeds
+each, `max_rounds=1`: new default certified 0 of 200 on both (0 wrong; the rule is conservative
+there); HC0 mode reproduces 98 wrong on the high-leverage design. Adaptive runs (LogLinear, 3 arms,
+means 0.5+g, 0.5, 0.5-g, sigma .05, delta .1, up to 150 rounds, 60 seeds each): gap g=.1 -> 37
+certified, **0 wrong**, 23 abstained; gap g=0 (all tied) -> **0 certified**, 60 abstained. That is
+120 adaptive runs with no wrong certification -- supporting evidence that the effect of A4 is small
+in this regime, **not** a proof; A4 remains an assumption.
+
+**Not claimed.** No self-normalized / martingale confidence sequence is implemented, so `"certified"`
+is a delta-level statement under A1-A4, not an unconditional guarantee for the adaptive algorithm.
+`paper/sections/theorem4_algorithm.tex` (PR #26) is being brought into line with this scope.
+
+**Decided by:** Agent, following the second-round review.

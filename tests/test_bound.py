@@ -408,5 +408,86 @@ def test_analytic_v_k_ill_conditioned_but_identified_design_is_not_rejected():
     assert np.isfinite(v)
 
 
+# ---------------------------------------------------------------------------
+# known_noise_v_k() -- model-based variance with KNOWN noise (PR #29 review)
+# ---------------------------------------------------------------------------
+
+
+def test_known_noise_v_k_matches_the_ols_prediction_variance_closed_form():
+    # y = a + b*log(N), homoscedastic sigma^2: Var(pred at x*) =
+    # sigma^2 * (1/n + (x* - xbar)^2 / Sxx).
+    ns = np.array([1.0, 2.0, 3.0, 5.0])
+    scales = [Scale(n=n, d=1.0) for n in ns]
+    model, _, ys = _log_linear_fit(list(ns), [1.0] * 4)
+    target = Scale(n=9.0, d=1.0)
+    x, xs = np.log(ns), np.log(9.0)
+    sigma2 = 0.0025
+    expected = sigma2 * (1 / len(x) + (xs - x.mean()) ** 2 / np.sum((x - x.mean()) ** 2))
+    got = bound.known_noise_v_k(model, scales, lambda s: sigma2, target)
+    assert got == pytest.approx(expected, rel=1e-6)
+
+
+def test_known_noise_v_k_high_leverage_design_is_not_deleted_like_hc0():
+    # The reviewer's design: N=[1, 1.00001, 2], target 2.001. The observation at
+    # N=2 sits next to the target (high leverage) and the fit nearly
+    # interpolates it, so its residual -- and hence the HC0 variance -- is ~0
+    # even though the prediction is genuinely uncertain (sigma = .05).
+    ns = [1.0, 1.00001, 2.0]
+    scales = [Scale(n=n, d=1.0) for n in ns]
+    target = Scale(n=2.001, d=1.0)
+    rng = np.random.default_rng(0)
+    ys = list(0.5 + rng.normal(0, 0.05, 3))
+    model = fitters.LogLinear(rng=np.random.default_rng(0)).fit(scales, ys)
+    known = bound.known_noise_v_k(model, scales, lambda s: 0.0025, target)
+    hc0 = bound.analytic_v_k(model, scales, ys, target)
+    assert known > 0.001  # order sigma^2 = .0025
+    assert hc0 < 0.5 * known  # HC0 collapses at the high-leverage point
+
+
+def test_known_noise_v_k_matches_monte_carlo_variance():
+    ns = np.array([1.0, 2.0, 4.0, 8.0])
+    scales = [Scale(n=n, d=1.0) for n in ns]
+    target = Scale(n=32.0, d=1.0)
+    sig = 0.05
+    rng = np.random.default_rng(1)
+    preds = []
+    for _ in range(2000):
+        ys = list(0.4 + 0.02 * np.log(ns) + rng.normal(0, sig, len(ns)))
+        m = fitters.LogLinear(rng=np.random.default_rng(0)).fit(scales, ys)
+        preds.append(m.predict(target))
+    model, _, _ = _log_linear_fit(list(ns), [1.0] * 4)
+    v = bound.known_noise_v_k(model, scales, lambda s: sig**2, target)
+    assert v == pytest.approx(np.var(preds, ddof=1), rel=0.1)
+
+
+def test_known_noise_v_k_heteroscedastic_weights_each_observation_by_its_own_variance():
+    ns = np.array([1.0, 2.0, 4.0])
+    scales = [Scale(n=n, d=1.0) for n in ns]
+    model, _, _ = _log_linear_fit(list(ns), [1.0] * 3)
+    target = Scale(n=8.0, d=1.0)
+    jac = np.array([[1.0, np.log(n)] for n in ns])
+    g = np.linalg.pinv(jac).T @ np.array([1.0, np.log(8.0)])
+    variances = np.array([0.01, 0.02, 0.04])
+    lookup = dict(zip(ns, variances, strict=True))
+    got = bound.known_noise_v_k(model, scales, lambda s: lookup[s.n], target)
+    assert got == pytest.approx(float(np.sum(g**2 * variances)), rel=1e-6)
+
+
+def test_known_noise_v_k_rejects_unidentified_target_and_unsupported_fitters():
+    model, scales, ys = _log_linear_fit([1e9] * 4, [1e10, 2e10, 4e10, 8e10])
+    with pytest.raises(bound.UnidentifiedTargetError):
+        bound.known_noise_v_k(model, scales, lambda s: 0.01, Scale(n=2e9, d=1e10))
+    const = fitters.ConstantExtrapolator().fit(scales, [0.5] * 4)
+    with pytest.raises(bound.UnsupportedEstimatorError):
+        bound.known_noise_v_k(const, scales, lambda s: 0.01, Scale(n=2e9, d=1e10))
+
+
+def test_known_noise_v_k_rejects_nonpositive_noise():
+    ns = [1.0, 2.0, 3.0]
+    model, scales, _ = _log_linear_fit(ns, [1.0] * 3)
+    with pytest.raises(ValueError, match="positive"):
+        bound.known_noise_v_k(model, scales, lambda s: 0.0, Scale(n=4.0, d=1.0))
+
+
 def test_unsupported_sandwich_estimators_matches_the_two_flagged_fitters():
     assert bound.UNSUPPORTED_SANDWICH_ESTIMATORS == {"ConstantExtrapolator", "TwoStepLadder"}

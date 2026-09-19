@@ -54,6 +54,7 @@ Monte-Carlo empirical error estimate, not as a certified guarantee.
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 
 import numpy as np
 
@@ -283,3 +284,62 @@ def analytic_v_k(
         )
     sigma_theta = sandwich_covariance(model, scales, values)
     return float(j_target @ sigma_theta @ j_target)
+
+
+def known_noise_v_k(
+    model: Extrapolator,
+    scales: list[Scale],
+    sigma2: Callable[[Scale], float],
+    target_scale: Scale,
+) -> float:
+    """Model-based variance of `model`'s prediction at `target_scale` when the
+    observation noise variances `sigma2(scale)` are KNOWN (an explicit input
+    assumption), not estimated from residuals.
+
+    The fit is an ordinary least-squares problem; to first order the
+    prediction is a linear functional of the observations,
+    `mu_hat(s*) - E[mu_hat(s*)] = sum_i g_i eps_i` with influence weights
+    `g = pinv(J)^T J_target` (`J` = the fitting-scale Jacobians, `J_target` the
+    target Jacobian, both at the fitted parameters). For independent noise with
+    variance (proxy) `sigma2(s_i)`:
+
+        v = sum_i g_i^2 sigma2(s_i)  =  J_t^T (J^T J)^+ J^T diag(sigma2) J (J^T J)^+ J_t.
+
+    This is exact for a model linear in its parameters (`LogLinear`,
+    `ConstantExtrapolator`) and a first-order (delta-method) approximation for
+    the nonlinear power-law fits. It is `sandwich_covariance`'s HC0 form with
+    the squared residuals replaced by the known noise variances -- the
+    replacement matters: HC0 uses `r_i^2` as a one-observation estimate of
+    `sigma2(s_i)`, and at a high-leverage point the fitted residual is
+    almost forced to zero, so HC0 deletes exactly the uncertainty that
+    dominates an extrapolated prediction (second-round review of PR #29:
+    a design `N=[1, 1.00001, 2]` extrapolated to `N=2.001` certified the
+    wrong arm 49% of the time against a requested 1%).
+
+    Raises `UnsupportedEstimatorError` for the same fitters as `analytic_v_k`
+    and `UnidentifiedTargetError` when the target is outside the row space of
+    the fitting-scale Jacobians (the variance is then unbounded).
+    """
+    fitter_name = type(model).__name__
+    if fitter_name in UNSUPPORTED_SANDWICH_ESTIMATORS:
+        raise UnsupportedEstimatorError(
+            f"{fitter_name}: the joint-least-squares influence-weight variance does not "
+            "describe this estimator's fitting procedure (see UNSUPPORTED_SANDWICH_ESTIMATORS)."
+        )
+    j_target = np.asarray(model.jacobian(target_scale), dtype=float)
+    jac = np.array([model.jacobian(s) for s in scales], dtype=float)
+    if not target_in_row_space(jac, j_target):
+        raise UnidentifiedTargetError(
+            f"{fitter_name}: the target scale {target_scale} is not identified by the "
+            "fitting scales, so the prediction variance is unbounded."
+        )
+    noise = np.array([sigma2(s) for s in scales], dtype=float)
+    if np.any(noise <= 0):
+        raise ValueError("sigma2(scale) must be positive at every fitting scale")
+    # Column-equilibrated pseudo-inverse: prediction = sum_i g_i y_i with
+    # g = pinv(J)^T J_target, computed on J / col_norm so parameters whose
+    # Jacobian entries differ by many orders of magnitude do not degrade pinv.
+    col = np.linalg.norm(jac, axis=0)
+    col = np.where(col > 0.0, col, 1.0)
+    g = np.linalg.pinv(jac / col).T @ (j_target / col)
+    return float(np.sum(g**2 * noise))
