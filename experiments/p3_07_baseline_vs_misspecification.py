@@ -61,7 +61,19 @@ class _TwoArmOracle:
     constructor argument here rather than a fixed module constant --
     this script sweeps the *true* bias directly, not an assumed eta."""
 
-    def __init__(self, true_bias: float, sigma: float = _SIGMA):
+    def __init__(self, true_bias: float, trial_salt: int, sigma: float = _SIGMA):
+        # PR #33's review (the identical defect PR #32 fixed in
+        # p3_06_eta_sensitivity.py's own _TwoArmOracle): pull()'s noise
+        # seed used to depend only on (recipe, scale, seed), never on
+        # which repetition was calling it, and the caller's own
+        # `_run_idx` loop variable was unused -- every one of the 30
+        # "repetitions" per bias level replayed the exact same dataset
+        # and therefore the exact same deterministic decision, so a
+        # reported "100% -> 0%" accuracy curve was never actually an
+        # error-rate ESTIMATE over noisy trials. `trial_salt` (the
+        # caller's own run index) is now required and folded into every
+        # pull()'s seed below.
+        self._trial_salt = trial_salt
         self._sigma = sigma
         self._params = {
             "leader": {"a": 0.6 + _OBSERVED_GAP, "b": 0.02, "bias_at_target": 0.0},
@@ -83,7 +95,7 @@ class _TwoArmOracle:
 
     def pull(self, recipe: str, scale: Scale, seed: int) -> float:
         mean = self._true_mean(recipe, scale)
-        rng = np.random.default_rng(_stable_seed(recipe, scale.n, scale.d, seed))
+        rng = np.random.default_rng(_stable_seed(self._trial_salt, recipe, scale.n, scale.d, seed))
         return float(mean + rng.normal(0.0, self._sigma))
 
     def cost(self, scale: Scale) -> float:
@@ -145,8 +157,8 @@ def main() -> None:
         true_bias = mult * _OBSERVED_GAP
         true_winner = "underdog" if true_bias > _OBSERVED_GAP else "leader"
         correct = dict.fromkeys(_BASELINES, 0)
-        for _run_idx in range(args.n_runs):
-            oracle = _TwoArmOracle(true_bias)
+        for run_idx in range(args.n_runs):
+            oracle = _TwoArmOracle(true_bias, trial_salt=run_idx)
             for name, fn in _BASELINES.items():
                 res = fn(oracle)
                 correct[name] += int(res.recipe == true_winner)

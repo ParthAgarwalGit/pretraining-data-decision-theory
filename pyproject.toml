@@ -72,6 +72,12 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Lets tests import `experiments.*` modules directly (e.g.
+# test_p1_06_decomposition.py testing p1_06_decomposition's bootstrap
+# helpers) without adding an __init__.py to experiments/, which would
+# turn it into a real package for its own `uv run python experiments/...`
+# invocations too.
+pythonpath = ["."]
 # --cov-fail-under enforced here (not just in CI) so `make test` fails the
 # same way locally as it does on ubuntu-latest -- one source of truth.
 addopts = "--cov=src/pdt --cov-report=term-missing --cov-fail-under=70"

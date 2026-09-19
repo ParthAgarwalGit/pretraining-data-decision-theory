@@ -91,7 +91,20 @@ class _TwoArmOracle:
 
     _OBSERVED_GAP = 0.05  # < _TRUE_BIAS=0.1, so underdog truly wins at target
 
-    def __init__(self, sigma: float = _SIGMA):
+    def __init__(self, trial_salt: int, sigma: float = _SIGMA):
+        # PR #32's review: pull()'s noise seed used to depend only on
+        # (recipe, scale, seed), never on which TRIAL was calling it --
+        # means and noise levels here are hardcoded (not drawn from any
+        # instance rng, unlike SyntheticOracle), so a "fresh" oracle
+        # instance across trials drew the EXACT SAME observation noise
+        # every time. Reproduced exactly as given: 3 fresh oracles
+        # produced eta_hat(leader)=0.04207552584962325 identically --
+        # zero sampling variability where there should have been real
+        # variability across "independent" trials. `trial_salt` (the
+        # caller's own run_idx-derived seed) is required and folded into
+        # every pull()'s seed below, fixing this the same way PR #27's
+        # review fixed the identical defect in SyntheticOracle.
+        self._trial_salt = trial_salt
         self._sigma = sigma
         self._params = {
             "leader": {"a": 0.6 + self._OBSERVED_GAP, "b": 0.02, "bias_at_target": 0.0},
@@ -113,7 +126,7 @@ class _TwoArmOracle:
 
     def pull(self, recipe: str, scale: Scale, seed: int) -> float:
         mean = self._true_mean(recipe, scale)
-        rng = np.random.default_rng(_stable_seed(recipe, scale.n, scale.d, seed))
+        rng = np.random.default_rng(_stable_seed(self._trial_salt, recipe, scale.n, scale.d, seed))
         return float(mean + rng.normal(0.0, self._sigma))
 
     def cost(self, scale: Scale) -> float:
@@ -170,7 +183,17 @@ def _run_trials(
     compute_all = []
     compute_certified = []
     for run_idx in range(n_runs):
-        oracle = _TwoArmOracle()
+        # trial_salt is `run_idx` alone -- deliberately NOT including
+        # `seed_prefix` (which varies by eta multiplier in the caller) --
+        # so every eta value's sweep reuses the SAME underlying
+        # observation noise realization for a given run_idx (common
+        # random numbers across eta values, per PR #32's review: this
+        # sharpens the comparison BETWEEN eta settings by holding the
+        # random trial fixed), while still drawing genuinely fresh,
+        # independent noise across different run_idx values (the actual
+        # bug being fixed: pull() used to have no run_idx-dependence at
+        # all, so every "trial" reused identical noise).
+        oracle = _TwoArmOracle(trial_salt=run_idx)
         res = extrapolation_track_and_stop(
             oracle,
             ["leader", "underdog"],
@@ -263,7 +286,7 @@ def main() -> None:
     plugin_compute_certified = []
     plugin_compute_all = []
     for run_idx in range(args.n_runs):
-        oracle = _TwoArmOracle()
+        oracle = _TwoArmOracle(trial_salt=run_idx)
         eta_hat = {
             r: estimate_eta_plugin(oracle, r, args.plugin_n_replicates)
             for r in ["leader", "underdog"]

@@ -75,6 +75,22 @@ class SyntheticOracle:
             raise ValueError("need at least one scale")
         self._scales = list(scales)
         self._target_scale = target_scale
+        # An instance-specific salt, drawn once from the constructor's own
+        # rng and folded into every pull()'s noise seed below. Without
+        # this, pull()'s seed depended only on (recipe, scale, seed) --
+        # NOT on which SyntheticOracle instance is calling it -- so two
+        # separate instances (e.g. different "independent trials" in an
+        # experiment, each with its own constructor rng draw for
+        # e/a/alpha/bias/sigma2_noise) would still draw the identical
+        # standardized noise innovation for the same (recipe, scale,
+        # seed), correlating what are supposed to be independent
+        # simulations. Two instances built from the SAME constructor seed
+        # still draw the same salt (it's the first thing pulled from that
+        # seed's own deterministic stream), so `pull()` stays exactly
+        # reproducible given the same construction seed -- only
+        # independence ACROSS differently-seeded instances is what this
+        # fixes.
+        self._instance_salt = int(rng.integers(0, 2**63))
         self._params: dict[str, dict] = {}
         for recipe in recipes:
             e = rng.uniform(0.3, 0.9)
@@ -118,7 +134,9 @@ class SyntheticOracle:
             raise KeyError(f"unknown recipe {recipe!r}")
         mean = self._true_mean(recipe, scale)
         sigma = float(np.sqrt(self._params[recipe]["sigma2_noise"]))
-        draw_rng = np.random.default_rng(_stable_seed(recipe, scale.n, scale.d, seed))
+        draw_rng = np.random.default_rng(
+            _stable_seed(self._instance_salt, recipe, scale.n, scale.d, seed)
+        )
         return float(mean + draw_rng.normal(0.0, sigma))
 
     def true_value_at_target(self, recipe: str) -> float:

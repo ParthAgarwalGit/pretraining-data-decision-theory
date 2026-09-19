@@ -1,5 +1,17 @@
-"""Task P3-07 (figure F7 data): the shape of the optimal allocation
-across scales, under different gap regimes.
+"""Task P3-07 (figure F7 data): the shape of the COMPUTED challenger
+allocation across scales, under different gap regimes.
+
+**Not a certified-optimal allocation (PR #33's review):** this calls
+`solve_allocation`, whose own docstring already documents it as
+"validated-reasonable, not certified-optimal" (every restart converges
+to a locally max-min-consistent point, not verified globally optimal;
+`brute_force_allocation` found a strictly better feasible point on at
+least one real instance). It also structurally covers only the
+CHALLENGER arms (Theorem 2 Part A's program never perturbs k*'s own
+distribution), so k*'s own share never appears in `regimes[...]
+["compute_share_by_scale"]` at all. Reported and plotted (F7) as what
+`solve_allocation` actually computes for the challengers, not as
+evidence of a provably optimal full-instance BAI allocation.
 
 See plan/04-phase3-algorithm.md P3-07. Writes
 results/p3_07_allocation_shape.json.
@@ -134,6 +146,14 @@ def main() -> None:
             "sweep Delta_k; compute_vs_delta_at_fixed_shape shows the separate, genuinely "
             "delta-dependent quantity (total compute) at one fixed shape. See this "
             "script's own module docstring and docs/decisions.md."
+        ),
+        "allocation_caveat": (
+            "compute_share_by_scale is solve_allocation's own heuristic solution "
+            "(validated-reasonable, not certified globally optimal -- see "
+            "src/pdt/bai/allocation.py's docstring) and covers only the challenger "
+            "arms (k1, k2); k*'s own allocation share is never part of this program "
+            "and is not reported here. Not evidence of a provably optimal "
+            "full-instance BAI allocation -- see this script's own module docstring."
         ),
         "regimes": regimes,
         "compute_vs_delta_at_fixed_shape": {
