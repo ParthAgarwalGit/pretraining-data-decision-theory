@@ -10,6 +10,37 @@ _SIZES = ["4M", "10M", "150M", "1B"]
 
 
 # ---------------------------------------------------------------------------
+# welch_satterthwaite_df()
+# ---------------------------------------------------------------------------
+
+
+def test_welch_satterthwaite_df_equal_variance_matches_pooled_df():
+    # Real calibration bug found by external review: a standard-normal
+    # threshold was used for a statistic estimated from only n_seeds=3
+    # observations per side -- the correct comparison is a t-distribution
+    # with Welch-Satterthwaite df, which reduces to the classical pooled
+    # two-sample df (2*(n-1) = 4 at n_seeds=3) when both variances are
+    # equal.
+    df = rr.welch_satterthwaite_df(sigma2_a=0.002, sigma2_b=0.002, n_seeds=3)
+    assert df == pytest.approx(4.0)
+
+
+def test_welch_satterthwaite_df_unequal_variance_differs_from_pooled():
+    df = rr.welch_satterthwaite_df(sigma2_a=0.001, sigma2_b=0.01, n_seeds=3)
+    assert df is not None
+    assert df != pytest.approx(4.0)
+    assert 2.0 < df < 4.0  # Satterthwaite df is always in (n-1, 2*(n-1)] here
+
+
+def test_welch_satterthwaite_df_none_for_degenerate_zero_variance():
+    assert rr.welch_satterthwaite_df(sigma2_a=0.0, sigma2_b=0.0, n_seeds=3) is None
+
+
+def test_welch_satterthwaite_df_none_for_insufficient_seeds():
+    assert rr.welch_satterthwaite_df(sigma2_a=0.001, sigma2_b=0.001, n_seeds=1) is None
+
+
+# ---------------------------------------------------------------------------
 # pair_effect_size()
 # ---------------------------------------------------------------------------
 
