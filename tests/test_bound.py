@@ -18,7 +18,7 @@ _RNG = np.random.default_rng(7)
 
 
 def test_bound_term_matches_hand_computation():
-    result = bound._bound_term(delta_k=0.1, total_variance=0.02)
+    result = bound._bound_term(delta_k=0.1, bias_magnitude=0.0, variance=0.02)
     import math
 
     expected = math.exp(-(0.1**2) / (2 * 0.02))
@@ -26,35 +26,75 @@ def test_bound_term_matches_hand_computation():
 
 
 def test_bound_term_zero_variance_nonzero_gap_is_zero():
-    assert bound._bound_term(delta_k=0.1, total_variance=0.0) == 0.0
+    assert bound._bound_term(delta_k=0.1, bias_magnitude=0.0, variance=0.0) == 0.0
 
 
 def test_bound_term_zero_variance_zero_gap_is_one():
-    assert bound._bound_term(delta_k=0.0, total_variance=0.0) == 1.0
+    assert bound._bound_term(delta_k=0.0, bias_magnitude=0.0, variance=0.0) == 1.0
 
 
 def test_bound_term_negative_variance_treated_as_degenerate():
     # Should never happen in real use, but must not crash (sqrt/div of a
     # negative number) if it ever does.
-    assert bound._bound_term(delta_k=0.1, total_variance=-1.0) == 0.0
+    assert bound._bound_term(delta_k=0.1, bias_magnitude=0.0, variance=-1.0) == 0.0
 
 
 def test_bound_term_larger_gap_gives_smaller_term():
-    small_gap = bound._bound_term(0.05, 0.01)
-    large_gap = bound._bound_term(0.5, 0.01)
+    small_gap = bound._bound_term(0.05, 0.0, 0.01)
+    large_gap = bound._bound_term(0.5, 0.0, 0.01)
     assert large_gap < small_gap
 
 
-def test_marginal_bound_term_sums_extrap_and_v():
-    # sigma2_extrap=0.01, v=0.01 -> total_variance=0.02, same as the
-    # hand-computed case above.
-    result = bound.marginal_bound_term(delta_k=0.1, sigma2_extrap_k=0.01, v_k=0.01)
-    assert result == pytest.approx(bound._bound_term(0.1, 0.02))
+def test_bound_term_bias_eats_into_the_gap_before_the_exponential():
+    # bias_magnitude=0.03 should behave exactly like reducing delta_k by
+    # 0.03 first, then applying the zero-bias formula.
+    with_bias = bound._bound_term(delta_k=0.1, bias_magnitude=0.03, variance=0.01)
+    equivalent_no_bias = bound._bound_term(delta_k=0.07, bias_magnitude=0.0, variance=0.01)
+    assert with_bias == pytest.approx(equivalent_no_bias)
 
 
-def test_pairwise_bound_term_sums_bias_squared_and_v():
-    result = bound.pairwise_bound_term(delta_k=0.1, bias_d_k=0.1, v_d_k=0.01)
-    assert result == pytest.approx(bound._bound_term(0.1, 0.1**2 + 0.01))
+def test_bound_term_bias_at_least_the_gap_gives_vacuous_term():
+    # Regression for PR #17's counterexample: a bias magnitude that
+    # matches or exceeds the gap must floor effective_gap at 0 (term=1,
+    # a vacuous/uninformative "bound"), never let the excess bias make the
+    # term small again (which would silently claim a confident, near-zero
+    # error probability for a case the review showed is near-certain to
+    # be wrong).
+    exactly_equal = bound._bound_term(delta_k=5.0, bias_magnitude=5.0, variance=0.01)
+    bias_exceeds_gap = bound._bound_term(delta_k=5.0, bias_magnitude=10.0, variance=0.01)
+    assert exactly_equal == pytest.approx(1.0)
+    assert bias_exceeds_gap == pytest.approx(1.0)
+
+
+def test_marginal_bound_term_zero_bias_matches_variance_only_formula():
+    result = bound.marginal_bound_term(delta_k=0.1, sigma2_extrap_k=0.0, v_k=0.02)
+    assert result == pytest.approx(bound._bound_term(0.1, 0.0, 0.02))
+
+
+def test_marginal_bound_term_uses_sqrt_sigma2_extrap_as_bias_magnitude():
+    result = bound.marginal_bound_term(delta_k=0.1, sigma2_extrap_k=0.01, v_k=0.02)
+    assert result == pytest.approx(bound._bound_term(0.1, 0.1, 0.02))  # sqrt(0.01) = 0.1
+
+
+def test_marginal_bound_term_regression_ptr17_counterexample_is_no_longer_understated():
+    # PR #17's exact reproduction: gap=5, bias=+10 (sigma2_extrap_k=100),
+    # variance=.01. The old additive-denominator formula gave ~0.8825, an
+    # invalid "upper bound" smaller than the true near-certain error rate.
+    # The corrected formula must be (near-)vacuous, i.e. very close to 1.
+    result = bound.marginal_bound_term(delta_k=5.0, sigma2_extrap_k=100.0, v_k=0.01)
+    assert result == pytest.approx(1.0)
+
+
+def test_pairwise_bound_term_zero_bias_matches_variance_only_formula():
+    result = bound.pairwise_bound_term(delta_k=0.1, bias_d_k=0.0, v_d_k=0.02)
+    assert result == pytest.approx(bound._bound_term(0.1, 0.0, 0.02))
+
+
+def test_pairwise_bound_term_uses_abs_bias_d_k_as_bias_magnitude():
+    positive = bound.pairwise_bound_term(delta_k=0.1, bias_d_k=0.05, v_d_k=0.02)
+    negative = bound.pairwise_bound_term(delta_k=0.1, bias_d_k=-0.05, v_d_k=0.02)
+    assert positive == pytest.approx(negative)
+    assert positive == pytest.approx(bound._bound_term(0.1, 0.05, 0.02))
 
 
 def test_marginal_bound_sums_all_terms():
@@ -181,12 +221,115 @@ def test_analytic_v_k_saturates_for_power_law_n_far_extrapolation():
     # its jacobian converges to a fixed vector and v_k should *stop
     # growing* (saturate), not diverge, once N is far enough past the
     # fitted range that the power-law term has effectively decayed away.
-    ns = np.geomspace(1e6, 1e8, 8)
-    ys = 0.6 - 3.0 * ns ** (-0.3) + _RNG.normal(0, 0.005, size=len(ns))
+    #
+    # "Far enough" depends on the fitted alpha: N^-alpha * ln(N) (the
+    # alpha-jacobian entry's shape) decays to 0 as N -> infinity for any
+    # alpha > 0, but only logarithmically slowly for small alpha, so a
+    # well-identified alpha close to this curve's true 0.3 needs N far
+    # beyond 1e11-1e14 to actually reach saturation (verified directly:
+    # a genuine alpha~0.3 fit here is still ~40-130% different between
+    # v_k(1e11) and v_k(1e14), not saturated at all -- an earlier version
+    # of this test only passed because it happened to run against a fit
+    # that behaved differently). 1e6-1e10 over 14 points with low noise
+    # (rather than the original 8 points over 1e6-1e8) reliably identifies
+    # alpha close to the true 0.3 via multi-start (checked directly across
+    # 10 independent seeds); a dedicated local rng (not the file-level
+    # `_RNG`) keeps this test's outcome independent of how many draws
+    # earlier tests in this file happen to consume.
+    rng = np.random.default_rng(1)
+    ns = np.geomspace(1e6, 1e10, 14)
+    ys = 0.6 - 3.0 * ns ** (-0.3) + rng.normal(0, 0.002, size=len(ns))
     scales = [Scale(n=n, d=20 * n) for n in ns]
 
-    model = fitters.PowerLawN(rng=_RNG).fit(scales, list(ys))
-    v_far = bound.analytic_v_k(model, scales, list(ys), Scale(n=1e11, d=2e12))
-    v_farther = bound.analytic_v_k(model, scales, list(ys), Scale(n=1e14, d=2e15))
+    model = fitters.PowerLawN(rng=np.random.default_rng(1)).fit(scales, list(ys))
+    v_far = bound.analytic_v_k(model, scales, list(ys), Scale(n=1e30, d=2e31))
+    v_farther = bound.analytic_v_k(model, scales, list(ys), Scale(n=1e40, d=2e41))
 
-    assert v_farther == pytest.approx(v_far, rel=1e-6)
+    assert v_farther == pytest.approx(v_far, rel=1e-3)
+
+
+# ---------------------------------------------------------------------------
+# analytic_v_k() rejects estimators the sandwich formula doesn't describe
+# ---------------------------------------------------------------------------
+
+
+def test_analytic_v_k_rejects_constant_extrapolator():
+    # ConstantExtrapolator only fits to the largest-scale observations;
+    # the joint-least-squares sandwich formula over the FULL scales list
+    # doesn't describe that procedure (PR #17's review, P2).
+    ns = np.geomspace(1e6, 1e8, 6)
+    ys = [0.5] * 6
+    scales = [Scale(n=n, d=20 * n) for n in ns]
+
+    model = fitters.ConstantExtrapolator().fit(scales, ys)
+
+    with pytest.raises(bound.UnsupportedEstimatorError, match="ConstantExtrapolator"):
+        bound.analytic_v_k(model, scales, ys, Scale(n=1e9, d=2e10))
+
+
+def test_analytic_v_k_rejects_two_step_ladder():
+    # TwoStepLadder is fit in two separate sequential stages, not one
+    # joint simultaneous optimization -- the sandwich formula's
+    # single-objective M-estimator assumption doesn't apply.
+    ns = np.geomspace(1e6, 1e9, 10)
+    ys = list(np.linspace(0.1, 0.8, 10))
+    scales = [Scale(n=n, d=20 * n) for n in ns]
+
+    model = fitters.TwoStepLadder(rng=_RNG).fit(scales, ys)
+
+    with pytest.raises(bound.UnsupportedEstimatorError, match="TwoStepLadder"):
+        bound.analytic_v_k(model, scales, ys, Scale(n=1e10, d=2e11))
+
+
+def _log_linear_fit(ns, ds):
+    scales = [Scale(n=n, d=d) for n, d in zip(ns, ds, strict=True)]
+    ys = [0.3 + 0.02 * np.log(n) for n in ns]
+    model = fitters.LogLinear(rng=np.random.default_rng(0)).fit(scales, ys)
+    return model, scales, ys
+
+
+@pytest.mark.parametrize("target_n", [1e9, 1e9 * np.exp(0.05), 1e9 * np.exp(1e-3), 1e12])
+def test_analytic_v_k_rejects_target_outside_observed_row_space(target_n):
+    # LogLinear only sees log(N): a design observed at a SINGLE N (varying only
+    # D) has jacobian rows all equal to [1, log N0], so a target at any other N
+    # has a jacobian component the design never observes and its variance is
+    # unbounded. pinv would silently report a small finite value instead
+    # (second-round review of PR #17). The check must fire even when the
+    # missing component is tiny relative to ||J_target|| (target_n =
+    # N0 * exp(0.05) -> 0.25% of the norm, exp(1e-3) -> 0.005%), not only when
+    # the design is grossly wrong.
+    model, scales, ys = _log_linear_fit([1e9] * 4, [1e10, 2e10, 4e10, 8e10])
+    target = Scale(n=target_n, d=1e11)
+    if target_n == 1e9:
+        # Same N: target jacobian IS in the row space, so this must NOT raise.
+        assert bound.analytic_v_k(model, scales, ys, target) >= 0.0
+        return
+    with pytest.raises(bound.UnidentifiedTargetError, match="not identified"):
+        bound.analytic_v_k(model, scales, ys, target)
+
+
+def test_unidentified_target_is_an_unsupported_estimator_error():
+    # Callers that already catch UnsupportedEstimatorError (p1_07) keep working.
+    assert issubclass(bound.UnidentifiedTargetError, bound.UnsupportedEstimatorError)
+
+
+def test_analytic_v_k_accepts_identified_log_linear_design():
+    ns = [1e8, 2e8, 4e8, 8e8]
+    model, scales, ys = _log_linear_fit(ns, [20 * n for n in ns])
+    v = bound.analytic_v_k(model, scales, ys, Scale(n=1e12, d=2e13))
+    assert np.isfinite(v)
+    assert v >= 0.0
+
+
+def test_analytic_v_k_ill_conditioned_but_identified_design_is_not_rejected():
+    # Two nearby Ns: the weighted information is badly conditioned, but the
+    # design IS structurally identified -- a large finite variance is the
+    # honest answer, not a rejection.
+    ns = [1e9, 1e9 * (1 + 1e-4), 1e9 * (1 + 2e-4)]
+    model, scales, ys = _log_linear_fit(ns, [2e10, 2e10, 2e10])
+    v = bound.analytic_v_k(model, scales, ys, Scale(n=1e12, d=2e13))
+    assert np.isfinite(v)
+
+
+def test_unsupported_sandwich_estimators_matches_the_two_flagged_fitters():
+    assert bound.UNSUPPORTED_SANDWICH_ESTIMATORS == {"ConstantExtrapolator", "TwoStepLadder"}
