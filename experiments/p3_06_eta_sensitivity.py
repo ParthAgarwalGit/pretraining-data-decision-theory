@@ -55,6 +55,7 @@ from collections import Counter  # noqa: E402
 import numpy as np  # noqa: E402
 
 from pdt import provenance  # noqa: E402
+from pdt.analysis.intervals import clopper_pearson  # noqa: E402
 from pdt.bai.ets import extrapolation_track_and_stop  # noqa: E402
 from pdt.bai.oracle import _stable_seed  # noqa: E402
 from pdt.scaling.base import Scale  # noqa: E402
@@ -231,6 +232,15 @@ def _run_trials(
         "error_rate_given_certified": (
             1.0 - n_correct_given_certified / n_certified if n_certified > 0 else None
         ),
+        # The guarantee bounds the JOINT rate P[certified AND wrong]; the conditional
+        # rate above can rest on a single certified run. Violations are judged on the
+        # joint rate's exact 95% interval (see `main`).
+        "n_certified": n_certified,
+        "n_wrong_certified": n_certified - n_correct_given_certified,
+        "joint_wrong_certified_rate": (n_certified - n_correct_given_certified) / n_runs,
+        "joint_wrong_certified_ci95": list(
+            clopper_pearson(n_certified - n_correct_given_certified, n_runs)
+        ),
         "abstention_rate": outcomes["abstained"] / n_runs,
         "genuine_abstention_rate": (outcomes["abstained"] - n_hit_round_cap) / n_runs,
         "round_cap_exhausted_rate": n_hit_round_cap / n_runs,
@@ -348,16 +358,13 @@ def main() -> None:
     )
 
     under_cells = [c for c in sweep if c["under_estimated"]]
-    under_violations = [
-        c
-        for c in under_cells
-        if c["error_rate_given_certified"] is not None and c["error_rate_given_certified"] > _DELTA
-    ]
+    # A violation of P[certified AND wrong] <= delta is detected only when the exact
+    # interval's LOWER end exceeds delta (PR #32/#34 reviews: a conditional rate from
+    # one certified run is not evidence of a violation).
+    under_violations = [c for c in under_cells if c["joint_wrong_certified_ci95"][0] > _DELTA]
     well_specified_cells = [c for c in sweep if c["multiplier"] >= 1.0]
     well_specified_violations = [
-        c
-        for c in well_specified_cells
-        if c["error_rate_given_certified"] is not None and c["error_rate_given_certified"] > _DELTA
+        c for c in well_specified_cells if c["joint_wrong_certified_ci95"][0] > _DELTA
     ]
 
     payload = {
@@ -369,7 +376,13 @@ def main() -> None:
         "delta": _DELTA,
         "sweep": sweep,
         "plugin": plugin_result,
+        # True only for a STATISTICALLY DETECTABLE violation at this n_runs; False means
+        # "not detected", not "the guarantee holds" -- at n_runs = 20 the interval on the
+        # joint rate is wide.
         "under_estimation_causes_violations": len(under_violations) > 0,
+        "under_estimation_max_joint_wrong_certified_rate": max(
+            (c["joint_wrong_certified_rate"] for c in under_cells), default=None
+        ),
         "under_estimation_violations": under_violations,
         "well_specified_regime_holds": len(well_specified_violations) == 0,
         "well_specified_regime_violations": well_specified_violations,
@@ -390,7 +403,8 @@ def main() -> None:
     )
     print(f"wrote {args.out}")
     print(
-        f"under-estimation causes delta violations: {payload['under_estimation_causes_violations']}"
+        f"under-estimation causes a DETECTABLE delta violation (exact joint interval): "
+        f"{payload['under_estimation_causes_violations']}"
     )
     print(f"well-specified regime (multiplier>=1) holds: {payload['well_specified_regime_holds']}")
 
