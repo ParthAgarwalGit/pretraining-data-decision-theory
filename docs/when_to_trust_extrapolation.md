@@ -35,15 +35,22 @@ probability `1 - delta`" (that is the *conditional* error rate,
 `P[wrong | certified]`, a different and generally larger quantity), and it is
 **not** "valid inputs mean certification is never wrong": `delta` is not zero.
 
-**If `eta` under-estimates the true bias, the guarantee gets much worse, not just
-"silently fails" in some abstract sense.** `experiments/p3_06_eta_sensitivity.py`
-(`results/p3_06_eta_sensitivity.json`) found that giving the algorithm `eta=0`
-(i.e. trusting the extrapolation completely) on a controlled instance produced a
-confident, *wrong* certification in most or all trials (see that file for the
-current numbers). Over-estimating `eta` (and `sigma2`) is the safer direction --
-it costs more compute (more abstention, more rounds before certifying) and lowers
-the false-certification risk, but does **not** mean zero wrong certifications
-are possible even with perfectly conservative inputs.
+**If `eta` under-estimates the true bias, the guarantee is no longer protected -- but
+the evidence we have for how badly is weak.** `experiments/p3_06_eta_sensitivity.py`
+(`results/p3_06_eta_sensitivity.json`) gave the algorithm `eta=0` (trusting the
+extrapolation completely) on a controlled instance with true bias 0.1, 20 independent
+runs: **1 of 20 runs certified, and that one was wrong** (joint rate
+`P[certified AND wrong]` = 0.05, exact 95% interval about [0.001, 0.25], against
+`delta = 0.1`) -- *not* a statistically detectable violation. An earlier version of this
+guide quoted "20 of 20" wrong certifications; that number came from 20 copies of a
+single noise realization and is withdrawn. The same experiment also shows that with
+`eta` at or above half the true bias, no run certified within the round cap (so it says
+nothing about calibration there), and that a residual-based `eta` estimate again
+under-estimated the bias (~0.05 against 0.1). Over-estimating `eta` (and `sigma2`) is the
+safer direction -- it costs more compute (more abstention, more rounds before certifying)
+and lowers the false-certification risk, but does **not** mean zero wrong certifications
+are possible even with perfectly conservative inputs. A proper calibration study needs
+many more runs and rounds than this pilot used.
 
 **A real confidence-machinery bug, found in review and replaced (not patched):**
 the original stopping rule estimated each arm's prediction variance from the

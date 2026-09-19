@@ -1,18 +1,21 @@
 """F8 -- error rate against misspecification level, ours against
-baselines, and the crossing point where baselines become confidently
-wrong (results/p3_06_eta_sensitivity.json,
+baselines (results/p3_06_eta_sensitivity.json,
 results/p3_07_baseline_vs_misspecification.json).
 
 Two different x-axes are reported honestly rather than forced onto one
 literal scale: the left panel sweeps baselines' *true* bias magnitude
-(they have no eta input at all) and shows the crossing point where the
-true winner flips and baseline accuracy falls off a cliff. The right
-panel sweeps ETS's *assumed* eta at a fixed true bias: only the eta=0
-point is a genuine, uncaveated result (100% wrong when certified); every
-non-zero eta point never reached a genuine resolution within this
-session's round budget (round-cap exhaustion, not genuine abstention --
-see docs/decisions.md) and is marked as such rather than plotted as if
-it were a clean "0% error" data point.
+(they have no eta input at all; 30 independent noise realizations per point) and shows
+where the true winner flips and baseline accuracy falls off a cliff. The right
+panel sweeps ETS's *assumed* eta at a fixed true bias and plots the JOINT rate
+P[certified AND wrong] -- the quantity delta-correctness bounds -- with its exact
+95% (Clopper-Pearson) interval, against the requested delta. With only 20 independent
+runs per point the intervals are wide: at eta = 0 and 0.25x the true bias one run of
+twenty certified (wrongly), which is NOT a statistically detectable violation of
+delta. Every eta >= 0.5x the true bias ended at the round cap without certifying (marked
+with an x, y-position arbitrary), so this panel says nothing about calibration in the
+well-specified regime either. (The earlier version of this figure reported a
+"100% wrong when certified" point that came from 20 copies of one noise realization; it
+is withdrawn -- see docs/decisions.md.)
 """
 
 from __future__ import annotations
@@ -53,35 +56,45 @@ def generate():
     ax_left.set_title("Baselines: no eta input", fontsize=5.5)
     ax_left.legend(fontsize=3.0, loc="center left", frameon=False)
 
+    delta = d6["delta"]
     etas = [c["eta_assumed"]["leader"] for c in d6["sweep"]]
-    errors = [c["error_rate_given_certified"] for c in d6["sweep"]]
+    joint = [c["joint_wrong_certified_rate"] for c in d6["sweep"]]
+    lo = [c["joint_wrong_certified_ci95"][0] for c in d6["sweep"]]
+    hi = [c["joint_wrong_certified_ci95"][1] for c in d6["sweep"]]
     round_cap = [c["round_cap_exhausted_rate"] for c in d6["sweep"]]
-    resolved_x = [e for e, err in zip(etas, errors, strict=True) if err is not None]
-    resolved_y = [err for err in errors if err is not None]
-    unresolved_x = [e for e, rc in zip(etas, round_cap, strict=True) if rc == 1.0]
-    ax_right.plot(
-        resolved_x,
-        resolved_y,
+    ax_right.errorbar(
+        etas,
+        joint,
+        yerr=[
+            [m - low for m, low in zip(joint, lo, strict=True)],
+            [high - m for m, high in zip(joint, hi, strict=True)],
+        ],
         color=style.COLORS["vermillion"],
         marker="o",
-        markersize=4,
+        markersize=3,
         linewidth=0,
-        label="error rate (certified)",
+        elinewidth=0.7,
+        capsize=1.5,
+        label="P[certified and wrong], exact 95% CI",
         zorder=3,
     )
+    ax_right.axhline(
+        delta, color=style.COLORS["black"], linewidth=0.6, linestyle="--", label="delta"
+    )
+    unresolved_x = [e for e, rc in zip(etas, round_cap, strict=True) if rc == 1.0]
     ax_right.scatter(
         unresolved_x,
-        [0.5] * len(unresolved_x),
+        [0.6] * len(unresolved_x),
         color=style.COLORS["black"],
         marker="x",
         s=12,
-        label="round-cap exhausted\n(no genuine resolution)",
+        label="all runs hit round cap\n(none certified)",
         zorder=3,
     )
     ax_right.set_xlabel("Assumed eta")
-    ax_right.set_ylabel("Error rate given certified")
+    ax_right.set_ylabel("P[certified and wrong]")
     ax_right.set_ylim(-0.05, 1.05)
-    ax_right.set_title("ETS (ours): eta input", fontsize=5.5)
+    ax_right.set_title("ETS (ours): eta input, 20 runs/point", fontsize=5.5)
     ax_right.legend(fontsize=3.0, loc="center right", frameon=False)
 
     fig.suptitle(

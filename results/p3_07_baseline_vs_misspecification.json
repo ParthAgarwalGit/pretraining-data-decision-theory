@@ -1,8 +1,8 @@
 {
   "provenance": {
-    "git_sha": "17cb51b4103c895c0af0bfcfcf39506d41e3b84c",
+    "git_sha": "99a47056062c8e09ac425941442a7012f44dec14",
     "git_dirty": false,
-    "utc_timestamp": "2026-09-11T20:54:08.935638+00:00",
+    "utc_timestamp": "2026-09-19T08:24:43.791065+00:00",
     "python_version": "3.12.10",
     "package_versions": {
       "numpy": "2.5.2",
@@ -38,10 +38,10 @@
         "true_bias": 0.0,
         "true_winner": "leader",
         "accuracy": {
-          "SingleScale": 1.0,
-          "FixedLadderExtrapolation": 1.0,
-          "UniformAllocation": 1.0,
-          "SuccessiveHalvingOverScales": 1.0
+          "SingleScale": 0.8,
+          "FixedLadderExtrapolation": 0.7,
+          "UniformAllocation": 0.7,
+          "SuccessiveHalvingOverScales": 0.8666666666666667
         }
       },
       {
@@ -49,10 +49,10 @@
         "true_bias": 0.025,
         "true_winner": "leader",
         "accuracy": {
-          "SingleScale": 1.0,
-          "FixedLadderExtrapolation": 1.0,
-          "UniformAllocation": 1.0,
-          "SuccessiveHalvingOverScales": 1.0
+          "SingleScale": 0.8,
+          "FixedLadderExtrapolation": 0.7,
+          "UniformAllocation": 0.7,
+          "SuccessiveHalvingOverScales": 0.8666666666666667
         }
       },
       {
@@ -60,10 +60,10 @@
         "true_bias": 0.05,
         "true_winner": "leader",
         "accuracy": {
-          "SingleScale": 1.0,
-          "FixedLadderExtrapolation": 1.0,
-          "UniformAllocation": 1.0,
-          "SuccessiveHalvingOverScales": 1.0
+          "SingleScale": 0.8,
+          "FixedLadderExtrapolation": 0.7,
+          "UniformAllocation": 0.7,
+          "SuccessiveHalvingOverScales": 0.8666666666666667
         }
       },
       {
@@ -71,10 +71,10 @@
         "true_bias": 0.07500000000000001,
         "true_winner": "underdog",
         "accuracy": {
-          "SingleScale": 0.0,
-          "FixedLadderExtrapolation": 0.0,
-          "UniformAllocation": 0.0,
-          "SuccessiveHalvingOverScales": 0.0
+          "SingleScale": 0.2,
+          "FixedLadderExtrapolation": 0.3,
+          "UniformAllocation": 0.3,
+          "SuccessiveHalvingOverScales": 0.13333333333333333
         }
       },
       {
@@ -82,10 +82,10 @@
         "true_bias": 0.1,
         "true_winner": "underdog",
         "accuracy": {
-          "SingleScale": 0.0,
-          "FixedLadderExtrapolation": 0.0,
-          "UniformAllocation": 0.0,
-          "SuccessiveHalvingOverScales": 0.0
+          "SingleScale": 0.2,
+          "FixedLadderExtrapolation": 0.3,
+          "UniformAllocation": 0.3,
+          "SuccessiveHalvingOverScales": 0.13333333333333333
         }
       },
       {
@@ -93,10 +93,10 @@
         "true_bias": 0.15000000000000002,
         "true_winner": "underdog",
         "accuracy": {
-          "SingleScale": 0.0,
-          "FixedLadderExtrapolation": 0.0,
-          "UniformAllocation": 0.0,
-          "SuccessiveHalvingOverScales": 0.0
+          "SingleScale": 0.2,
+          "FixedLadderExtrapolation": 0.3,
+          "UniformAllocation": 0.3,
+          "SuccessiveHalvingOverScales": 0.13333333333333333
         }
       }
     ],
