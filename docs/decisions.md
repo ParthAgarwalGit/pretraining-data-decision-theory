@@ -448,3 +448,49 @@ exponent-based fitters") should be treated as an artifact of the bug, not a real
 
 **Decided by:** Agent. Regeneration run completed cleanly (`git_dirty: false` in the
 written provenance); no code changes in this entry, data only.
+
+---
+
+## 2026-09-19 — Second-round review of the fitter fix: random starts are not enough; "0/18" was mis-stated
+
+**Context:** PR #12's re-review (and the identical blocker restated on #13-#19,
+#27-#34, since they all inherit the fitter blobs) found that the log-uniform
+restart fix repaired the original `PowerLawN` counterexample (100/100 seeds) but
+the compute-based `PowerLawC` still silently fails: noiseless in-family
+`y = 0.9 - 2*C^-0.03` with `default_rng(30)` (and `54`) predicts 0.2463 instead of
+0.4004, all eight restarts "converged", `objective_spread ~ 1e-11`, 2 of 100
+seeds. Reproduced exactly. Randomized starts can only lower the probability that
+every start lands in a flat region, never remove it.
+
+**Fix:** deterministic *informative* starts by variable projection.
+`fitters._power_law_starts` (used by `PowerLawN`, `PowerLawC`, and
+`TwoStepLadder`'s step 1) and `_chinchilla_starts` (`ChinchillaND`) evaluate a
+dense log grid over the exponent(s); for each grid point the linear parameters
+are solved exactly by weighted least squares (then clipped to their bounds), and
+the three lowest-cost grid points become starting points for `least_squares`,
+via a new `multi_start_fit(..., extra_starts=...)` argument, alongside five
+(down from eight) random log-uniform restarts, so per-fit cost is essentially
+unchanged (measured: `ChinchillaND` 602 ms vs 509 ms per fit on a hard synthetic
+curve; power laws 22-240 ms). A start is now informative by construction rather
+than by luck. Verified: 100/100 seeds recover noiseless curves for
+alpha in {0.01, 0.03, 0.1, 0.3, 0.6}, for both N- and compute-based power laws,
+including the reviewer's seeds 30 and 54; `ChinchillaND` recovers across seeds.
+Regression tests added for compute-based models, not just `PowerLawN`
+(`tests/test_scaling.py`).
+
+**Correction to the headline wording (supersedes the phrasing of the
+2026-09-14 entries above, which are left intact per this log's append-only
+rule):** "0/18 (fitter, design) combinations beat single-scale at matched
+compute" counted the six `<=530M` combinations as losses, but those have *no*
+matched-compute comparison at all (`matched_compute_out_of_range: true`,
+`beats: null`) -- a missing comparison is not a negative result. The correct
+statement is **0 wins among the 12 evaluable comparisons, and 6 unassessed**.
+`experiments/p1_04_extrapolation_baselines.py` now reports
+`n_evaluable_at_matched_compute` and `n_unassessed_out_of_range` in its summary
+and headline print; any downstream text still saying "0/18" (notably the Phase-1
+memo, PR #21) must be corrected the same way.
+
+**Not yet done in this entry:** `results/p1_04_extrapolation.json` regeneration
+with the new fitters (running as the next commit), and every downstream result.
+
+**Decided by:** Agent, addressing the PR #12 re-review. Full suite: 149 passed.

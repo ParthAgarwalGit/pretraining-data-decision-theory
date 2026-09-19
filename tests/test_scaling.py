@@ -339,3 +339,66 @@ def test_two_step_ladder_diagnostics_include_both_steps():
     )
     assert "step1" in model.fit_diagnostics
     assert "step2" in model.fit_diagnostics
+
+
+# ---------------------------------------------------------------------------
+# Second-round external review: randomized log-uniform starts still failed
+# on the compute-based PowerLawC (2/100 seeds) -- informative starts fix it.
+# ---------------------------------------------------------------------------
+
+
+def _noiseless_power_law_case(alpha: float, use_compute: bool):
+    ns = np.geomspace(1e6, 1.5e8, 10)
+    scales = [Scale(n=n, d=20 * n) for n in ns]
+    x = np.array([s.compute for s in scales]) if use_compute else ns
+    target = Scale(n=1e9, d=20e9)
+    x_target = target.compute if use_compute else target.n
+    return scales, list(0.9 - 2 * x ** (-alpha)), target, 0.9 - 2 * x_target ** (-alpha)
+
+
+def test_power_law_c_recovers_the_reviewers_exact_failing_seeds():
+    # Reproduction from the review: default_rng(30) and default_rng(54)
+    # predicted 0.2463 instead of 0.4004 with every restart "converged".
+    scales, ys, target, truth = _noiseless_power_law_case(0.03, use_compute=True)
+    for seed in (30, 54):
+        model = fitters.PowerLawC(rng=np.random.default_rng(seed)).fit(scales, ys)
+        assert model.predict(target) == pytest.approx(truth, abs=1e-3)
+
+
+@pytest.mark.parametrize("use_compute", [False, True], ids=["PowerLawN", "PowerLawC"])
+@pytest.mark.parametrize("alpha", [0.01, 0.03, 0.1, 0.3, 0.6])
+def test_power_law_recovers_noiseless_curves_across_many_seeds(alpha, use_compute):
+    scales, ys, target, truth = _noiseless_power_law_case(alpha, use_compute)
+    cls = fitters.PowerLawC if use_compute else fitters.PowerLawN
+    for seed in range(40):
+        model = cls(rng=np.random.default_rng(seed)).fit(scales, ys)
+        assert model.predict(target) == pytest.approx(truth, abs=1e-3), f"seed {seed}"
+
+
+def test_chinchilla_nd_recovers_a_noiseless_curve_across_seeds():
+    ns = np.geomspace(1e6, 1.5e8, 10)
+    scales = [Scale(n=n, d=20 * n) for n in ns]
+    ys = list(0.9 - 2 * ns ** (-0.1) - 3 * (20 * ns) ** (-0.15))
+    target = Scale(n=1e9, d=20e9)
+    truth = 0.9 - 2 * target.n ** (-0.1) - 3 * target.d ** (-0.15)
+    for seed in range(8):
+        model = fitters.ChinchillaND(rng=np.random.default_rng(seed)).fit(scales, ys)
+        assert model.predict(target) == pytest.approx(truth, abs=5e-3), f"seed {seed}"
+
+
+def test_multi_start_fit_refines_deterministic_extra_starts_first():
+    # A start placed exactly at the optimum must be refined and win even
+    # when zero random restarts are requested.
+    def residual(theta):
+        return np.array([theta[0] - 3.0, theta[1] + 1.0])
+
+    theta, diag = multi_start_fit(
+        residual,
+        2,
+        (np.array([-10.0, -10.0]), np.array([10.0, 10.0])),
+        np.random.default_rng(0),
+        n_restarts=0,
+        extra_starts=(np.array([3.0, -1.0]),),
+    )
+    assert theta == pytest.approx([3.0, -1.0])
+    assert diag["n_restarts"] == 1
