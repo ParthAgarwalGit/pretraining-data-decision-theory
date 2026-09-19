@@ -127,7 +127,31 @@ def bias_variance_decomposition(
 
         v_hat = Var_b[mu_hat^(b)]
         bias_hat = mean_b[mu_hat^(b)] - mu_true
-        sigma2_extrap_hat = max(0, bias_hat^2 - v_hat/B - sigma2_target)
+        sigma2_extrap_hat = max(0, bias_hat^2 - v_hat - v_hat/B - sigma2_target)
+
+    `bias_hat` is not a clean estimate of the true (structural,
+    non-random) extrapolation bias -- it is `mean_pred - mu_true`, and
+    `mean_pred` is itself a noisy proxy for the *original* (unresampled)
+    fit's prediction `mu_hat_orig`, which is itself a noisy estimate of
+    whatever the fitter's functional form converges to. Squaring it
+    without correcting picks up two extra variance terms on top of the
+    genuine squared bias:
+
+    - `v_hat / B`: `mean_pred` averages B bootstrap replicates each with
+      variance `v_hat`, so it carries finite-B Monte Carlo noise around
+      `mu_hat_orig` of its own -- this shrinks to 0 as B grows.
+    - `v_hat` (not `v_hat / B`): `v_hat` is the bootstrap's standard
+      estimate of `mu_hat_orig`'s own sampling variance (the whole point
+      of resampling), so `mu_hat_orig` itself deviates from whatever it's
+      converging to by a term with this variance -- and this does NOT
+      vanish as B grows, since B controls only how well `mean_pred`
+      estimates `mu_hat_orig`, not how well `mu_hat_orig` estimates the
+      underlying quantity. Dropping this term (as an earlier version of
+      this function did) meant `sigma2_extrap_hat` stayed inflated by
+      `v_hat` even in the B -> infinity limit, i.e. it would report a
+      positive "extrapolation bias" for an estimator that is actually
+      unbiased with zero structural bias, purely from its own sampling
+      noise. See docs/decisions.md.
 
     Generic over what "mu_true" and the replicate series mean -- called
     once per recipe for the marginal decomposition, and again on the
@@ -148,7 +172,7 @@ def bias_variance_decomposition(
     mean_pred = sum(replicate_predictions) / b
     v_hat = sum((p - mean_pred) ** 2 for p in replicate_predictions) / (b - 1)
     bias_hat = mean_pred - mu_true
-    sigma2_extrap_hat = max(0.0, bias_hat**2 - v_hat / b - sigma2_target)
+    sigma2_extrap_hat = max(0.0, bias_hat**2 - v_hat - v_hat / b - sigma2_target)
 
     return {
         "n_replicates": b,
