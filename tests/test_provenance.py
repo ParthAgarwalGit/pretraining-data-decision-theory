@@ -195,3 +195,17 @@ def test_cli_validate_returns_validate_result(tmp_path, monkeypatch):
 
 def test_cli_with_no_args_returns_nonzero():
     assert provenance._cli([]) == 1
+
+
+def test_write_result_compact_indent_none_is_single_line_and_round_trips(tmp_path):
+    import json
+
+    out = tmp_path / "compact.json"
+    provenance.write_result(
+        out, payload={"a": [1, 2, 3], "b": {"c": 1.5}}, config={"seed": 1}, indent=None
+    )
+
+    text = out.read_text(encoding="utf-8")
+    assert text.count("\n") == 1  # one JSON line + trailing newline
+    assert json.loads(text)["data"] == {"a": [1, 2, 3], "b": {"c": 1.5}}
+    assert "\n  " not in text
