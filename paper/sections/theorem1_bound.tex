@@ -12,7 +12,8 @@
 % (`exp(-Delta_k^2/(2*(sigma2_extrap_k+v_k)))`, additive in
 % sigma^2_extrap), and not the form already implemented as
 % `marginal_bound_term`/`pairwise_bound_term` in src/pdt/theory/bound.py
-% (used throughout P1-07/P1-08). That additive form was checked with
+% as first shipped (used in the first P1-07/P1-08 runs; since corrected to the
+% gap-reduction form by PR #17). That additive form was checked with
 % tests/theory/test_theorem1.py's numerical certificate and found to be a
 % genuinely INVALID worst-case bound -- see the remark after the proof, and
 % docs/decisions.md, 2026-09-10, for the full account of how this was
@@ -85,8 +86,9 @@ $\sigma^2_{\mathrm{extrap}, k}(S_{\mathrm{fit}})$ does not depend on $C$ at all.
 
 \begin{remark}[This is not the additive form]
 \label{rem:not-additive}
-An earlier draft of this bound (and \texttt{src/pdt/theory/bound.py}'s already-shipped
-\texttt{marginal\_bound\_term}, used throughout P1-07/P1-08's analysis) instead adds
+An earlier draft of this bound (and \texttt{src/pdt/theory/bound.py}'s originally shipped
+\texttt{marginal\_bound\_term}, used in the first P1-07/P1-08 runs; PR~\#17 has since corrected
+the plug-in to the gap-reduction form) instead adds
 $\sigma^2_{\mathrm{extrap}, k}$ directly into the denominator,
 $\exp(-\Delta_k^2 / (2(\sigma^2_{\mathrm{extrap}, k} + v_k)))$, using only arm $k$'s own
 quantities. \textbf{This additive form is not a valid worst-case bound}: a concrete
