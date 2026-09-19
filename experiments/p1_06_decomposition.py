@@ -257,8 +257,38 @@ def _compact_decomposition(decomp: dict) -> dict:
         "v_hat": _round_sigfigs(decomp["v_hat"]),
         "bias_hat": _round_sigfigs(decomp["bias_hat"]),
         "sigma2_extrap_hat": _round_sigfigs(decomp["sigma2_extrap_hat"]),
+        # The (approximately) unbiased squared-bias estimator, before the
+        # max(0, .) clip that makes sigma2_extrap_hat a nonnegative
+        # HEURISTIC biased upward for small true bias (second-round review
+        # of PR #16): anything averaging many cells to estimate a mean
+        # squared bias must use this field, not sigma2_extrap_hat.
+        "sigma2_extrap_unclipped": _round_sigfigs(decomp["sigma2_extrap_unclipped"]),
         "insufficient_replicates": False,
     }
+
+
+def _variance_inflation(work: _ComboWork) -> float:
+    """`n / (n - 1)` for the seed bootstrap (n = seeds actually resampled at
+    every scale of every recipe); 1.0 for the parametric bootstrap, whose
+    `v_hat` is a model-based variance, not the plug-in variance of an
+    n-observation resample. See `bootstrap.seed_bootstrap_variance_inflation`.
+    Applied identically to the marginal and the pairwise (paired-seed
+    difference) decompositions -- a difference of two seed-means resampled
+    with the same index pattern is itself an n-out-of-n bootstrap of the
+    n paired differences."""
+    if work.scheme != "seed_bootstrap":
+        return 1.0
+    counts = {
+        len(seed_values)
+        for trajectory in work.seed_trajectory.values()
+        for _, seed_values in trajectory
+    }
+    if len(counts) != 1:
+        raise ValueError(
+            f"seed counts differ across (recipe, scale) cells {sorted(counts)} -- the shared "
+            "resample pattern (and the n/(n-1) calibration) require one common n"
+        )
+    return bs.seed_bootstrap_variance_inflation(counts.pop())
 
 
 def _run_one_combo(work: _ComboWork) -> dict:
@@ -275,6 +305,7 @@ def _run_one_combo(work: _ComboWork) -> dict:
     # decomposition below needs to intersect by replicate id since
     # different recipes' fits can fail on different replicates.
     replicate_predictions: dict[str, list[tuple[int, float]]] = {r: [] for r in recipes}
+    variance_inflation = _variance_inflation(work)
     n_attempted = 0
     n_failed = 0
 
@@ -331,7 +362,10 @@ def _run_one_combo(work: _ComboWork) -> dict:
             }
             continue
         decomp = bs.bias_variance_decomposition(
-            preds, work.mu_true[recipe], work.sigma2_target.get(recipe, 0.0)
+            preds,
+            work.mu_true[recipe],
+            work.sigma2_target.get(recipe, 0.0),
+            variance_inflation=variance_inflation,
         )
         marginal[recipe] = _compact_decomposition(decomp)
 
@@ -352,7 +386,12 @@ def _run_one_combo(work: _ComboWork) -> dict:
         pairwise_sigma2_target = work.sigma2_target.get(work.k_star, 0.0) + work.sigma2_target.get(
             recipe, 0.0
         )
-        decomp = bs.bias_variance_decomposition(d_k_replicates, true_gap, pairwise_sigma2_target)
+        decomp = bs.bias_variance_decomposition(
+            d_k_replicates,
+            true_gap,
+            pairwise_sigma2_target,
+            variance_inflation=variance_inflation,
+        )
         pairwise[recipe] = _compact_decomposition(decomp)
 
     return {
@@ -537,10 +576,15 @@ def main() -> None:
         "dataset_revision_macro_avg": dd.cached_revision("macro_avg"),
     }
 
+    # indent=None: the per-recipe entries (now with sigma2_extrap_unclipped)
+    # would push the pretty-printed file past the repository's 5MB
+    # check-added-large-files limit; a machine-generated results table of
+    # ~20k small dicts gains nothing from one-field-per-line formatting.
     provenance.write_result(
         "results/p1_06_decomposition.json",
         payload=payload,
         config={"task": "P1-06"},
+        indent=None,
     )
     print("wrote results/p1_06_decomposition.json")
 

@@ -1097,3 +1097,67 @@ introduced.
 `results/p1_08_ceiling_prediction.json`, and every other downstream
 results file computed from P1-06's output still need regenerating once
 their own branches merge this fix forward.
+
+---
+
+## 2026-09-19 — Second-round review of P1-06's squared-bias correction: calibrate v_hat for the n=3 bootstrap
+
+**Context:** PR #16's re-review accepted the direction of the previous fix
+(subtract the original estimator's own sampling variance) but showed it is
+mis-calibrated for the *actual* resampling scheme. n-out-of-n bootstrap
+variance of a sample mean is the plug-in variance `s_plug^2/n`, a factor
+`(n-1)/n` below the unbiased `sigma^2/n`. With n=3 real seeds, `E[v_hat] = 2/9`
+against a true `Var(original mean) = 1/3`, so after subtracting `v_hat` the
+unclipped correction still has expectation `1/9` when the true squared bias is
+zero. Reproduced independently on 20,000 three-observation datasets with the
+shipped function (B=200): mean `v_hat` 0.2225, mean unclipped correction
++0.106, and the *clipped* reported value averaged 0.218 -- the earlier
+alternating-values regression test could not detect this because it never
+repeated across independent datasets.
+
+**Fix:** `bias_variance_decomposition(..., variance_inflation=...)` now
+subtracts `variance_inflation * v_hat`; the seed bootstrap passes
+`bootstrap.seed_bootstrap_variance_inflation(n_seeds) = n/(n-1)` (3/2 for three
+seeds), for both the marginal and the pairwise (paired-seed difference)
+decomposition, since a difference of two seed-means resampled with the same index
+pattern is itself an n-out-of-n bootstrap of the n paired differences. The
+parametric bootstrap uses 1.0: its `v_hat` is a model-based variance, not the
+plug-in variance of an n-observation resample. `p1_06_decomposition._variance_inflation`
+computes n from the data and raises if seed counts differ across cells.
+
+**What is and isn't justified.** Exact for a sample mean. For the smooth fits used
+here it is the first-order (delta-method) statement of the same fact, and is an
+approximation at n=3 and for boundary-pinned or otherwise non-smooth fits -- an
+approximation, not a proof, and documented as such in the function docstrings.
+
+**Clipped vs unbiased, now distinguished.** Results carry
+`sigma2_extrap_unclipped` (the approximately unbiased squared-bias estimate,
+negative about half the time when the true bias is small) alongside
+`sigma2_extrap_hat = max(0, .)`, a nonnegative *heuristic* biased upward for
+small true bias (E[max(0,X)] > E[X]; checked directly: mean clipped value > 0.05
+with zero true bias). Any average over cells that is meant to estimate a mean
+squared bias -- including the `ratio_vs_compute` medians -- should be read with
+that in mind, and consumers wanting an estimate rather than a floor should use
+the unclipped field.
+
+**Validation across independent datasets (not one hand-built series):**
+`tests/test_bootstrap.py` simulates 3,000 independent three-observation datasets:
+without the calibration the mean unclipped estimate is > 0.08 and > 8 standard
+errors above 0; with n/(n-1) it is within 4 standard errors of 0 (and within
+0.03). The first, reproducing the reviewer's number, is asserted as a regression
+guard so the defect cannot silently return.
+
+**Mechanical:** the added field would push the pretty-printed
+`results/p1_06_decomposition.json` (already 4.9 MB) past the repository's 5 MB
+`check-added-large-files` limit, so `provenance.write_result` gained
+`indent=None` (compact single-line output; default unchanged) and this one
+script uses it.
+
+**Also corrected:** `bootstrap.py`'s module docstring still said both schemes
+share one draw across recipes, which stopped being true for the parametric scheme
+in the previous fix.
+
+**Not yet done in this entry:** `results/p1_06_decomposition.json` regeneration
+(requires the new fitters merged in first) and `docs/findings/p1_06.md`.
+
+**Decided by:** Agent, addressing the PR #16 re-review.
