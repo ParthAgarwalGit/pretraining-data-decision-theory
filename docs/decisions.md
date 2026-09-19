@@ -1230,3 +1230,19 @@ and `71f659e1a21f980c86f4bf940d7baf33d719985e` (the updated card).
 describing exactly what would be pushed (the 11 already-provenance-validated
 result files plus an updated dataset card) before any Hub-side action was
 taken.
+
+## 2026-09-19 — Phase-1 memo and p1_06 findings: remove theory-validation inference from a vacuous bound (PR #21)
+
+Review findings, both accepted: (1) all 396 bounds are >= 1, so every empirical error probability
+passes, and "never violated" cannot be read as confirmation (the additive form is in fact invalid --
+PR #17, acknowledged in PR #23); (2) six <=530M combinations have no matched-compute comparison and
+must be reported as unassessed, not as losses. `docs/findings/phase1_memo.md`,
+`docs/findings/p1_06.md` and `STATUS.md` rewritten: **0 wins among 12 evaluable comparisons plus 6
+unassessed**; the `sigma2_extrap = 0` counterfactual is called inconclusive (vacuous bound, unmatched
+single-scale endpoint baseline); the "18/18 (now 17/18)" wording removed. The memo is marked provisional
+for P1-06/07/08 numbers until those results are regenerated on the repaired fitters and the
+bootstrap-calibration/identifiability fixes. The HF publication (P1-12) was performed earlier with
+PI confirmation; it is **not** re-run here -- re-publishing the regenerated derived tables needs a new PI
+decision.
+
+**Decided by:** Agent, following the review.
