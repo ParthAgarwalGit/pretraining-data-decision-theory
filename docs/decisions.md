@@ -494,3 +494,16 @@ memo, PR #21) must be corrected the same way.
 with the new fitters (running as the next commit), and every downstream result.
 
 **Decided by:** Agent, addressing the PR #12 re-review. Full suite: 149 passed.
+
+## 2026-09-19 — P1-04 regenerated with variable-projection fitter starts (PR #12)
+
+`results/p1_04_extrapolation.json` was regenerated on a clean tree
+(`git_dirty: false`, `git_sha` b0d1deb) with the robust power-law starts. Headline: **0 / 12
+evaluable (fitter, design) combinations beat the single-scale frontier at matched compute; 6 more
+have no matched-compute comparison** (the design's compute lies past the single-scale frontier's
+range) and are *unassessed*, not losses. Accuracy for the seven power-law-family combinations that
+the reviewers' seeds 30/54 had previously mis-fit moved in the expected direction; the qualitative
+conclusion (extrapolation does not beat single-scale at matched compute on this data) is unchanged,
+now resting on fits that recover the true optimum on a 100/100-seed sweep.
+
+**Decided by:** Agent, following the second-round review.
