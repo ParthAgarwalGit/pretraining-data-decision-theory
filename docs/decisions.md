@@ -1060,3 +1060,17 @@ regenerating once this branch merges past `phase1/bias-variance` and
 `phase1/bound-check`'s own upstream fixes and regenerations.
 
 **Decided by:** Agent, addressing PR #18's review. Full suite: 203 passed.
+
+## 2026-09-19 — P1-08: label budgets, and unassessed is not "lost" (PR #18)
+
+The observed "extrapolation beats single-scale" comparison uses P1-04's matched-compute
+baseline and is now `None` (was `False`) when a design's compute is out of range, with
+`summary.n_observed_evaluable_at_matched_compute` / `n_observed_unassessed_out_of_range` /
+`n_observed_extrapolation_beats_matched_single_scale` reported alongside. The predicted and
+counterfactual comparisons cannot be matched-compute (P1-07 evaluated single-scale only at the
+three endpoint models), so every central claim carries `predicted_comparison_budget: "unmatched: ..."`
+and the summary says so; consumers (F3, the Phase-1 memo) must not present them as matched.
+`results/p1_08_ceiling_prediction.json` is regenerated last in the Phase-1 chain, after P1-04/06/07
+have been regenerated on the fixed fitters.
+
+**Decided by:** Agent, following the review.

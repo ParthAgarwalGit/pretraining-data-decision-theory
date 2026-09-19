@@ -11,8 +11,10 @@ from __future__ import annotations
 import pytest
 
 from experiments.p1_08_ceiling_prediction import (
+    _PREDICTED_BUDGET_LABEL,
     _macro_average_optional,
     _matched_compute_single_scale,
+    _observed_beats_matched,
     _observed_best_arm_accuracy_per_task,
 )
 
@@ -101,3 +103,23 @@ def test_matched_compute_single_scale_flags_out_of_range_designs():
     accuracy, out_of_range = _matched_compute_single_scale("PowerLawN", "design-a", p1_04)
     assert accuracy is None
     assert out_of_range is True
+
+
+# ---------------------------------------------------------------------------
+# _observed_beats_matched() / budget labels -- second-round review of PR #21:
+# a missing matched comparison is "unassessed", never a loss.
+# ---------------------------------------------------------------------------
+
+
+def test_observed_beats_matched_none_when_no_matched_baseline():
+    assert _observed_beats_matched(0.9, None) is None
+
+
+def test_observed_beats_matched_is_a_real_bool_otherwise():
+    assert _observed_beats_matched(0.9, 0.8) is True
+    assert _observed_beats_matched(0.7, 0.8) is False
+    assert _observed_beats_matched(0.8, 0.8) is False  # ties are not wins
+
+
+def test_predicted_comparison_budget_label_says_unmatched():
+    assert _PREDICTED_BUDGET_LABEL.startswith("unmatched")

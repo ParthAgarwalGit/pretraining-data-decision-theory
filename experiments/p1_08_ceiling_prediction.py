@@ -44,6 +44,15 @@ documented as NOT the valid ceiling diagnostic -- they remain useful for
 the separate, internally-consistent "does extrapolation's all-pairs
 accuracy beat single-scale's all-pairs accuracy" central claim, where both
 sides use the same statistic.
+
+**Budgets.** Only the OBSERVED comparison (`extrapolation_beats_single_scale_observed`)
+is matched compute: it uses P1-04's log-compute-interpolated single-scale baseline
+and is `None` -- unassessed, not a loss -- for designs past that baseline's range.
+The PREDICTED and COUNTERFACTUAL comparisons pit extrapolation's bound (its whole
+ladder's compute) against `ConstantExtrapolator`'s bound at the design's endpoint
+model only, so they are labeled `predicted_comparison_budget = "unmatched..."` in
+every central claim and in the summary; they are diagnostics of what the bias term
+does to the bound, not compute-matched claims.
 """
 
 from __future__ import annotations
@@ -68,6 +77,16 @@ _FITTERS = (
     "LogLinear",
 )
 _EXTRAPOLATION_FITTERS = tuple(f for f in _FITTERS if f != "ConstantExtrapolator")
+
+#: The predicted / counterfactual comparisons pit extrapolation's bound-based
+#: accuracy (its whole fitting ladder's compute) against `ConstantExtrapolator`'s
+#: bound-based accuracy at the design's ENDPOINT model only (one model's
+#: compute). There is no matched-compute interpolation for a bound (P1-07 ran
+#: single-scale only at the three endpoints), so these comparisons are NOT
+#: matched compute and say so; only the observed comparison is.
+_PREDICTED_BUDGET_LABEL = (
+    "unmatched: extrapolation ladder compute vs single-scale endpoint-only compute"
+)
 
 _P1_03_PATH = "results/p1_03_single_scale.json"
 _P1_04_PATH = "results/p1_04_extrapolation.json"
@@ -173,6 +192,17 @@ def _matched_compute_single_scale(
         entry["matched_single_scale_accuracy_including_ties"],
         entry["matched_compute_out_of_range"],
     )
+
+
+def _observed_beats_matched(observed: float, matched: float | None) -> bool | None:
+    """Whether extrapolation's observed accuracy beats the matched-compute
+    single-scale baseline -- `None` (not `False`) when there is no matched
+    baseline (the design's compute is past P1-03's single-scale range). A
+    missing comparison is not a loss (second-round review of PR #21: report "0
+    wins among 12 evaluable + 6 unassessed", never "18 losses")."""
+    if matched is None:
+        return None
+    return observed > matched
 
 
 def _counterfactual_predicted_accuracy_per_task(
@@ -327,13 +357,20 @@ def main() -> None:
                 and single_scale_predicted is not None
                 and entry["predicted_accuracy"] > single_scale_predicted
             )
-            extrapolation_beats_single_scale_observed = (
-                matched_single_scale_observed is not None
-                and entry["observed_accuracy"] > matched_single_scale_observed
+            extrapolation_beats_single_scale_observed = _observed_beats_matched(
+                entry["observed_accuracy"], matched_single_scale_observed
             )
             central_claims.append(
                 {
                     "design": design,
+                    # Budget of each comparison family, stated per claim so no
+                    # consumer can read the wrong one as matched compute.
+                    "observed_comparison_budget": (
+                        "unassessed: out of P1-03 single-scale range"
+                        if matched_compute_out_of_range
+                        else "matched compute (P1-04 log-compute-interpolated baseline)"
+                    ),
+                    "predicted_comparison_budget": _PREDICTED_BUDGET_LABEL,
                     "extrapolation_fitter": fitter,
                     "single_scale_predicted": single_scale_predicted,
                     # ConstantExtrapolator's own accuracy AT THIS DESIGN's
@@ -377,8 +414,21 @@ def main() -> None:
         if c["counterfactual_beats_single_scale_counterfactual"]
         and not c["extrapolation_beats_single_scale_predicted"]
     )
+    n_observed_evaluable = sum(
+        1 for c in central_claims if c["extrapolation_beats_single_scale_observed"] is not None
+    )
+    n_observed_unassessed = len(central_claims) - n_observed_evaluable
+    n_observed_wins = sum(
+        1 for c in central_claims if c["extrapolation_beats_single_scale_observed"] is True
+    )
     print(
-        f"p1_08_ceiling_prediction: {n_counterfactual_flips_real}/{len(central_claims)} pairs flip "
+        f"p1_08_ceiling_prediction: observed accuracy vs matched-compute single-scale: "
+        f"{n_observed_wins} / {n_observed_evaluable} evaluable wins "
+        f"({n_observed_unassessed} more unassessed, out of range -- not losses)"
+    )
+    print(
+        f"p1_08_ceiling_prediction: [UNMATCHED budget] "
+        f"{n_counterfactual_flips_real}/{len(central_claims)} pairs flip "
         f"vs single-scale's real predicted accuracy; "
         f"{n_counterfactual_flips_apples_to_apples}/{len(central_claims)} flip vs single-scale's "
         "OWN bias-free counterfactual (apples-to-apples) under the sigma2_extrap=0 counterfactual"
@@ -394,6 +444,10 @@ def main() -> None:
         "central_claims": central_claims,
         "summary": {
             "n_central_claims": len(central_claims),
+            "n_observed_evaluable_at_matched_compute": n_observed_evaluable,
+            "n_observed_unassessed_out_of_range": n_observed_unassessed,
+            "n_observed_extrapolation_beats_matched_single_scale": n_observed_wins,
+            "predicted_comparison_budget": _PREDICTED_BUDGET_LABEL,
             "n_counterfactual_flips_vs_single_scale_real": n_counterfactual_flips_real,
             "n_counterfactual_flips_vs_single_scale_counterfactual": (
                 n_counterfactual_flips_apples_to_apples
