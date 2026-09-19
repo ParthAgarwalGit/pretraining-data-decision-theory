@@ -1,0 +1,202 @@
+{
+  "provenance": {
+    "git_sha": "b7ab733345759a11fef1d127f0feb65bf39d0fbf",
+    "git_dirty": false,
+    "utc_timestamp": "2026-09-19T08:21:31.798886+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "P3-07-F7",
+      "n_restarts": 6,
+      "n_iter": 2000
+    }
+  },
+  "data": {
+    "fit_scales": [
+      {
+        "n": 1000000.0,
+        "d": 20000000.0
+      },
+      {
+        "n": 3000000.0,
+        "d": 60000000.0
+      },
+      {
+        "n": 10000000.0,
+        "d": 200000000.0
+      },
+      {
+        "n": 30000000.0,
+        "d": 600000000.0
+      }
+    ],
+    "target_scale": {
+      "n": 1000000000.0,
+      "d": 20000000000.0
+    },
+    "sigma2": 0.0001,
+    "note": "solve_allocation has no dependence on the confidence level delta -- only on the per-challenger gaps Delta_k -- per Track-and-Stop's classical shape/delta-independence property (Garivier & Kaufmann 2016). Regimes here sweep Delta_k; compute_vs_delta_at_fixed_shape shows the separate, genuinely delta-dependent quantity (total compute) at one fixed shape. See this script's own module docstring and docs/decisions.md.",
+    "allocation_caveat": "compute_share_by_scale is solve_allocation's own heuristic solution (validated-reasonable, not certified globally optimal -- see src/pdt/bai/allocation.py's docstring) and covers only the challenger arms (k1, k2); k*'s own allocation share is never part of this program and is not reported here. Not evidence of a provably optimal full-instance BAI allocation -- see this script's own module docstring.",
+    "regimes": {
+      "well_separated": {
+        "deltas": {
+          "k1": 0.3,
+          "k2": 0.5
+        },
+        "rate": 2.3785885100878556e-16,
+        "t_star": 4204174012271942.0,
+        "arm_rates": {
+          "k1": 2.3876737951441397e-16,
+          "k2": 2.3785885100878556e-16
+        },
+        "weight_by_scale": {
+          "k1": {
+            "1000000.0": 1.6098097050796112e-16,
+            "3000000.0": 1.1930004514003226e-16,
+            "10000000.0": 1.772243001690069e-17,
+            "30000000.0": 3.079368608056772e-18
+          },
+          "k2": {
+            "1000000.0": 4.9355087838111934e-17,
+            "3000000.0": 3.379540630604382e-17,
+            "10000000.0": 1.0416666666666666e-23,
+            "30000000.0": 2.4460693570719385e-18
+          }
+        },
+        "compute_share_by_scale": {
+          "k1": {
+            "1000000.0": 0.027859302370048595,
+            "3000000.0": 0.1858141628694564,
+            "10000000.0": 0.3067036650449592,
+            "30000000.0": 0.47962286971553575
+          },
+          "k2": {
+            "1000000.0": 0.01931723214236078,
+            "3000000.0": 0.11904554602162433,
+            "10000000.0": 4.0770096248153916e-07,
+            "30000000.0": 0.8616368141350523
+          }
+        },
+        "message": "projected subgradient ascent: 6 restarts x 2000 iterations -- budget exhausted without reaching a near-stationary point on the best restart; treat the returned rate as a heuristic value from wherever the search stopped, not a certified T* optimum"
+      },
+      "close_top_two": {
+        "deltas": {
+          "k1": 0.03,
+          "k2": 0.5
+        },
+        "rate": 3.3841852894859684e-18,
+        "t_star": 2.95492094687254e+17,
+        "arm_rates": {
+          "k1": 3.3841852894859684e-18,
+          "k2": 8.81440759014809e-18
+        },
+        "weight_by_scale": {
+          "k1": {
+            "1000000.0": 2.497754589138505e-16,
+            "3000000.0": 2.1445873645072664e-16,
+            "10000000.0": 4.214707292104358e-17,
+            "30000000.0": 2.011224936082025e-18
+          },
+          "k2": {
+            "1000000.0": 2.6585634878143853e-17,
+            "3000000.0": 4.510872003271301e-18,
+            "10000000.0": 4.803098233838164e-19,
+            "30000000.0": 1.4894496154218778e-20
+          }
+        },
+        "compute_share_by_scale": {
+          "k1": {
+            "1000000.0": 0.030442921513953242,
+            "3000000.0": 0.23524630718835288,
+            "10000000.0": 0.5136933942820772,
+            "30000000.0": 0.2206173770156167
+          },
+          "k2": {
+            "1000000.0": 0.20669985843697714,
+            "3000000.0": 0.3156429958883642,
+            "10000000.0": 0.37343464978127255,
+            "30000000.0": 0.10422249589338609
+          }
+        },
+        "message": "projected subgradient ascent: 6 restarts x 2000 iterations -- budget exhausted without reaching a near-stationary point on the best restart; treat the returned rate as a heuristic value from wherever the search stopped, not a certified T* optimum"
+      },
+      "both_close": {
+        "deltas": {
+          "k1": 0.03,
+          "k2": 0.05
+        },
+        "rate": 2.373565282459466e-18,
+        "t_star": 4.213071396813697e+17,
+        "arm_rates": {
+          "k1": 2.387717278200071e-18,
+          "k2": 2.373565282459466e-18
+        },
+        "weight_by_scale": {
+          "k1": {
+            "1000000.0": 1.7317396528199267e-16,
+            "3000000.0": 1.333825127791763e-16,
+            "10000000.0": 2.28796306084375e-17,
+            "30000000.0": 2.3579755408348606e-18
+          },
+          "k2": {
+            "1000000.0": 4.8902635005684165e-17,
+            "3000000.0": 3.372997578021833e-17,
+            "10000000.0": 1.0416666666666666e-23,
+            "30000000.0": 2.4412247186103494e-18
+          }
+        },
+        "compute_share_by_scale": {
+          "k1": {
+            "1000000.0": 0.02994142846632008,
+            "3000000.0": 0.20755410102663435,
+            "10000000.0": 0.39558418731293715,
+            "30000000.0": 0.3669202831941084
+          },
+          "k2": {
+            "1000000.0": 0.019180695400129344,
+            "3000000.0": 0.11906678486691312,
+            "10000000.0": 4.085647131177911e-07,
+            "30000000.0": 0.8617521111682445
+          }
+        },
+        "message": "projected subgradient ascent: 6 restarts x 2000 iterations -- budget exhausted without reaching a near-stationary point on the best restart; treat the returned rate as a heuristic value from wherever the search stopped, not a certified T* optimum"
+      }
+    },
+    "compute_vs_delta_at_fixed_shape": {
+      "regime": "well_separated",
+      "points": [
+        {
+          "delta": 0.2,
+          "required_compute": 6766357045820650.0
+        },
+        {
+          "delta": 0.1,
+          "required_compute": 9680468409010340.0
+        },
+        {
+          "delta": 0.05,
+          "required_compute": 1.2594579772200028e+16
+        },
+        {
+          "delta": 0.01,
+          "required_compute": 1.936093681802068e+16
+        },
+        {
+          "delta": 0.001,
+          "required_compute": 2.904140522703102e+16
+        }
+      ]
+    }
+  }
+}
