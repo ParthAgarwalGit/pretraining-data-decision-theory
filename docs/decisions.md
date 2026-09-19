@@ -1330,3 +1330,22 @@ anticipates ("A theorem that fails its numerical check is wrong, and finding tha
 now is worth more than a month of proof-writing"), now applied to a formula already
 relied on by two merged-into-the-open-PR-stack tasks (P1-07, P1-08), not just a fresh
 draft.
+
+## 2026-09-19 — Theorem 1: restrict the finite-sample claim; consistency is sufficient, not iff (PR #23)
+
+Review findings on `paper/sections/theorem1_bound.tex`: (1) smoothness and a bounded Jacobian do
+not make a nonlinear least-squares prediction exactly sub-Gaussian around the population
+projection with its delta-method variance, yet the theorem asserted an exact finite-`C` bound;
+(2) the consistency "iff" was wrong -- `D_k -> D_k^dagger` does not imply `D_k > 0` eventually iff
+`D_k^dagger > 0` (a limiting tie resolved in favour of the true winner is consistent).
+
+Changes: Theorem 1 is now stated as **(i) proved** for a linear-in-`theta` family with independent
+sub-Gaussian noise, and **(ii) conditional** on an explicit concentration hypothesis (H) (centre
+shift `rho_k`, variance proxy `bar v_k`) for nonlinear `g`; every nonlinear use (`pdt.theory.bound`,
+P1-07/P1-08) is documented as an empirical diagnostic taking `rho_k = 0`, `bar v_k = v_k`. The
+numerical certificate is scoped to case (i). Corollary 1 is now (a) sufficient strict positivity,
+(b) failure when `D_k^dagger < 0`, (c) the tie boundary left open, with convergence stated in
+probability (not a.s.) and proved from the sub-Gaussian tail. No new result is claimed; claims
+were narrowed to what the argument supports.
+
+**Decided by:** Agent, following the review.
