@@ -1182,3 +1182,18 @@ conclusive enough), then repeating after each change until the render
 matched expectations -- the same "read the actual output, don't trust
 the code" discipline this project has applied to every prior task's
 results files, applied here to a visual artifact instead of a number.
+
+## 2026-09-19 — F3: separate the two decision events (PR #20)
+
+F3 plotted the plug-in bound (a lower bound on P(select the single best arm)) and the observed
+fraction of correctly ordered recipe *pairs* on one "Decision accuracy" axis as predicted vs observed --
+different events, not comparable. F3 is now two panels: **A** best-arm selection (plug-in lower
+bound, the `sigma2_extrap = 0` counterfactual, and P1-07's Monte-Carlo P(argmax = k*), all the same
+event); **B** all-pairs ordering accuracy (observed only, labeled a different event; there is no
+bound for it). `generate()` raises if `results/p1_08_ceiling_prediction.json` lacks
+`observed_best_arm_accuracy` (i.e. predates PR #18's same-event fix) rather than plotting stale data;
+unassessed (`None`) cells are omitted, not drawn as zero. `paper/figures/f3_predicted_vs_observed.pdf`
+must be regenerated once P1-08 has been regenerated on the fixed upstream chain; until then the
+committed PDF is the old, mislabeled one and should not be cited.
+
+**Decided by:** Agent, following the review.
