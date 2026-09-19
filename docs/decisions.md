@@ -3268,3 +3268,38 @@ is a delta-level statement under A1-A4, not an unconditional guarantee for the a
 `paper/sections/theorem4_algorithm.tex` (PR #26) is being brought into line with this scope.
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-19 — P3-05 replay regenerated on the corrected wrappers and the known-noise ETS (PR #31)
+
+`results/p3_05_replay.json` regenerated on a clean tree (`git_dirty: false`) with the guarded baseline
+oracle, complete seed remapping, the explicit pool-exhausted outcome (no recycling of already-observed values),
+and the known-`sigma2` ETS rule (`sigma2 = 1e-4` here is an *approximation* of the real seed noise, which is not known
+exactly -- so this real-data run does not satisfy A1 of the certification assumptions and is an empirical replay,
+not a check of a guarantee). Pilot of 4 tasks (2 reversal-heavy, 2 stable), `delta = .1`, `eta = .02`, one ETS run per task.
+**ETS certified on none of the 4 tasks**: 2 (winogrande, arc_easy) exhausted DataDecide's finite replicate pool
+and are reported as `pool_exhausted` (previously counted as rounds), 2 (boolq, mmlu) hit the round cap; genuine
+bias-floor abstention rate 0.0 in both groups. Round-cap rate fell from 1.0 to 0.5 in each group and pool-exhausted rose from
+n/a to 0.5; baseline single-scale accuracies moved slightly (e.g. winogrande 0.20 -> 0.15) because the baseline
+oracle is now guarded and remapped. No previously reported certification survives, so no invalid certification is presented as evidence.
+
+**Decided by:** Agent, following the review.
+
+## 2026-09-19 — P3-06 regenerated with independent trials and the known-noise ETS; violations judged on the joint rate (PR #32)
+
+`results/p3_06_eta_sensitivity.json` regenerated on a clean tree (`git_dirty: false`), per-trial noise salts,
+`variance_mode="known_sigma2"` (`sigma2 = sigma^2` of the oracle, so A1 holds here), 20 runs per eta multiplier.
+- **The old "20 of 20 wrong certifications at `eta = 0`" was an artifact** of 20 copies of one noise realization
+  (PR #32's review). With independent noise, at `eta = 0` and at `0.25 x true bias` **1 of 20 runs certified, and that one was wrong**;
+  every other run at those settings, and all 20 runs at every `eta >= 0.5 x true bias`, ended at the round cap (genuine bias-floor abstention rate 0).
+- The script's "violation" criterion was itself misleading: it compared the *conditional* error rate to `delta`, which for
+  1 certified run is 100%. The guarantee bounds the *joint* rate `P[certified AND wrong] <= delta`; the criterion is now the
+  lower end of the exact (Clopper-Pearson) 95% interval on the joint rate exceeding `delta`. Result: joint rate 0.05, interval
+  ~[0.001, 0.25] at `eta = 0` -- **no statistically detectable violation at n = 20**; the experiment does *not* show that
+  under-estimating `eta` breaks the guarantee, and does not show it holds. The direction is what theory predicts, not what these
+  20 runs establish.
+- **Power:** in the well-specified regime the algorithm never certifies within the round cap (all runs abstain by round cap), so
+  the experiment says nothing about calibration there either; more rounds and more runs are needed for a real calibration study.
+- The plug-in `eta_hat` (~0.049 +/- 0.008 against a true bias of 0.1) again under-estimates, as expected of a residual-based estimate for a bias invisible on the fit scales.
+Guide, README and F8 wording are updated to these numbers.
+
+**Decided by:** Agent, following the review.
