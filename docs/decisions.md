@@ -1356,5 +1356,122 @@ a badly conditioned but identified design still returns a large finite
 variance rather than being rejected. Regression tests cover targets whose
 missing component is 5% / 0.25% / 0.005% of `||J_target||`, an
 identified design, and an ill-conditioned identified design.
+## 2026-09-19 — Second-round review of P1-06's squared-bias correction: calibrate v_hat for the n=3 bootstrap
+
+**Context:** PR #16's re-review accepted the direction of the previous fix
+(subtract the original estimator's own sampling variance) but showed it is
+mis-calibrated for the *actual* resampling scheme. n-out-of-n bootstrap
+variance of a sample mean is the plug-in variance `s_plug^2/n`, a factor
+`(n-1)/n` below the unbiased `sigma^2/n`. With n=3 real seeds, `E[v_hat] = 2/9`
+against a true `Var(original mean) = 1/3`, so after subtracting `v_hat` the
+unclipped correction still has expectation `1/9` when the true squared bias is
+zero. Reproduced independently on 20,000 three-observation datasets with the
+shipped function (B=200): mean `v_hat` 0.2225, mean unclipped correction
++0.106, and the *clipped* reported value averaged 0.218 -- the earlier
+alternating-values regression test could not detect this because it never
+repeated across independent datasets.
+
+**Fix:** `bias_variance_decomposition(..., variance_inflation=...)` now
+subtracts `variance_inflation * v_hat`; the seed bootstrap passes
+`bootstrap.seed_bootstrap_variance_inflation(n_seeds) = n/(n-1)` (3/2 for three
+seeds), for both the marginal and the pairwise (paired-seed difference)
+decomposition, since a difference of two seed-means resampled with the same index
+pattern is itself an n-out-of-n bootstrap of the n paired differences. The
+parametric bootstrap uses 1.0: its `v_hat` is a model-based variance, not the
+plug-in variance of an n-observation resample. `p1_06_decomposition._variance_inflation`
+computes n from the data and raises if seed counts differ across cells.
+
+**What is and isn't justified.** Exact for a sample mean. For the smooth fits used
+here it is the first-order (delta-method) statement of the same fact, and is an
+approximation at n=3 and for boundary-pinned or otherwise non-smooth fits -- an
+approximation, not a proof, and documented as such in the function docstrings.
+
+**Clipped vs unbiased, now distinguished.** Results carry
+`sigma2_extrap_unclipped` (the approximately unbiased squared-bias estimate,
+negative about half the time when the true bias is small) alongside
+`sigma2_extrap_hat = max(0, .)`, a nonnegative *heuristic* biased upward for
+small true bias (E[max(0,X)] > E[X]; checked directly: mean clipped value > 0.05
+with zero true bias). Any average over cells that is meant to estimate a mean
+squared bias -- including the `ratio_vs_compute` medians -- should be read with
+that in mind, and consumers wanting an estimate rather than a floor should use
+the unclipped field.
+
+**Validation across independent datasets (not one hand-built series):**
+`tests/test_bootstrap.py` simulates 3,000 independent three-observation datasets:
+without the calibration the mean unclipped estimate is > 0.08 and > 8 standard
+errors above 0; with n/(n-1) it is within 4 standard errors of 0 (and within
+0.03). The first, reproducing the reviewer's number, is asserted as a regression
+guard so the defect cannot silently return.
+
+**Mechanical:** the added field would push the pretty-printed
+`results/p1_06_decomposition.json` (already 4.9 MB) past the repository's 5 MB
+`check-added-large-files` limit, so `provenance.write_result` gained
+`indent=None` (compact single-line output; default unchanged) and this one
+script uses it.
+
+**Also corrected:** `bootstrap.py`'s module docstring still said both schemes
+share one draw across recipes, which stopped being true for the parametric scheme
+in the previous fix.
+
+**Not yet done in this entry:** `results/p1_06_decomposition.json` regeneration
+(requires the new fitters merged in first) and `docs/findings/p1_06.md`.
+
+**Decided by:** Agent, addressing the PR #16 re-review.
+## 2026-09-19 — Second-round review of the fitter fix: random starts are not enough; "0/18" was mis-stated
+
+**Context:** PR #12's re-review (and the identical blocker restated on #13-#19,
+#27-#34, since they all inherit the fitter blobs) found that the log-uniform
+restart fix repaired the original `PowerLawN` counterexample (100/100 seeds) but
+the compute-based `PowerLawC` still silently fails: noiseless in-family
+`y = 0.9 - 2*C^-0.03` with `default_rng(30)` (and `54`) predicts 0.2463 instead of
+0.4004, all eight restarts "converged", `objective_spread ~ 1e-11`, 2 of 100
+seeds. Reproduced exactly. Randomized starts can only lower the probability that
+every start lands in a flat region, never remove it.
+
+**Fix:** deterministic *informative* starts by variable projection.
+`fitters._power_law_starts` (used by `PowerLawN`, `PowerLawC`, and
+`TwoStepLadder`'s step 1) and `_chinchilla_starts` (`ChinchillaND`) evaluate a
+dense log grid over the exponent(s); for each grid point the linear parameters
+are solved exactly by weighted least squares (then clipped to their bounds), and
+the three lowest-cost grid points become starting points for `least_squares`,
+via a new `multi_start_fit(..., extra_starts=...)` argument, alongside five
+(down from eight) random log-uniform restarts, so per-fit cost is essentially
+unchanged (measured: `ChinchillaND` 602 ms vs 509 ms per fit on a hard synthetic
+curve; power laws 22-240 ms). A start is now informative by construction rather
+than by luck. Verified: 100/100 seeds recover noiseless curves for
+alpha in {0.01, 0.03, 0.1, 0.3, 0.6}, for both N- and compute-based power laws,
+including the reviewer's seeds 30 and 54; `ChinchillaND` recovers across seeds.
+Regression tests added for compute-based models, not just `PowerLawN`
+(`tests/test_scaling.py`).
+
+**Correction to the headline wording (supersedes the phrasing of the
+2026-09-14 entries above, which are left intact per this log's append-only
+rule):** "0/18 (fitter, design) combinations beat single-scale at matched
+compute" counted the six `<=530M` combinations as losses, but those have *no*
+matched-compute comparison at all (`matched_compute_out_of_range: true`,
+`beats: null`) -- a missing comparison is not a negative result. The correct
+statement is **0 wins among the 12 evaluable comparisons, and 6 unassessed**.
+`experiments/p1_04_extrapolation_baselines.py` now reports
+`n_evaluable_at_matched_compute` and `n_unassessed_out_of_range` in its summary
+and headline print; any downstream text still saying "0/18" (notably the Phase-1
+memo, PR #21) must be corrected the same way.
+
+**Not yet done in this entry:** `results/p1_04_extrapolation.json` regeneration
+with the new fitters (running as the next commit), and every downstream result.
+
+**Decided by:** Agent, addressing the PR #12 re-review. Full suite: 149 passed.
+
+## 2026-09-19 — P1-04 regenerated with variable-projection fitter starts (PR #12)
+
+`results/p1_04_extrapolation.json` was regenerated on a clean tree
+(`git_dirty: false`, `git_sha` b0d1deb) with the robust power-law starts. Headline: **0 / 12
+evaluable (fitter, design) combinations beat the single-scale frontier at matched compute; 6 more
+have no matched-compute comparison** (the design's compute lies past the single-scale frontier's
+range) and are *unassessed*, not losses. Versus the previous run, macro-average accuracy (incl.
+ties) rose for every PowerLawN/PowerLawC design (e.g. PowerLawN 150M 0.738 -> 0.761, PowerLawC 300M
+0.765 -> 0.815, PowerLawC 530M 0.818 -> 0.848); ChinchillaND was unchanged to within 0.001;
+TwoStepLadder changed by at most 0.024 (150M +0.008, 300M -0.024, 530M +0.002). The qualitative
+conclusion (extrapolation does not beat single-scale at matched compute on this data) is
+unchanged, now resting on fits that recover the true optimum on a 100/100-seed sweep.
 
 **Decided by:** Agent, following the second-round review.
