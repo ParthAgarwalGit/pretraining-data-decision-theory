@@ -354,10 +354,27 @@ def main() -> None:
                 )
     winners.sort(key=lambda w: w["margin"], reverse=True)
 
+    # A design whose compute is past the single-scale frontier's own range
+    # has NO matched-compute comparison at all (beats is None,
+    # matched_compute_out_of_range is True) -- a missing comparison, not a
+    # loss. Reporting "0 of 18" silently counted those as losses (second
+    # external review of this script's headline): report wins among the
+    # comparisons that could actually be made, and the unassessed count
+    # separately.
+    n_total = len(_FITTER_CLASSES) * len(designs)
+    n_unassessed = sum(
+        1
+        for by_design in results_by_fitter.values()
+        for result in by_design.values()
+        if result["beats_single_scale_at_matched_compute"] is None
+    )
+    n_evaluable = n_total - n_unassessed
+
     print(
-        f"p1_04_extrapolation_baselines: HEADLINE {len(winners)} / "
-        f"{len(_FITTER_CLASSES) * len(designs)} (fitter, design) combinations beat the "
-        "single-scale frontier at matched compute"
+        f"p1_04_extrapolation_baselines: HEADLINE {len(winners)} / {n_evaluable} evaluable "
+        f"(fitter, design) combinations beat the single-scale frontier at matched compute "
+        f"({n_unassessed} more have no matched-compute comparison: design compute is past "
+        "the single-scale frontier's range -- unassessed, not losses)"
     )
 
     payload = {
@@ -375,7 +392,9 @@ def main() -> None:
         "single_scale_frontier": single_scale_frontier,
         "fitters": results_by_fitter,
         "summary": {
-            "n_combinations": len(_FITTER_CLASSES) * len(designs),
+            "n_combinations": n_total,
+            "n_evaluable_at_matched_compute": n_evaluable,
+            "n_unassessed_out_of_range": n_unassessed,
             "n_beat_single_scale_at_matched_compute": len(winners),
             "winners": winners,
         },
