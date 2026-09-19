@@ -3303,3 +3303,14 @@ oracle is now guarded and remapped. No previously reported certification survive
 Guide, README and F8 wording are updated to these numbers.
 
 **Decided by:** Agent, following the review.
+
+## 2026-09-19 — F6/F7/F8 regenerated from the regenerated P3-05/06/07 artifacts (PR #33)
+
+F8's right panel now plots the joint rate `P[certified AND wrong]` with its exact 95% interval against `delta` (the old "100% wrong when
+certified" point was 20 copies of one noise realization and is withdrawn; see PR #32's entry). F6 marks ETS runs that exhausted the
+finite DataDecide pool with a text note instead of a bar (no compute is recorded for them) and retitles the figure to "never certified".
+F7's `paper/figures` PDF is regenerated from the caveated allocation artifact (heuristic, challenger-only). Numbers and captions come from
+`results/p3_05_replay.json`, `p3_06_eta_sensitivity.json`, `p3_07_*` as regenerated on clean trees (see those PRs' entries).
+F6-F8 read nothing from P3-04 or the Phase-1 regeneration chain, so they are final for the current artifacts.
+
+**Decided by:** Agent, following the review.
