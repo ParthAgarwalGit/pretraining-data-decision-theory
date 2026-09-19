@@ -199,23 +199,50 @@ in-family curves, with two different biases at $s^\star$. Consequently:
 \label{rem:sigma2-extrap-estimator}
 Definitions~\ref{def:projection}--\ref{def:sigma2-extrap} are population quantities;
 $\mu_k$ and $\theta_k^{\dagger}$ are never observed exactly. P1-06's estimator
-(\texttt{bias\_variance\_decomposition} in \texttt{src/pdt/analysis/bootstrap.py}) is
-\[
-  \widehat{\sigma^2_{\mathrm{extrap}, k}}
-  \;=\; \max\!\Big(0,\ \widehat{\mathrm{bias}}_k^2
-    - \frac{\hat{v}_k}{B} - \sigma^2_{\mathrm{target}, k} \Big),
-\]
+(\texttt{bias\_variance\_decomposition} in \texttt{src/pdt/analysis/bootstrap.py})
+must separate \emph{three} sources of noise in the naive $\widehat{\mathrm{bias}}_k^2$,
 where $\widehat{\mathrm{bias}}_k = \overline{\hat\mu}_k^{(1:B)} - \mu_{k,\mathrm{true}}$
-is the mean bootstrap prediction of $\mu_k(s^\star)$ across $B$ replicates minus the
-measured ground truth, $\hat v_k$ is the across-replicate variance of those same $B$
-predictions, and $\sigma^2_{\mathrm{target}, k}$ is the noise in the ground-truth
-measurement itself (Assumption~\ref{asn:noise} evaluated at $s^\star$). The subtracted
-terms debias the naive $\widehat{\mathrm{bias}}_k^2$, which over-estimates
-$\sigma^2_{\mathrm{extrap}, k}$ because $\widehat{\mathrm{bias}}_k$ itself carries
-sampling noise from two independent sources (the bootstrap mean's own variance
-$\hat v_k / B$, and the ground truth's own measurement noise $\sigma^2_{\mathrm{target}, k}$);
-the $\max(0, \cdot)$ clip is necessary because the debiased quantity can go negative in
-a finite sample even though the population quantity it estimates cannot.
+is the mean of $B$ bootstrap predictions of $\mu_k(s^\star)$ minus the measured ground
+truth:
+\begin{enumerate}
+  \item \emph{Monte Carlo noise of the bootstrap mean.} Given the observed dataset the
+    $B$ replicates are independent, so $\overline{\hat\mu}^{(1:B)}$ has variance
+    $\hat v_k / B$ around the bootstrap population mean. This vanishes as
+    $B \to \infty$.
+  \item \emph{Sampling noise of the original fit.} As $B \to \infty$ the bootstrap mean
+    converges to a functional of the \emph{observed} dataset -- essentially the original
+    fit's own prediction $\hat\mu_k^{\mathrm{orig}}(s^\star)$ -- not to
+    $\mathbb{E}[\hat\mu_k^{\mathrm{orig}}(s^\star)]$. So $\widehat{\mathrm{bias}}_k^2$
+    keeps the original estimator's sampling variance
+    $\mathrm{Var}(\hat\mu_k^{\mathrm{orig}}(s^\star))$ \emph{for every $B$}. (Example: the
+    mean of $n$ seeds with true target exactly equal to the population mean has squared
+    structural bias $0$, yet $\mathbb{E}[\widehat{\mathrm{bias}}^2] \to \sigma^2/n$ as
+    $B \to \infty$.) Dividing $\hat v_k$ by $B$ therefore does \emph{not} remove it.
+  \item \emph{Noise in the ground truth} $\sigma^2_{\mathrm{target}, k}$
+    (Assumption~\ref{asn:noise} at $s^\star$).
+\end{enumerate}
+The bootstrap replicate variance $\hat v_k$ estimates (2) but, for $n$-out-of-$n$
+resampling of $n$ seeds, is the \emph{plug-in} variance: a factor $(n-1)/n$ below the
+unbiased $\mathrm{Var}(\hat\mu_k^{\mathrm{orig}})$ (exactly, for a sample mean). The
+implemented, approximately-unbiased estimator of the squared \emph{structural} bias is
+therefore
+\[
+  \widehat{\mathrm{bias}^2_k}\;=\;\widehat{\mathrm{bias}}_k^2
+    - \frac{n}{n-1}\,\hat v_k \;-\; \frac{\hat v_k}{B} \;-\; \sigma^2_{\mathrm{target}, k},
+  \qquad
+  \widehat{\sigma^2_{\mathrm{extrap}, k}}\;=\;\max\!\big(0,\ \widehat{\mathrm{bias}^2_k}\big),
+\]
+with $n/(n-1) = 3/2$ for the three DataDecide seeds (and $1$ for a parametric bootstrap,
+which draws from an assumed noise model rather than resampling $n$ observations).
+Status of each claim: the \emph{unclipped} $\widehat{\mathrm{bias}^2_k}$ is exactly
+unbiased for a sample mean and a first-order (delta-method) approximation for the smooth
+fitters used here; it is an approximation at $n = 3$ and for non-smooth or
+boundary-pinned fits, not a proof. The \emph{clipped} $\widehat{\sigma^2_{\mathrm{extrap}, k}}$
+is a nonnegative \textbf{heuristic}: $\mathbb{E}[\max(0, X)] > \mathbb{E}[X]$, so it is
+biased \emph{upward} when the true bias is small, and any average of clipped values
+overstates the mean squared bias (average the unclipped values to estimate it). The
+population quantity is nonnegative; the estimate is negative about half the time when the
+true bias is near zero, which is why the clip exists at all.
 \end{remark}
 
 \subsection{The policy class and correctness criterion}
