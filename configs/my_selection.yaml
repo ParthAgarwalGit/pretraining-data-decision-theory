@@ -27,7 +27,10 @@ candidate_scales:
 
 target_scale: {n: 1.0e+9, d: 2.0e+10}
 
-# Confidence level: certify only if P[wrong recipe] <= delta.
+# Confidence level: a "certified" outcome is a delta-level claim,
+# P[certified AND wrong] <= delta, UNDER the assumptions printed in
+# certificate["assumptions"] (known noise sigma2, valid eta, linear-ish
+# prediction, design independent of the noise) -- not unconditional.
 delta: 0.1
 
 # Assumed upper bound on each recipe's extrapolation-bias magnitude at
@@ -40,10 +43,16 @@ delta: 0.1
 # certifications).
 eta: 0.03
 
-# Per-pull noise variance (accuracy^2 units) -- a planning-time input to
-# the T* allocation solver, not assumed to equal the stopping rule's own
-# (data-estimated) variance.
+# Per-pull noise variance (accuracy^2 units). In the default
+# `variance_mode: known_sigma2` this is used BOTH as the planning-time input to
+# the T* allocation solver AND as the KNOWN noise level in the stopping rule --
+# understating it makes certification over-confident. It is a promise, like eta.
 sigma2: 0.0001
+
+# `known_sigma2` (default): "certified" outcomes under the assumptions above.
+# `hc0_heuristic`: variance estimated from fit residuals; returns "recommended"
+# (never "certified") because its error probability is not controlled.
+variance_mode: known_sigma2
 
 model: PowerLawN
 max_rounds: 2000

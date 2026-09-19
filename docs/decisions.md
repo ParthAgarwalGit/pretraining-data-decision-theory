@@ -3363,3 +3363,20 @@ is a delta-level statement under A1-A4, not an unconditional guarantee for the a
 `paper/sections/theorem4_algorithm.tex` (PR #26) is being brought into line with this scope.
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-19 — API/CLI/guide aligned with the known-noise ETS construction (PR #34)
+
+PR #29's second-round review invalidated the HC0-variance + Student-t certification radius (49%
+wrong-arm certifications on a high-leverage design vs 1% requested); the default rule is now the
+known-`sigma2` Chernoff radius with a union bound over rounds and ordered arm pairs, and a `"certified"`
+outcome is a delta-level claim only under assumptions A1-A4 (see PR #29's decisions entry). The user-facing
+surface was updated to say exactly that: `README.md` quickstart paragraph, `docs/when_to_trust_extrapolation.md`
+(the "0.70% actual error after the fix" claim, which described the discarded construction, is removed; `sigma2` is now
+documented as a second promise alongside `eta`; the review's counterexample is reported), `configs/my_selection.yaml`
+(comments; new `variance_mode` key), and `pdt select` (new optional `variance_mode` config key, default
+`known_sigma2`; `hc0_heuristic` prints `"recommended"`). The ETS docstring conflict with the
+figures branch was resolved by keeping the guarantee section and rewriting it to the new conditions.
+P3-06's numbers quoted in the guide ("20 of 20" wrong certifications at `eta=0`) are replaced by a pointer to the
+regenerated results file.
+
+**Decided by:** Agent, following the review.

@@ -86,6 +86,25 @@ def test_run_selection_returns_a_selection_result():
     assert result.recipe in ("a", "b")
 
 
+def test_run_selection_default_variance_mode_lists_its_assumptions_when_certified():
+    result = run_selection(_SYNTHETIC_CFG)
+    assert result.certificate.get("variance_mode", "known_sigma2") == "known_sigma2"
+    if result.outcome == "certified":
+        assert any(a.startswith("A1") for a in result.certificate["assumptions"])
+
+
+def test_run_selection_hc0_heuristic_never_reports_certified():
+    cfg = dict(_SYNTHETIC_CFG, variance_mode="hc0_heuristic")
+    result = run_selection(cfg)
+    assert result.outcome in ("recommended", "abstained")
+    assert result.outcome != "certified"
+
+
+def test_run_selection_rejects_unknown_variance_mode():
+    with pytest.raises(ValueError, match="variance_mode"):
+        run_selection(dict(_SYNTHETIC_CFG, variance_mode="bogus"))
+
+
 def test_run_selection_eta_as_mapping():
     cfg = dict(_SYNTHETIC_CFG, eta={"a": 0.02, "b": 0.04})
     result = run_selection(cfg)

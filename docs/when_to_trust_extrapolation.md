@@ -3,59 +3,66 @@
 Practitioner-facing guide for using `pdt.bai.ets.extrapolation_track_and_stop`
 (or the `pdt select` CLI) responsibly. See plan/04-phase3-algorithm.md P3-08.
 
-## The one thing that matters most: `eta` is a promise you make, not a fact the algorithm discovers
+## The one thing that matters most: `eta` and `sigma2` are promises you make, not facts the algorithm discovers
 
-Theorem 4's delta-correctness guarantee is a bound on a **joint**
-probability, precisely: `P[the algorithm certifies AND the certified
-recipe is wrong] <= delta`. It is **not** "whenever the algorithm
-certifies, the certified recipe is right with probability `1 - delta`"
-(that would be the *conditional* error rate, `P[wrong | certified]`, a
-different and generally larger quantity) — and it is **not** "a valid
-`eta` means certification is never wrong." Even a genuinely delta-correct
-method allows rare errors by construction; `delta` is not zero. What the
-guarantee actually promises is that wrong certifications, across the
-full random path of the algorithm (including the cases where it
-correctly abstains or runs out of rounds instead of certifying), happen
-no more than a `delta` fraction of the time.
+A `"certified"` outcome (default `variance_mode="known_sigma2"`) is a bound on a
+**joint** probability, precisely: `P[the algorithm certifies AND the certified
+recipe is wrong] <= delta` -- and it holds **only under stated assumptions**
+(printed in `result.certificate["assumptions"]`):
 
-This guarantee holds **only if** `eta[k] >= sqrt(sigma2_extrap_k)` for
-every recipe `k`: `eta` must be a genuine upper bound on how far each
-recipe's extrapolated prediction can be from its true target-scale
-value. The algorithm does not check this for you. It cannot — the whole
-reason extrapolation is needed is that the true target-scale value is
-never observed.
+- **A1** `sigma2` is a valid sub-Gaussian variance proxy for your oracle's noise.
+  It is an *input*, used as the known noise level in the stopping rule. The
+  algorithm does not estimate it, so under-stating it makes certification
+  over-confident, exactly as under-stating `eta` does.
+- **A2** `eta[k] >= sqrt(sigma2_extrap_k)` for every recipe `k`: `eta` must be a
+  genuine upper bound on how far each recipe's extrapolated prediction can be
+  from its true target-scale value. The algorithm cannot check this -- the whole
+  reason extrapolation is needed is that the true target-scale value is never
+  observed.
+- **A3** the prediction is linear in the observations: exact for `LogLinear`, a
+  first-order (delta-method) approximation for the nonlinear power-law fits,
+  whose curvature error is *not* covered by `eta` unless you fold it in.
+- **A4** the pulled design at each check is independent of the noise being
+  certified: exactly true only for the non-adaptive warm-up check; once the
+  tracking rule adapts scales to earlier noise it is a heuristic. This is **not
+  proved** (a self-normalized confidence sequence would be needed). In the
+  simulations recorded in `docs/decisions.md` it did not visibly matter (0
+  wrong certifications in 120 adaptive runs), which is supporting evidence,
+  not a guarantee.
 
-**If `eta` under-estimates the true bias, the guarantee gets much
-worse, not just "silently fails" in some abstract sense.** This is not a
-theoretical nicety: `experiments/p3_06_eta_sensitivity.py`
-(`results/p3_06_eta_sensitivity.json`) found that giving the algorithm
-`eta=0` (i.e. trusting the extrapolation completely) on a controlled
-instance produced a confident, *wrong* certification in 20 out of 20
-trials. Over-estimating `eta` is the safer direction — it costs more
-compute (more abstention, more rounds before certifying) and reduces the
-false-certification risk, but does **not** mean zero wrong
-certifications are possible even with a perfectly conservative `eta`.
+It is **not** "whenever the algorithm certifies, the recipe is right with
+probability `1 - delta`" (that is the *conditional* error rate,
+`P[wrong | certified]`, a different and generally larger quantity), and it is
+**not** "valid inputs mean certification is never wrong": `delta` is not zero.
 
-**A separate, real confidence-machinery bug, found and partially fixed:**
-PR #29's review found that `ets.py`'s certification radius, as originally
-implemented, plugged in an *estimated* variance as if it were known
-exactly — with the shipped `LogLinear` fitter and a small sample, this
-produced 91 wrong certifications in 1,000 independent, correctly-specified
-trials at `delta=.01` (9.1% actual vs. 1% requested — the delta-correctness
-bound itself was violated, not just "eta was wrong"). This has since been
-fixed with a Student-t-based radius accounting for the variance estimate's
-own degrees of freedom (see `docs/decisions.md`); the same reproduction
-now gives a 0.70% actual error rate at `delta=.01` (5,000 trials), under
-the requested bound. **This fix is a verified, substantial improvement,
-not a proof.** It is documented in `ets.py` itself as a tested heuristic
-correction, not a rigorously proven finite-sample guarantee — treat the
-delta-correctness promise in this whole section as empirically
-well-supported at the sample sizes tested, not as a mathematical
-certainty, until a fully rigorous confidence-sequence treatment lands.
+**If `eta` under-estimates the true bias, the guarantee gets much worse, not just
+"silently fails" in some abstract sense.** `experiments/p3_06_eta_sensitivity.py`
+(`results/p3_06_eta_sensitivity.json`) found that giving the algorithm `eta=0`
+(i.e. trusting the extrapolation completely) on a controlled instance produced a
+confident, *wrong* certification in most or all trials (see that file for the
+current numbers). Over-estimating `eta` (and `sigma2`) is the safer direction --
+it costs more compute (more abstention, more rounds before certifying) and lowers
+the false-certification risk, but does **not** mean zero wrong certifications
+are possible even with perfectly conservative inputs.
 
-**When in doubt, over-estimate `eta`, and prefer more replicates per
-scale over fewer** (the confidence-machinery issue above is worst with
-very few residual degrees of freedom).
+**A real confidence-machinery bug, found in review and replaced (not patched):**
+the original stopping rule estimated each arm's prediction variance from the
+fit's own residuals (an HC0 sandwich) and inflated the radius with a Student-t
+quantile. Second-round review of PR #29 showed this is not a valid construction:
+at a high-leverage observation near the target the fitted residual is almost
+forced to zero, so HC0 deletes exactly the uncertainty that dominates the
+prediction and no t quantile restores coverage. On a `LogLinear` design with
+scales `N=[1, 1.00001, 2]` extrapolated to `N=2.001`, `delta=.01`, the old rule
+certified the **wrong** arm in 98 of 200 runs (49% vs 1% requested). The default
+rule now uses the known `sigma2` for the variance
+(`pdt.theory.bound.known_noise_v_k`), a Gaussian/Chernoff radius, and a union
+bound over rounds *and* over all ordered arm pairs (the leader is data-dependent);
+the same reproduction certifies 0 of 200 runs. The old residual-based variance
+survives only as `variance_mode="hc0_heuristic"`, which returns `"recommended"`
+and never `"certified"`. The remaining unproved step is A4 above.
+
+**When in doubt, over-estimate `eta` and `sigma2`, and prefer more replicates per
+scale over fewer.**
 
 ## How to estimate `sigma2_extrap` for your own recipes
 

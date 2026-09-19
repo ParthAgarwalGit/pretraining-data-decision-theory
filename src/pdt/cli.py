@@ -13,6 +13,14 @@ this CLI; any object implementing that three-method protocol works (see
 `pdt.bai.oracle.PullOracle`, and the README quickstart). This CLI covers
 the two backends this project ships, not a general plugin system.
 
+**What the printed `outcome` means.** `"certified"` (default
+`variance_mode: known_sigma2`) is a delta-level claim under the assumptions
+listed in the printed `certificate["assumptions"]` -- in particular the config's
+`sigma2` is taken as the KNOWN noise variance and `eta` as a valid bias bound; it
+is not an unconditional guarantee. `variance_mode: hc0_heuristic` prints
+`"recommended"` instead, with no error-probability claim.
+`"abstained"` makes no correctness claim (see `certificate["reason"]`).
+
 **The `datadecide` backend has a FINITE replicate pool** (`DataDecideOracle`'s
 own real+pseudo seeds -- see its docstring), and `select`'s default
 `max_rounds=5000` can exhaust it well before then (P3-05's own real
@@ -132,6 +140,7 @@ def run_selection(cfg: dict[str, Any]) -> SelectionResult:
         solver_n_iter=int(cfg.get("solver_n_iter", 200)),
         min_pulls_per_pair=int(cfg.get("min_pulls_per_pair", 1)),
         rng=np.random.default_rng(cfg.get("seed", 0)),
+        variance_mode=str(cfg.get("variance_mode", "known_sigma2")),
     )
 
 

@@ -58,14 +58,18 @@ print(result.outcome, result.recipe, result.certificate)
 ```
 
 **Read [`docs/when_to_trust_extrapolation.md`](docs/when_to_trust_extrapolation.md)
-before picking `eta`** — the delta-correctness guarantee (a bound on
-`P[certifies AND wrong] <= delta`, not "certification is never wrong,"
-and not the same as the conditional error rate given certification) only
-holds if `eta` is a valid upper bound on each recipe's true extrapolation
-bias; under-estimating it can produce confident, wrong answers far more
-often than `delta` (see `src/pdt/bai/ets.py`'s own docstring and the
-guide above for the full account, including a real confidence-machinery
-calibration issue found and largely, but not provably, fixed).
+before picking `eta` and `sigma2`** — a `"certified"` outcome is a
+delta-level claim (a bound on `P[certifies AND wrong] <= delta`, not
+"certification is never wrong," and not the conditional error rate given
+certification) that holds **only under stated assumptions**, printed in
+`result.certificate["assumptions"]`: `sigma2` is the *known* noise variance,
+`eta` is a valid upper bound on each recipe's extrapolation bias, the
+prediction is linear in the data (exact for `LogLinear`, first-order for the
+nonlinear fits), and the design is independent of the noise being certified
+(exact for the non-adaptive warm-up check, an unproved heuristic once tracking
+adapts). Violating the first two can produce confident, wrong answers far more
+often than `delta`. With `variance_mode="hc0_heuristic"` the algorithm returns
+`"recommended"` instead: no error-probability claim at all.
 
 Or from the command line, against a YAML config
 ([`configs/my_selection.yaml`](configs/my_selection.yaml) is a runnable
