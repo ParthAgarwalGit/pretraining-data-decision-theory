@@ -501,9 +501,11 @@ with the new fitters (running as the next commit), and every downstream result.
 (`git_dirty: false`, `git_sha` b0d1deb) with the robust power-law starts. Headline: **0 / 12
 evaluable (fitter, design) combinations beat the single-scale frontier at matched compute; 6 more
 have no matched-compute comparison** (the design's compute lies past the single-scale frontier's
-range) and are *unassessed*, not losses. Accuracy for the seven power-law-family combinations that
-the reviewers' seeds 30/54 had previously mis-fit moved in the expected direction; the qualitative
-conclusion (extrapolation does not beat single-scale at matched compute on this data) is unchanged,
-now resting on fits that recover the true optimum on a 100/100-seed sweep.
+range) and are *unassessed*, not losses. Versus the previous run, macro-average accuracy (incl.
+ties) rose for every PowerLawN/PowerLawC design (e.g. PowerLawN 150M 0.738 -> 0.761, PowerLawC 300M
+0.765 -> 0.815, PowerLawC 530M 0.818 -> 0.848); ChinchillaND was unchanged to within 0.001;
+TwoStepLadder changed by at most 0.024 (150M +0.008, 300M -0.024, 530M +0.002). The qualitative
+conclusion (extrapolation does not beat single-scale at matched compute on this data) is
+unchanged, now resting on fits that recover the true optimum on a 100/100-seed sweep.
 
 **Decided by:** Agent, following the second-round review.
