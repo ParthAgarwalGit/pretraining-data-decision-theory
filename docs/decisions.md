@@ -3390,6 +3390,18 @@ and are reported as `pool_exhausted` (previously counted as rounds), 2 (boolq, m
 bias-floor abstention rate 0.0 in both groups. Round-cap rate fell from 1.0 to 0.5 in each group and pool-exhausted rose from
 n/a to 0.5; baseline single-scale accuracies moved slightly (e.g. winogrande 0.20 -> 0.15) because the baseline
 oracle is now guarded and remapped. No previously reported certification survives, so no invalid certification is presented as evidence.
+## 2026-09-19 — P3-04 pilot regenerated on the known-noise ETS; claims restated at what the pilot supports (PR #30)
+
+`results/p3_04_simulation.json` regenerated on a clean tree (`git_dirty: false`) with the corrected `eta` assignment, the split abstention outcomes
+(bias-floor vs timeout), the known-`sigma2` stopping rule (the oracle's `sigma = .05` is passed as `sigma2`, so A1 holds), and a joint-rate
+criterion with an exact Clopper-Pearson interval. 8 cells (K = 3; delta in {.05, .2}; eta in {none, large}; gap in {well-separated, reversing}) x 15 runs.
+- **Claim 1 (delta-correctness in the well-specified regime):** no violation detected, but *not verified*. `eta=none`, well-separated: 11/15 (delta .05) and 13/15 (delta .2)
+  certified, 0 wrong; exact 95% interval on the joint rate `P[certified and wrong]` is [0, 0.218] in each cell, which contains both deltas. `eta=large` cells never certified
+  (all timeouts). The earlier "claim 1 holds" was a statement about a conditional rate on few certified runs.
+- **Claim 2 (compute ~ T* log(1/delta)):** not supported -- mean compute-to-stop 3.07e18 (delta .05) vs 2.91e18 (delta .2); dominated by the warm-up.
+- **Claim 3 (abstention in the impossible regime):** not observed -- every reversing cell ended at the round cap; bias-floor abstention rate 0.0, timeout rate 1.0 in all four.
+  On the reversing instances SingleScale, FixedLadder and Uniform were wrong in every run (accuracy 0.0); SuccessiveHalving was right in all runs at `eta=none` and wrong at `eta=large` (an instance-construction effect, not a method advantage to lean on).
+- Scope is a pilot (K = 3, 15 runs); nothing here calibrates delta or tests the abstention theorem. A real study needs the plan's grid, more rounds and >= 200 runs per cell.
 
 **Decided by:** Agent, following the review.
 
