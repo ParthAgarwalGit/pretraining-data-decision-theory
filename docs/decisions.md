@@ -2117,3 +2117,26 @@ missing component is 5% / 0.25% / 0.005% of `||J_target||`, an
 identified design, and an ill-conditioned identified design.
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-19 — P3-02 second-round review: structural identifiability replaces the 10% residual test (PR #28)
+
+**Problem.** `_target_denom` decided whether `J_target` lies in `range(I_k(w))` by
+a 10% relative residual of `I pinv(I) J_target`. That is wrong in both
+directions: `J_target = [1, .05]` against a design that only ever sees
+`[1, 0]` (a 5% missing component, e.g. `LogLinear` observed at N=1, target
+N=e^0.05) passed and received a finite variance, while a tight tolerance
+false-triggered on ordinary designs at condition number ~1e14.
+
+**Change.** Two questions are now separated. (1) *Structural
+identifiability* — is `J_target` in the row space of the Jacobians of the
+scales carrying positive weight — is decided by the shared
+`pdt.theory.identifiability.target_in_row_space` (column-equilibrated SVD,
+numerical-rank cutoff), in `_arm_rate`, `_arm_rate_and_grad`, and once per arm
+in `brute_force_allocation`. (2) *Numerical ill-conditioning* of the weighted
+information is handled by a Jacobi-equilibrated pseudo-inverse
+(`_info_solve`), so it appears as a large finite variance, and the result is
+invariant to parameter units. `_TARGET_RANGE_RTOL` is removed. Regression
+tests: missing component 5% / 0.5% / 0.01%, brute-force path, ill-conditioned
+identified design, unit invariance.
+
+**Decided by:** Agent, following the second-round review.

@@ -158,6 +158,76 @@ def test_arm_rate_is_positive_when_target_direction_is_actually_covered():
     assert rate > 0.0
 
 
+@pytest.mark.parametrize("log_target", [0.05, 0.005, 1e-4])
+def test_small_missing_component_is_still_unidentifiable(log_target):
+    # Second-round review of PR #28: the first fix used a 10% relative-residual
+    # tolerance, so a design observed only at N=1 (J = [1, 0]) with target
+    # J_target = [1, .05] -- a 5% missing component -- slipped through and got
+    # a finite variance. Structural non-identifiability can sit arbitrarily
+    # close to an observed scale; it must be rejected at every such distance.
+    model = LogLinear()
+    model._theta = np.array([0.5, 0.1])
+    scales = [Scale(n=1.0, d=1.0)]
+    target = Scale(n=float(np.exp(log_target)), d=1.0)
+    w = np.array([1.0])
+    assert _arm_rate(model, scales, lambda s: 1.0, w, target, delta_k=0.1) == 0.0
+    rate, grad = _arm_rate_and_grad(model, scales, lambda s: 1.0, w, target, delta_k=0.1)
+    assert rate == 0.0
+    assert np.all(grad == 0.0)
+
+
+def test_brute_force_rate_is_zero_for_structurally_unidentifiable_target():
+    models = {"kstar": LogLinear(), "k1": LogLinear()}
+    for m in models.values():
+        m._theta = np.array([0.5, 0.1])
+    scales = [Scale(n=1.0, d=1.0), Scale(n=1.0, d=10.0)]  # both at N=1
+    target = Scale(n=float(np.exp(0.05)), d=1.0)
+    res = brute_force_allocation(
+        models, "kstar", scales, target, lambda s: 1.0, {"k1": 0.1}, n_samples=200
+    )
+    assert res.rate == 0.0
+    assert res.t_star == float("inf")
+
+
+def test_ill_conditioned_but_identified_design_keeps_a_positive_rate():
+    # A tight tolerance on the weighted information false-triggers here: two
+    # nearby N (condition number of the weighted information ~1e12) and a
+    # target far away. The design IS identified, so the honest answer is a
+    # small positive rate (huge variance), not "no information".
+    model = LogLinear()
+    model._theta = np.array([0.5, 0.1])
+    scales = [
+        Scale(n=1e9, d=1.0),
+        Scale(n=1e9 * (1 + 1e-5), d=1.0),
+        Scale(n=1e9 * (1 + 2e-5), d=1.0),
+    ]
+    target = Scale(n=1e12, d=1.0)
+    rate = _arm_rate(model, scales, lambda s: 1.0, np.ones(3), target, delta_k=0.1)
+    assert rate > 0.0
+    assert np.isfinite(rate)
+
+
+def test_rate_is_invariant_to_parameter_units():
+    # Rescaling a parameter (theta_2 -> 1e9 * theta_2, so its Jacobian column
+    # shrinks by 1e-9) must not change the rate: equilibration removes
+    # unit-induced ill-conditioning instead of leaving it to the pinv cutoff.
+    class _Rescaled(LogLinear):
+        def jacobian(self, scale):
+            j = super().jacobian(scale)
+            return j * np.array([1.0, 1e-9])
+
+    base, rescaled = LogLinear(), _Rescaled()
+    for m in (base, rescaled):
+        m._theta = np.array([0.5, 0.1])
+    scales = [Scale(n=1e3, d=1.0), Scale(n=1e5, d=1.0), Scale(n=1e7, d=1.0)]
+    target = Scale(n=1e9, d=1.0)
+    w = np.array([0.3, 0.5, 0.2])
+    r1 = _arm_rate(base, scales, lambda s: 1.0, w, target, delta_k=0.1)
+    r2 = _arm_rate(rescaled, scales, lambda s: 1.0, w, target, delta_k=0.1)
+    assert r1 > 0.0
+    assert r2 == pytest.approx(r1, rel=1e-6)
+
+
 def test_fisher_information_rejects_nonpositive_sigma2():
     model = _model(0.7, 2.5, 0.25)
 
