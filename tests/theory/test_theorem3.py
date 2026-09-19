@@ -169,6 +169,70 @@ def test_reproduces_the_nonmonotone_spacing_example():
     assert v_values[-1] == pytest.approx(0.97, abs=0.02)  # ratio=900
 
 
+# ---------------------------------------------------------------------------
+# Second-round review of PR #25 -- regression tests for the corrected statements.
+# ---------------------------------------------------------------------------
+
+
+def test_rank_deficiency_at_a_point_does_not_imply_nonidentifiability():
+    # g(theta, s) = theta^3 on [-1, 1], theta_k = 0: J = 3 theta^2 = 0 (rank 0 < p = 1), yet
+    # F(theta) = theta^3 vanishes ONLY at 0 -- uniquely identifiable from noiseless data.
+    thetas = np.linspace(-1.0, 1.0, 100_001)
+    assert 3 * 0.0**2 == 0.0  # first-order information vanishes at theta_k
+    zeros = thetas[np.abs(thetas**3) < 1e-30]
+    assert np.all(np.abs(zeros) < 1e-9)  # only theta ~ 0 is observationally equivalent
+
+
+def test_constant_rank_deficiency_gives_a_continuum_of_equivalent_parameters():
+    # g(theta, s) = (theta_1 + theta_2) * s: J = [s, s] has constant rank 1 < 2 everywhere,
+    # and every theta on the line theta_1 + theta_2 = c is observationally equivalent.
+    s_fit = np.array([1.0, 2.0, 3.0])
+    theta_a = np.array([0.3, 0.7])
+    theta_b = np.array([0.9, 0.1])  # same sum
+    assert np.allclose((theta_a.sum()) * s_fit, (theta_b.sum()) * s_fit)
+
+
+def test_minimax_risk_scales_as_one_over_compute():
+    # I_k(w) is information PER UNIT COMPUTE; v_k(C) = J^T I_k(w)^-1 J / C. Replicating a
+    # fixed design r times multiplies C by r, must divide the variance by exactly r.
+    ns = np.array([1e6, 1e7, 1e8])
+    a, alpha = 2.0, 0.3
+    jac = np.array([_jac_reduced(n, a, alpha) for n in ns])
+    sigma2 = 1.0
+    costs = ns * 20.0  # per-pull compute
+    j_star = _jac_reduced(1e9, a, alpha)
+
+    def v_for(replicates: int) -> tuple[float, float]:
+        total_compute = float(replicates * costs.sum())
+        w = replicates / total_compute  # pulls per unit compute, identical at each scale
+        assert np.sum(np.full(3, w) * costs) == pytest.approx(1.0)
+        info_per_compute = sum(w * np.outer(j, j) / sigma2 for j in jac)
+        v_formula = float(j_star @ np.linalg.inv(info_per_compute) @ j_star) / total_compute
+        x = np.vstack([jac] * replicates)
+        v_direct = float(j_star @ np.linalg.inv(x.T @ x / sigma2) @ j_star)
+        return v_formula, v_direct
+
+    v1_formula, v1_direct = v_for(1)
+    assert v1_formula == pytest.approx(v1_direct, rel=1e-9)
+    for r in (2, 10, 1000):
+        vr_formula, vr_direct = v_for(r)
+        assert vr_formula == pytest.approx(vr_direct, rel=1e-9)
+        assert vr_formula == pytest.approx(v1_formula / r, rel=1e-9)  # the 1/C factor
+
+
+def test_unweighted_ls_variance_exceeds_weighted_under_heteroscedastic_noise():
+    # Gauss-Markov: WLS (weights 1/sigma^2) attains J^T (X^T W X)^-1 J; OLS sandwich is >= it.
+    ns = np.array([1e6, 1e7, 1e8, 3e8])
+    jac = np.array([_jac_reduced(n, 2.0, 0.3) for n in ns])
+    sigma2 = np.array([0.01, 0.05, 0.2, 1.0])
+    j_star = _jac_reduced(1e9, 2.0, 0.3)
+    v_wls = float(j_star @ np.linalg.inv(jac.T @ np.diag(1 / sigma2) @ jac) @ j_star)
+    bread = np.linalg.inv(jac.T @ jac)
+    v_ols = float(j_star @ bread @ jac.T @ np.diag(sigma2) @ jac @ bread @ j_star)
+    assert v_ols >= v_wls * (1 - 1e-12)
+    assert v_ols > 1.001 * v_wls  # strictly larger here (heteroscedastic)
+
+
 if __name__ == "__main__":
     import sys
 

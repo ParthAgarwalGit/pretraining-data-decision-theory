@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from pdt.scaling.base import Extrapolator, Scale
+from pdt.theory.identifiability import target_in_row_space
 
 
 @dataclass(frozen=True)
@@ -61,6 +62,72 @@ def _fisher_information(
     return info
 
 
+def _active_jacobian_rows(
+    model: Extrapolator, scales: list[Scale], w_arm: np.ndarray
+) -> np.ndarray:
+    """Jacobian rows of the scales carrying positive weight -- the *support*
+    of the design, which is what decides structural identifiability."""
+    rows = [model.jacobian(s) for wi, s in zip(w_arm, scales, strict=True) if wi > 0.0]
+    if not rows:
+        return np.zeros((0, model.n_params))
+    return np.array(rows, dtype=float)
+
+
+def _equilibration(info: np.ndarray) -> np.ndarray:
+    """Jacobi scaling `s_i = sqrt(I_ii)` (1 where a parameter has no
+    information at all). Fisher information for these fits mixes parameters
+    whose Jacobian entries differ by ~10 orders of magnitude (`E` ~ 1,
+    `d/d alpha` ~ 1e-10), so `I` is ill-conditioned by *units* alone;
+    `S^-1 I S^-1` removes that without changing what is identifiable."""
+    diag = np.diag(info)
+    return np.where(diag > 0.0, np.sqrt(np.where(diag > 0.0, diag, 1.0)), 1.0)
+
+
+def _info_solve(info: np.ndarray, j_star: np.ndarray) -> np.ndarray:
+    """`I^+ J_target`, computed on the Jacobi-equilibrated matrix
+    (`I = S I_eq S`, so `I^+ = S^-1 I_eq^+ S^-1`)."""
+    scale = _equilibration(info)
+    info_eq = info / np.outer(scale, scale)
+    return (np.linalg.pinv(info_eq, hermitian=True) @ (j_star / scale)) / scale
+
+
+def _target_denom(info: np.ndarray, j_star: np.ndarray, j_rows: np.ndarray) -> float:
+    """`J_target^T I^-1 J_target`, or 0.0 ("no information", the contract
+    `_arm_rate` documents) when the target is structurally unidentifiable
+    from the design.
+
+    PR #28's reviews: `np.linalg.pinv` silently treats any direction
+    outside `range(I)` as contributing ZERO variance (its minimum-norm
+    convention), the OPPOSITE of the truth (INFINITE variance). Reproduced:
+    a `LogLinear` model observed only at `N=1` has `J(N=1) = [1, 0]`, so
+    `I = diag(1, 0)` regardless of weight; the target at `N=4` has
+    `J_target = [1, log(4)]`, and `J_target^T pinv(I) J_target = 1` is a
+    small, finite, plausible-looking number when the truth is "cannot be
+    estimated at all from this design".
+
+    The first fix tested `I @ pinv(I) @ J_target ~= J_target` with a 10%
+    relative tolerance -- wrong in both directions (second-round review):
+    a target whose missing component is only 5% of `||J_target||` (e.g.
+    `J_target = [1, .05]` against a design that only ever sees `[1, 0]`)
+    passed the 10% test and got a finite variance, while a tight tolerance
+    false-triggered on ordinary ill-conditioned designs (roundoff residual
+    up to ~0.5% at condition ~1e14). The two are different questions and
+    are now separated: *structural* identifiability -- is `J_target` in the
+    row space of the *observed-scale Jacobians* (`j_rows`, one per scale
+    with positive weight)? -- is decided on the unweighted, equilibrated
+    Jacobians by `pdt.theory.identifiability.target_in_row_space`, with a
+    numerical-rank tolerance appropriate to that matrix; numerical
+    ill-conditioning of the weighted information is left to the (also
+    equilibrated) pseudo-inverse, where it correctly shows up as a large
+    but finite variance.
+    """
+    if not np.any(j_star):
+        return 0.0
+    if not target_in_row_space(j_rows, j_star):
+        return 0.0
+    return float(j_star @ _info_solve(info, j_star))
+
+
 def _arm_rate(
     model: Extrapolator,
     scales: list[Scale],
@@ -78,9 +145,10 @@ def _arm_rate(
     # arbitrary w (e.g. w_arm all zero, or concentrated on scales whose
     # Jacobians don't span p dimensions) -- exactly the "rank-deficient
     # design" case Theorem 3 already treats as a real, not a numerical,
-    # phenomenon.
-    info_pinv = np.linalg.pinv(info)
-    denom = float(j_star @ info_pinv @ j_star)
+    # phenomenon. `_target_denom` (not a raw `j_star @ pinv @ j_star`)
+    # confirms J_target is actually estimable before trusting pinv's
+    # output -- see its docstring.
+    denom = _target_denom(info, j_star, _active_jacobian_rows(model, scales, w_arm))
     if denom <= 1e-300:
         return 0.0
     return (delta_k**2) / (2.0 * denom)
@@ -124,15 +192,23 @@ def _arm_rate_and_grad(
     finite-difference Jacobian of a function that routes through
     `np.linalg.pinv` -- exactly what made the earlier SLSQP/trust-constr
     attempts unreliable (see docs/decisions.md).
+
+    Gated by the same structural identifiability check `_arm_rate` uses: if
+    `J_target` is not in the row space of the observed-scale Jacobians, the target is structurally
+    unidentifiable from every candidate scale regardless of `w` (PR #28's
+    review), so `rate=0` for the *entire* feasible simplex here, not just
+    this one point -- the true `d(rate)/dw = 0` everywhere, making a zero
+    gradient the mathematically correct answer (not a spurious stall),
+    and `solve_allocation`'s "zero subgradient -> stationary, done" exit
+    is the right call in that case.
     """
     info = _fisher_information(model, scales, sigma2, w_arm)
     j_star = model.jacobian(target_scale)
-    info_pinv = np.linalg.pinv(info)
-    f = float(j_star @ info_pinv @ j_star)
     n = len(w_arm)
+    f = _target_denom(info, j_star, _active_jacobian_rows(model, scales, w_arm))
     if f <= 1e-300:
         return 0.0, np.zeros(n)
-    y = info_pinv @ j_star
+    y = _info_solve(info, j_star)
     c = (delta_k**2) / 2.0
     rate = c / f
     grad = np.empty(n)
@@ -243,15 +319,39 @@ def solve_allocation(
     def with_floor(p_raw: np.ndarray) -> np.ndarray:
         return (1.0 - n_dims * floor) * p_raw + floor
 
+    # PR #28's review, P2: `converged` must reflect whether THIS restart
+    # actually reached a stationarity criterion, not just that the loop
+    # ran to completion -- exhausting the `n_iter` budget without the
+    # subgradient norm reaching exactly zero is budget exhaustion, not
+    # convergence, even though a rate value is still returned either way
+    # (the heuristic objective at whatever point the search stopped, not
+    # a certified T* optimum). Deliberately an EXACT-zero check, not a
+    # small positive tolerance: `grad_norm`'s natural scale depends
+    # entirely on the problem's own units (`delta_k`, `sigma2`, `cost`
+    # can put rates anywhere from ~1e-20 to ~1 depending on the instance),
+    # so any fixed positive tolerance is either too loose for some
+    # instances (falsely claiming convergence after essentially zero
+    # progress -- tried first, and directly observed to trigger after a
+    # single iteration on this module's own realistic-instance tests) or
+    # too tight for others. Exact zero is scale-invariant: it means the
+    # tightest challenger's own subgradient is a genuine zero vector, a
+    # real critical point regardless of units -- the same signal the
+    # pre-fix code already used, just now correctly reflected in
+    # `converged` instead of being reported as `True` unconditionally
+    # regardless of whether that signal was ever seen.
     rng = rng if rng is not None else np.random.default_rng(0)
     best_rate = -1.0
     best_p: np.ndarray | None = None
     best_n_iter = 0
+    best_converged = False
 
     for _ in range(n_restarts):
         p = with_floor(rng.dirichlet(np.ones(n_dims)))
+        actual_iters = 0
+        restart_converged = False
 
         for t in range(1, n_iter + 1):
+            actual_iters = t
             rates, grads = rates_and_grads(p)
             tightest = min(rates, key=rates.get)
             full_grad = np.zeros(n_dims)
@@ -273,6 +373,7 @@ def solve_allocation(
             # docs/decisions.md.
             grad_norm = float(np.linalg.norm(full_grad))
             if grad_norm <= 0:
+                restart_converged = True
                 break  # a true stationary point (zero subgradient); done
             step = 0.5 / (np.sqrt(t) * grad_norm)
             p = with_floor(_project_to_simplex(p + step * full_grad))
@@ -282,7 +383,8 @@ def solve_allocation(
         if final_rate > best_rate:
             best_rate = final_rate
             best_p = p
-            best_n_iter = n_iter
+            best_n_iter = actual_iters
+            best_converged = restart_converged
 
     assert best_p is not None
     w_final = {
@@ -296,14 +398,25 @@ def solve_allocation(
     }
     rate = min(arm_rates.values())
     weights = {(arm, i): float(w_final[arm][i]) for arm in challengers for i in range(n_scales)}
+    message = (
+        f"projected subgradient ascent: {n_restarts} restarts x up to {n_iter} iterations "
+        f"(reached a near-stationary point in {best_n_iter} iterations)"
+        if best_converged
+        else (
+            f"projected subgradient ascent: {n_restarts} restarts x {n_iter} iterations -- "
+            "budget exhausted without reaching a near-stationary point on the best restart; "
+            "treat the returned rate as a heuristic value from wherever the search stopped, "
+            "not a certified T* optimum"
+        )
+    )
     return AllocationResult(
         weights=weights,
         rate=rate,
         t_star=(1.0 / rate) if rate > 0 else float("inf"),
         arm_rates=arm_rates,
-        converged=True,
+        converged=best_converged,
         n_iterations=best_n_iter,
-        message=f"projected subgradient ascent: {n_restarts} restarts x {n_iter} iterations",
+        message=message,
     )
 
 
@@ -361,8 +474,25 @@ def brute_force_allocation(
 
         j_outer = np.einsum("si,sj->sij", j_scales, j_scales) / sig2[:, None, None]
         info_batch = np.einsum("ns,sij->nij", w_arm, j_outer)  # (n_samples, p, p)
-        info_pinv_batch = np.linalg.pinv(info_batch)
-        f_batch = np.einsum("i,nij,j->n", j_star, info_pinv_batch, j_star)
+        # Structural identifiability (see `_target_denom`): every Dirichlet
+        # sample has all weights positive, so the design's support is the
+        # full candidate set.
+        if not target_in_row_space(j_scales, j_star):
+            rates_per_arm[a] = 0.0
+            continue
+        # Jacobi-equilibrated batched pseudo-inverse, as in `_info_solve`.
+        diag = np.einsum("nii->ni", info_batch)
+        scale_batch = np.where(diag > 0.0, np.sqrt(np.where(diag > 0.0, diag, 1.0)), 1.0)
+        info_eq_batch = info_batch / (scale_batch[:, :, None] * scale_batch[:, None, :])
+        y_batch = (
+            np.einsum(
+                "nij,nj->ni",
+                np.linalg.pinv(info_eq_batch, hermitian=True),
+                j_star[None, :] / scale_batch,
+            )
+            / scale_batch
+        )
+        f_batch = np.einsum("i,ni->n", j_star, y_batch)
         rates_per_arm[a] = np.where(
             f_batch > 1e-300, (deltas[arm] ** 2) / (2.0 * np.maximum(f_batch, 1e-300)), 0.0
         )

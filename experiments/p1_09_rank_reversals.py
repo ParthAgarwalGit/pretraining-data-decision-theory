@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import itertools
 
-from scipy.stats import kendalltau, norm
+from scipy.stats import kendalltau, t
 
 from pdt import provenance
 from pdt.analysis import noise
@@ -51,11 +51,31 @@ def _sizes_ascending(long_frame) -> list[str]:
     return sizes["params_str"].to_list()
 
 
-def _bonferroni_threshold(n_tests: int, familywise_alpha: float = _FAMILYWISE_ALPHA) -> float:
-    """Two-sided z-threshold controlling family-wise error at
-    `familywise_alpha` across `n_tests` simultaneous per-pair tests
-    (one per size on the ladder)."""
-    return float(norm.ppf(1 - (familywise_alpha / n_tests) / 2))
+def _bonferroni_t_threshold(
+    df: float, n_tests: int, familywise_alpha: float = _FAMILYWISE_ALPHA
+) -> float:
+    """Two-sided *t*-threshold (Welch-Satterthwaite `df`) controlling
+    family-wise error at `familywise_alpha` across `n_tests` simultaneous
+    per-pair tests (one per size on the ladder).
+
+    **A real calibration bug found by external review, fixed here, not
+    just patched:** `pair_effect_size` is a t-like statistic (both
+    variances are estimated from only `n_seeds=3` observations each),
+    but an earlier version of this function returned a standard-normal
+    quantile (`scipy.stats.norm.ppf`) regardless -- the normal
+    distribution's thinner tails understate the true critical value a
+    small-sample t-statistic needs. Reproduced exactly as the reviewer
+    gave it: for `df=4` (the pooled-equal-variance case at this
+    project's real `n_seeds=3`), the normal-based cutoff (2.913726) has
+    an *actual* per-test two-sided false-positive probability of 0.0435
+    under `t(4)`, not the intended `0.05/14=0.00357` -- more than 12x
+    the nominal rate, so the claimed 5% family-wise control did not
+    actually hold. `df` is computed per (task, size, pair) cell from the
+    real, generally-unequal seed variances
+    (`rank_reversal.welch_satterthwaite_df`), not assumed equal-variance
+    throughout -- see docs/decisions.md.
+    """
+    return float(t.ppf(1 - (familywise_alpha / n_tests) / 2, df=df))
 
 
 def _by_task_size_recipe(seed_var) -> dict[tuple[str, str], dict[str, dict]]:
@@ -84,8 +104,18 @@ def _classify_task(
     recipes: list[str],
     sizes_ascending: list[str],
     by_size: dict[str, dict[str, dict]],
-    threshold: float,
+    threshold: float | None,
 ) -> dict:
+    """`threshold=None` selects the calibrated mode: a per-(size, pair)
+    cell Welch-Satterthwaite `t` threshold (real seed variances can, and
+    do, differ between the two recipes in a pair), rather than one fixed
+    magnitude cutoff shared by every cell regardless of how much
+    estimation uncertainty that specific cell's variances imply -- see
+    `_bonferroni_t_threshold`'s own docstring for why a single normal
+    quantile was wrong here. A fixed float still selects the
+    uncorrected, deliberately-uncalibrated `AMBIGUOUS_EFFECT_SIZE_THRESHOLD`
+    convention used for continuity with P1-02/03."""
+    n_tests = len(sizes_ascending)
     pair_results = []
     for k, k_prime in itertools.combinations(recipes, 2):
         resolved_signs: dict[str, int] = {}
@@ -97,7 +127,14 @@ def _classify_task(
             effect_size = rr.pair_effect_size(
                 a["mu"], b["mu"], a["sigma2_seed"], b["sigma2_seed"], a["n_seeds"]
             )
-            sign = rr.resolved_sign(effect_size, threshold=threshold)
+            if threshold is None:
+                df = rr.welch_satterthwaite_df(a["sigma2_seed"], b["sigma2_seed"], a["n_seeds"])
+                cell_threshold = (
+                    _bonferroni_t_threshold(df, n_tests) if df is not None else float("inf")
+                )
+            else:
+                cell_threshold = threshold
+            sign = rr.resolved_sign(effect_size, threshold=cell_threshold)
             if sign is not None:
                 resolved_signs[size] = sign
 
@@ -176,7 +213,7 @@ def _kendall_curve(
 
 
 def _run_at_threshold(
-    threshold: float,
+    threshold: float | None,
     tasks: list[str],
     recipes: list[str],
     sizes_ascending: list[str],
@@ -184,15 +221,17 @@ def _run_at_threshold(
     *,
     label: str,
 ) -> dict:
+    """`threshold=None` selects the calibrated per-cell Welch-t mode --
+    see `_classify_task`."""
     by_task = {}
     for task in tasks:
         by_size = {size: by_task_size.get((task, size), {}) for size in sizes_ascending}
         by_task[task] = _classify_task(task, recipes, sizes_ascending, by_size, threshold)
-        t = by_task[task]
+        task_result = by_task[task]
         print(
-            f"p1_09_rank_reversals [{label}]: {task}: {t['n_stable']} stable, "
-            f"{t['n_reversing']} reversing, {t['n_within_noise']} within-noise "
-            f"(of {t['n_pairs']} pairs)"
+            f"p1_09_rank_reversals [{label}]: {task}: {task_result['n_stable']} stable, "
+            f"{task_result['n_reversing']} reversing, {task_result['n_within_noise']} "
+            f"within-noise (of {task_result['n_pairs']} pairs)"
         )
 
     all_reversing = []
@@ -220,6 +259,7 @@ def _run_at_threshold(
 
     return {
         "threshold": threshold,
+        "threshold_mode": "calibrated_welch_t_per_cell" if threshold is None else "fixed",
         "by_task": by_task,
         "summary": {
             "total_pairs": total_pairs,
@@ -248,17 +288,17 @@ def main() -> None:
         f"{len(sizes_ascending)} sizes"
     )
 
-    bonferroni_threshold = _bonferroni_threshold(len(sizes_ascending))
     print(
         f"p1_09_rank_reversals: bonferroni threshold for {len(sizes_ascending)} tests, "
-        f"family-wise alpha={_FAMILYWISE_ALPHA} -> z={bonferroni_threshold:.4f}"
+        f"family-wise alpha={_FAMILYWISE_ALPHA} -> calibrated per-cell Welch-t "
+        f"(not a single normal quantile -- see docs/decisions.md)"
     )
 
     uncorrected = _run_at_threshold(
         1.0, tasks, recipes, sizes_ascending, by_task_size, label="uncorrected_1.0"
     )
     bonferroni = _run_at_threshold(
-        bonferroni_threshold,
+        None,
         tasks,
         recipes,
         sizes_ascending,
@@ -277,7 +317,6 @@ def main() -> None:
         "sizes_ascending": sizes_ascending,
         "recipes": recipes,
         "primary_threshold_label": "bonferroni",
-        "bonferroni_threshold_value": bonferroni_threshold,
         "familywise_alpha": _FAMILYWISE_ALPHA,
         "n_simultaneous_tests_per_pair": len(sizes_ascending),
         "thresholds": {

@@ -661,6 +661,7 @@ sensitivity check (varying the threshold on a 3-task sample) before
 trusting the initial single-threshold run's headline number, in the same
 spirit as this project's other threshold/variant sensitivity checks
 (P1-02's ambiguity threshold, P1-03's four-variant table).
+
 ---
 
 ## 2026-09-03 — P1-06 bias/variance decomposition: compute scope, shared-draw design, and a BLAS crash
@@ -1871,3 +1872,1043 @@ both fixes once this branch merges past its upstream dependencies.
 
 **Decided by:** Agent, addressing PR #30's review. `tests/test_p3_04_simulation.py`
 added (4 tests, all passing).
+---
+
+## 2026-09-17 — ETS's certification radius was invalid for estimated variance; design-rank check missed a D-blind model
+
+**Context:** PR #29's reviewer found two real issues in
+`src/pdt/bai/ets.py`.
+
+**Issue 1 (P1): the certification radius `c_t = sqrt(2*(v_a+v_b)*
+log(1/beta_t))` is a valid sub-Gaussian tail bound only if `v_a`/`v_b`
+are the TRUE, known variance -- but they are `analytic_v_k`'s HC0
+sandwich-covariance ESTIMATE, itself uncertain, especially with the few
+residual degrees of freedom a real run has early on.** Reproduced
+exactly as given: `LogLinear`, scales `N=[1,2,3]`, target `N=4`,
+`delta=.01`, a single check after just the `n_params+1=3` warm-up pulls
+per arm (1 residual degree of freedom each), 1,000 independent trials --
+9.1% unconditional certification error against the 1% requested, a ~9x
+violation.
+
+**Fix:** a Student-t radius, `t.ppf(1-beta_t, df) * sqrt(v_a+v_b)`, using
+a Welch-Satterthwaite-combined `df` from each arm's own HC0-residual
+degrees of freedom (pulls minus fitted parameters) -- the same remedy
+already applied to P1-09's calibration bug. `_welch_satterthwaite_df` is
+the general form (arbitrary, independently-estimated variances with
+their own df) of `pdt.analysis.rank_reversal.welch_satterthwaite_df`
+(the special case sharing one `n_seeds`). Verified empirically against
+the reviewer's own counterexample, not just asserted: 5,000 independent
+trials of the exact reproduction now give a 0.70% unconditional error
+rate, comfortably under the 1% request (down from 9.1%).
+
+**Explicitly not claimed as a rigorously proven finite-sample radius.**
+A fully rigorous fix needs either a proper always-valid confidence
+sequence for unknown variance, or restricting the guarantee to the
+known-`sigma2` case `tests/theory/test_theorem4.py` already certifies
+(that test's own simulation uses the TRUE simulation `sigma`, not an
+estimate, so its Gaussian-formula certificate remains valid on its own
+terms and was not changed). PR #26's review of `theorem4_algorithm.tex`
+independently found the same "missing simultaneous-adaptive-confidence
+proof" gap at the paper's proof level -- this ets.py fix is a
+substantial, empirically-verified improvement to the running code, not a
+substitute for that proof-level fix once PR #26 is reached.
+
+**Issue 2 (P2): `_assert_design_identified` counted distinct `(N, D)`
+scale pairs but never checked whether the model's Jacobian actually has
+full rank there.** `LogLinear`'s fit ignores `D` entirely, so
+`n_params+1` pairs sharing the same `N` (different `D`) passed the count
+check while providing zero information about the slope parameter.
+
+**Fix:** also check the Jacobian's rank at several GENERIC reference
+parameter values (from the model's own `_bounds`, not this run's
+possibly-degenerate converged fit -- reusing a possibly-degenerate
+converged fit was already tried and rejected once, see the entry above;
+this check deliberately avoids repeating that mistake). Two numerical
+traps found and fixed while building this, both via direct measurement,
+not guessed:
+1. Linear-uniform probe sampling over a fitter's full declared bounds
+   put ~81% of draws in the exact numerically-flat region PR #12's
+   `multi_start_fit` log-uniform fix already exists to avoid (checked
+   directly on a genuinely well-identified 4-scale `PowerLawN` design) --
+   an 8-probe run had a ~20% chance of hitting 8-in-a-row bad draws and
+   false-rejecting a legitimate design, which is exactly what an early
+   version of this fix did to two pre-existing tests. Fixed by sampling
+   log-uniformly for any dimension with a strictly positive lower bound
+   (a model-agnostic heuristic matching every `alpha`/`beta` bound this
+   project's fitters declare), dropping the bad-draw rate to ~18%
+   (~1e-6 for 8-in-a-row).
+2. The probe RNG was initially a single shared, mutating module-level
+   generator, making one call's probe sequence (and thus whether it hit
+   a bad-luck streak) depend on how many prior calls elsewhere had
+   already consumed from it -- real, observed flakiness. Fixed by
+   re-seeding a fresh, local RNG from a fixed constant on every call.
+
+Regression tests added for both issues (`tests/test_ets.py`), including
+the reviewer's exact `LogLinear`-ignores-`D` counterexample and the
+`PowerLawN` false-rejection case that exposed the two numerical traps
+above.
+
+**Decided by:** Agent, addressing PR #29's review.
+---
+
+## 2026-09-17 — allocation.py: pinv silently mis-scored unidentifiable targets; converged was unconditional
+
+**Context:** PR #28's reviewer found two real issues in
+`src/pdt/bai/allocation.py`.
+
+**Issue 1 (P1): `_arm_rate`/`_arm_rate_and_grad`/`brute_force_allocation`
+computed `J_target^T pinv(I_k(w)) J_target` without checking whether
+`J_target` actually lies in `range(I_k(w))`.** Reproduced exactly as
+given: a `LogLinear` model (`y = a + b*log(N)`) observed only at `N=1`
+has jacobian `[1, log(1)] = [1, 0]` at every candidate scale regardless
+of weight, so `I = diag(1, 0)` -- the slope parameter is structurally
+unidentifiable from this design, no matter how compute is allocated. The
+target at `N=4` has jacobian `[1, log(4)]`, nonzero in the missing
+direction. `np.linalg.pinv`'s minimum-norm convention treats a direction
+outside `range(I)` as contributing ZERO variance (`pinv(diag(1,0)) =
+diag(1,0)` exactly), the opposite of the truth (INFINITE variance --
+"cannot be estimated at all"), so `_arm_rate` returned a small but finite
+(and wrong) rate (~0.005 at `Delta=.1`, unit variance/weight) instead of
+the correct 0.
+
+**Fix:** a new `_target_denom` helper checks `J_target`'s residual after
+projection through `I @ pinv(I)` (the orthogonal projector onto
+`range(I)`) relative to `||J_target||`, returning 0.0 -- matching
+`_arm_rate`'s own already-documented "no information at all" contract --
+whenever that residual exceeds `_TARGET_RANGE_RTOL` (10%, deliberately
+loose: `info` routinely gets extremely ill-conditioned (~1e14 condition
+numbers) during the search, and reconstructing `J_target` through `pinv`
+at that conditioning accumulates real floating-point residuals up to
+~0.5% on ordinary, non-degenerate instances -- checked directly by
+sampling many restarts of the existing test instance. A genuinely
+unidentifiable case's residual is ~80-100%, not a few percent, so 10%
+separates the two with wide margin on both sides; a tight,
+precision-scale threshold was tried first and immediately false-triggered
+on ordinary optimization trajectory, collapsing real solves to `rate=0`).
+Applied to `_arm_rate` and `_arm_rate_and_grad` (whose zero-gradient
+response in this case is the mathematically correct one -- if no
+candidate scale's jacobian has any component in `J_target`'s missing
+direction, no reweighting among them can ever create that information, so
+`d(rate)/dw = 0` genuinely everywhere, not a spurious stall) and,
+vectorized, to `brute_force_allocation`'s batched Fisher-information
+computation. Regression tests added (`tests/test_allocation.py`),
+including the exact reviewer counterexample and a sanity check that a
+second, informative candidate scale restores a positive rate.
+
+**Issue 2 (P2): `solve_allocation` reported `converged=True`
+unconditionally, even when the `n_iter` budget was exhausted without the
+subgradient ever reaching a stationary point.** Given the solver's own
+documented status ("validated-reasonable, not certified-optimal," see
+the entry above), this overclaimed every returned allocation as if the
+search had definitively finished, when in the overwhelming majority of
+real runs it had simply run out of budget.
+
+**Fix:** each restart now tracks whether it broke early via the existing
+exact-zero-subgradient check (a genuine stationary point, scale-invariant
+regardless of the problem's own units) or ran the full `n_iter` without
+reaching it; the returned `AllocationResult.converged` reflects the
+BEST restart's own status, `n_iterations` reports how many iterations
+that restart actually ran (not always the configured budget), and
+`message` says plainly when the budget was exhausted rather than implying
+a certified optimum. Deliberately did NOT use a small positive gradient-
+norm tolerance instead of exact zero: the natural scale of the
+subgradient depends entirely on the problem's own units (rates here span
+roughly 1e-20 to 1 depending on `delta_k`/`sigma2`/`cost`), so any fixed
+tolerance is either too loose (verified directly: a `1e-6` tolerance
+falsely declared convergence after a single iteration on the existing
+test instance, breaking two other tests that check solution quality) or
+too tight for a different instance's units.
+
+**Decided by:** Agent, addressing PR #28's review.
+---
+
+## 2026-09-17 — SyntheticOracle's observation noise was not seeded per-instance
+
+**Context:** PR #27's reviewer found that `SyntheticOracle.pull()`'s
+noise seed (`_stable_seed(recipe, scale.n, scale.d, seed)`) depended only
+on the recipe, scale, and caller-supplied replicate `seed` -- never on
+which `SyntheticOracle` *instance* was calling it. The constructor's own
+`rng` draws different means/noise levels (`e`, `a`, `alpha`,
+`bias_at_target`, `sigma2_noise`) per instance, but that randomness never
+reached the observation draw. Two separate instances (e.g. two
+"independent trials" in a simulation study, each built from its own
+constructor seed) therefore reused the exact same standardized noise
+innovation for the same `(recipe, scale, seed)` -- correlating
+observations that were supposed to be independent repeated trials.
+
+**Fix:** `SyntheticOracle.__init__` now draws `self._instance_salt` (a
+64-bit int) once from the constructor's own `rng`, as the very first
+thing pulled from it, and `pull()` folds it into `_stable_seed(...)`
+alongside the existing `(recipe, scale.n, scale.d, seed)` key. Two
+instances built from the SAME constructor seed still draw the identical
+salt (it's the first deterministic draw from that seed's own stream), so
+`pull()` stays exactly reproducible given the same construction seed --
+`test_synthetic_pull_is_reproducible_across_fresh_instances` (same-seed
+case) is unaffected. Only cross-instance independence for *differently*
+seeded instances is what changes. Added
+`test_synthetic_pull_noise_is_independent_across_differently_seeded_instances`,
+which forces two differently-constructed instances to share identical
+recipe params (isolating the instance-identity effect from the
+already-different means/sigma) and confirms their pulls now differ.
+
+Only `SyntheticOracle` was affected -- `DataDecideOracle` and
+`LiveTrainingOracle` read from real/external data with no synthetic
+per-instance randomness to correlate.
+
+**Decided by:** Agent, addressing PR #27's review. Full suite: 22 passed
+in `tests/test_oracle.py`.
+## 2026-09-19 — Theorem 4: simultaneous confidence is an explicit condition; asymptotic optimality withdrawn (PR #26)
+
+Review findings on `paper/sections/theorem4_algorithm.tex`, both accepted:
+1. **Simultaneous adaptive confidence was asserted, not proved.** `beta = delta/[t(t+1)]` spends `delta`
+   over time for one fixed comparison, but the proof unions over arms, the leader is data-selected, and
+   the design is adaptive; Theorem 1 (fixed design) is not a confidence sequence. Now: the threshold is
+   `beta = delta / (t(t+1) K(K-1))` (rounds x ordered arm pairs); Theorem 4 is split into
+   (a) a *deterministic implication* (valid `eta` + simultaneous confidence event `E` => any stop is
+   correct), (b) `P[E^c] <= delta` **proved for a pre-committed, non-adaptive schedule** with linear `g`
+   and known sub-Gaussian noise, (c) **adaptive tracking: not proved** (needs a self-normalized /
+   martingale confidence sequence; stated as an assumption, matching A4 in `src/pdt/bai/ets.py`
+   and PR #29's decisions entry). The numerical certificate (test_theorem4.py) is scoped to (b) and
+   its `beta` updated to include the `K(K-1)` factor. `eta` is explicitly an *assumed* upper bound;
+   P1-06's clipped estimate is a heuristic and does not make it valid.
+2. **Fixed bias budgets do not vanish as `delta -> 0`.** The stopping margin tends to
+   `D_k^dagger - eta_{k*} - eta_k`, not `Delta_k`; even with `h = 0`, conservative `eta > 0`
+   permanently reduces it, changing the leading constant; and the tracked program omits the winner's
+   information (Theorem 2, challenger-only). The "asymptotic optimality = `T*`" theorem is
+   **withdrawn** and replaced by a labeled, unproved *conjecture* for the joint robust characteristic time
+   `T^eta` (robust gap `Delta_k^eta`). Abstention theorem restated as convergence in probability.
+
+**Decided by:** Agent, following the review.
+## 2026-09-19 — Theorem 3: rank is sufficient (not necessary) for identifiability; restore the 1/C in the minimax rate (PR #25)
+
+Review findings on `paper/sections/theorem3_identifiability.tex`, both accepted:
+1. **"iff rank(X) = p" was wrong.** Counterexample `g(theta, s) = theta^3` on `[-1, 1]`, `theta_k = 0`:
+   uniquely identifiable from noiseless data, yet `J = 0`, rank `0 < p = 1`. Theorem 3 is now
+   (a) rank `= p` **sufficient** for local identifiability, (b) a **constant-rank** converse
+   (zero set is a `(p-r)`-dimensional submanifold => a continuum of equivalent parameters), and
+   (c) the explicit note that a rank drop at a point alone gives no converse. Two-failure-modes
+   remark reworded to "first-order identifiability fails".
+2. **Missing `1/C`.** `I_k(w)` is per unit compute (`sum w c = 1`), so `J^T I_k(w)^-1 J` is constant
+   in `C`, while risk is that quantity divided by `C` (the proof's own joint KL is proportional to `C`).
+   The minimax display is now `(1/C) J^T I_k(w)^-1 J = v_k(C)`, the proof carries the factor through,
+   the estimator achieving it is stated as *weighted* least squares (`1/sigma^2` weights; unweighted
+   LS has the larger sandwich variance, with equality under homoscedasticity), and the in-family
+   target risk is distinguished from misspecified `mu_k(s*)` risk (which adds
+   `sigma^2_extrap`, not decreasing in `C`). Tests: 1/C scaling under replication, OLS >= WLS variance,
+   the `theta^3` and constant-rank cases.
+
+**Decided by:** Agent, following the review.
+## 2026-09-19 — Theorem 2: cost normalization, exact KL, challenger-only is weaker, accessible scales (PR #24)
+
+Review findings on `paper/sections/theorem2_lower_bound.tex`, all accepted:
+1. **Cost normalization.** The statement had `sum w c = 1` with `I = sum w J J^T/sigma^2` (requires
+   `w = E[N]/E[C]`, pulls per compute) but the proof defined `w = E[N] c / E[C]` and omitted `1/c`
+   -- a factor-`c` error for a cost-`c` action. The proof now uses pulls-per-compute throughout
+   (`P3-02`'s internal compute-fraction variable is converted by `w = p/c`; the code was already
+   correct). Regression test checks the identity for costs (1, 10, 3).
+2. **Fixed-gap KL is not local.** The change of measure needs a winner-flipping alternative at
+   a fixed distance; Taylor-expanding the KL and "taking delta -> 0" does not justify a local
+   Fisher form, sub-Gaussianity does not give Gaussian KL, and the alternative can leave the compact
+   `Theta`. Theorem 2 Part A is now stated with the exact KL over admissible alternatives
+   (Gaussian noise); the closed form `Delta^2 / (2 J^T I^-1 J)` is the linear-Gaussian special
+   case and only when the minimizing alternative is admissible.
+3. **Challenger-only vs joint alternatives.** Moving only the challenger yields a valid but *weaker*
+   bound: two unit-cost Gaussian constant arms give `T = 2 sigma^2/Delta^2` (all budget on the
+   challenger) vs `8 sigma^2/Delta^2` for joint alternatives (equal allocation) -- factor 4
+   (numerically checked). We keep the challenger-only program, since it is what P3-02 solves, but
+   rename it `T^chal`, state that it is not the tight characteristic time, and **withdraw every
+   claim that an allocation solving it is asymptotically optimal**. The tight (joint, pairwise)
+   program shares the winner's weights across challengers and is *not implemented*; this is a
+   known limitation of P3-02/P3-03 (the current leader's reserved share in ETS is exactly the
+   piece the challenger-only program cannot produce).
+4. **Accessible scale set / ties.** The impossibility bump must vanish on *every scale a policy can
+   query*, not only the fitting design's scales (queries inside `(s_max, s*)` would distinguish it);
+   the construction is restated over `max S_acc` and does not apply when accessible scales approach
+   `s*`. Equality `eta = Delta_min/2` (or `eta g^alpha = Delta_min/2`) is a tie, so the sufficient
+   conditions are now strict; test updated accordingly.
+
+**Decided by:** Agent, following the review.
+## 2026-09-19 — Theorem 1: restrict the finite-sample claim; consistency is sufficient, not iff (PR #23)
+
+Review findings on `paper/sections/theorem1_bound.tex`: (1) smoothness and a bounded Jacobian do
+not make a nonlinear least-squares prediction exactly sub-Gaussian around the population
+projection with its delta-method variance, yet the theorem asserted an exact finite-`C` bound;
+(2) the consistency "iff" was wrong -- `D_k -> D_k^dagger` does not imply `D_k > 0` eventually iff
+`D_k^dagger > 0` (a limiting tie resolved in favour of the true winner is consistent).
+
+Changes: Theorem 1 is now stated as **(i) proved** for a linear-in-`theta` family with independent
+sub-Gaussian noise, and **(ii) conditional** on an explicit concentration hypothesis (H) (centre
+shift `rho_k`, variance proxy `bar v_k`) for nonlinear `g`; every nonlinear use (`pdt.theory.bound`,
+P1-07/P1-08) is documented as an empirical diagnostic taking `rho_k = 0`, `bar v_k = v_k`. The
+numerical certificate is scoped to case (i). Corollary 1 is now (a) sufficient strict positivity,
+(b) failure when `D_k^dagger < 0`, (c) the tie boundary left open, with convergence stated in
+probability (not a.s.) and proved from the sub-Gaussian tail. No new result is claimed; claims
+were narrowed to what the argument supports.
+
+**Decided by:** Agent, following the review.
+## 2026-09-19 — Setup: the bootstrap "debiasing" of sigma2_extrap was mis-described (PR #22)
+
+Second-source review of `paper/sections/setup.tex` (Remark `rem:sigma2-extrap-estimator`): the
+text said `- v_hat/B - sigma2_target` debiases `bias_hat^2`. It removes only Monte Carlo noise of
+the bootstrap mean (which vanishes as `B -> infinity`) and the ground-truth noise, but not the
+sampling variance of the *original* fit, which the bootstrap mean converges to and which
+survives every `B` (unbiased sample mean, exact target: `E[bias_hat^2] -> sigma^2/n`, not 0).
+The remark now separates the three noise sources, gives the `n/(n-1)`-corrected estimator now
+implemented in P1-06 (#16), and labels the clipped `sigma2_extrap_hat` a heuristic and the
+unclipped value the approximately-unbiased squared-bias estimate (exact for a sample mean,
+first-order for smooth fits). `docs/notation.md` updated to match.
+
+**Decided by:** Agent, following the review.
+## 2026-09-19 — Phase-1 memo and p1_06 findings: remove theory-validation inference from a vacuous bound (PR #21)
+
+Review findings, both accepted: (1) all 396 bounds are >= 1, so every empirical error probability
+passes, and "never violated" cannot be read as confirmation (the additive form is in fact invalid --
+PR #17, acknowledged in PR #23); (2) six <=530M combinations have no matched-compute comparison and
+must be reported as unassessed, not as losses. `docs/findings/phase1_memo.md`,
+`docs/findings/p1_06.md` and `STATUS.md` rewritten: **0 wins among 12 evaluable comparisons plus 6
+unassessed**; the `sigma2_extrap = 0` counterfactual is called inconclusive (vacuous bound, unmatched
+single-scale endpoint baseline); the "18/18 (now 17/18)" wording removed. The memo is marked provisional
+for P1-06/07/08 numbers until those results are regenerated on the repaired fitters and the
+bootstrap-calibration/identifiability fixes. The HF publication (P1-12) was performed earlier with
+PI confirmation; it is **not** re-run here -- re-publishing the regenerated derived tables needs a new PI
+decision.
+
+**Decided by:** Agent, following the review.
+## 2026-09-19 — F3: separate the two decision events (PR #20)
+
+F3 plotted the plug-in bound (a lower bound on P(select the single best arm)) and the observed
+fraction of correctly ordered recipe *pairs* on one "Decision accuracy" axis as predicted vs observed --
+different events, not comparable. F3 is now two panels: **A** best-arm selection (plug-in lower
+bound, the `sigma2_extrap = 0` counterfactual, and P1-07's Monte-Carlo P(argmax = k*), all the same
+event); **B** all-pairs ordering accuracy (observed only, labeled a different event; there is no
+bound for it). `generate()` raises if `results/p1_08_ceiling_prediction.json` lacks
+`observed_best_arm_accuracy` (i.e. predates PR #18's same-event fix) rather than plotting stale data;
+unassessed (`None`) cells are omitted, not drawn as zero. `paper/figures/f3_predicted_vs_observed.pdf`
+must be regenerated once P1-08 has been regenerated on the fixed upstream chain; until then the
+committed PDF is the old, mislabeled one and should not be cited.
+
+**Decided by:** Agent, following the review.
+## 2026-09-16 — P1-10 repeated P1-06's correlation+1 and bootstrap-ID-alignment defects; fixed the same way
+
+**Context:** PR #19's reviewer found that this module's parametric
+bootstrap reused a single shared per-scale `z` across BOTH recipes
+(`standard`/`deduped`) -- exactly the defect PR #16's review caught in
+`p1_06_decomposition.py`, and exactly what Decision 3 above describes as
+having deliberately mirrored ("the same shared-per-scale-per-replicate
+draw design P1-06 established"). That design has since been shown to
+force an unjustified exact +1 correlation between the two recipes'
+bootstrap noise, collapsing the pairwise-difference bootstrap variance to
+zero whenever they have equal noise even though the real observations are
+independent -- see the P1-06 entry above (2026-09-14/16) for the full
+mechanism. While fixing this, the same positional-zip bootstrap-ID-
+misalignment PR #16's review separately caught in `p1_06_decomposition.py`
+was also present here (`replicate_predictions[k_star][i] -
+replicate_predictions[k_other][i]` after each recipe independently
+dropped its own failed replicates) -- not flagged by PR #19's review this
+time, but the identical defect, fixed proactively rather than waiting for
+a future review pass to catch it separately.
+
+**Fix:** independent per-recipe noise draws (seeded via `_seed_for(design,
+task, recipe, "noise", b)`, extending the existing pattern with the
+recipe name) instead of one shared `z` per scale; a new
+`_pairwise_difference_series` helper (mirroring `p1_06_decomposition.py`'s
+own) that tracks replicate id alongside each prediction and intersects by
+id rather than zipping by position. Regression tests added
+(`tests/test_p1_10_secondary_ladder.py`) for the ID-alignment fix,
+matching P1-06's own regression tests for the same defect.
+
+**Not yet done:** `results/p1_10_secondary_ladder.json` needs
+regenerating once this branch merges past its upstream dependencies
+(P1-04's fitter fixes, P1-06's own three fixes) and their own
+regenerations.
+
+**Decided by:** Agent, addressing PR #19's review.
+## 2026-09-16 — P1-08's "gap" diagnostic mixed two decision events; the single-scale baseline was compute-mismatched
+
+**Context:** PR #18's reviewer found two real issues in
+`experiments/p1_08_ceiling_prediction.py`, both about comparing two
+quantities that are not actually the same thing.
+
+**Issue 1 (P1): `gap_predicted_minus_observed` compared a best-arm-selection
+bound against an all-pairs accuracy statistic.** `predicted_accuracy` is
+`max(0, 1 - bound_pairwise)`, and `bound_pairwise` is a union bound over
+the ~24 comparisons against the task's single true best recipe `k*` -- it
+lower-bounds P(this fitter's own argmax recipe == k*), one specific
+decision event. `observed_accuracy` (from P1-03/04) is
+`macro_avg_accuracy_including_ties`, the fraction of ALL 300 recipe
+*pairs* correctly ordered -- a different statistic that mostly says
+nothing about whether k* specifically was identified. Their difference
+cannot diagnose anything about the bound's tightness or the 80% ceiling,
+since a mismatch between them could be entirely an artifact of which event
+each one measures, unrelated to the theory's quality.
+
+**Fix:** added `_observed_best_arm_accuracy_per_task`, sourcing the SAME
+decision event's empirical rate directly from P1-07's own Monte-Carlo
+estimate (`empirical_error_rate` = 1 - P(argmax recipe == k*), computed by
+literally resampling the fitting procedure the bound describes). The new
+`observed_best_arm_accuracy` / `gap_predicted_minus_observed_best_arm`
+fields are the valid ceiling diagnostic going forward. The original
+(event-mismatched) `observed_accuracy` / `gap_predicted_minus_observed`
+fields are kept, but now documented as NOT the ceiling diagnostic --
+`observed_accuracy` is still legitimately used for the separate,
+internally-consistent "does extrapolation's all-pairs accuracy beat
+single-scale's all-pairs accuracy" central claim, where both sides use the
+same statistic.
+
+**Issue 2 (P2): the "beats single-scale" central claim compared extrapolation
+against `ConstantExtrapolator` at the SAME endpoint size, not the same
+compute.** `ConstantExtrapolator` at a design's endpoint (e.g. 150M) only
+pays for one model at that one size; the extrapolation fitter being
+compared against it consumed the compute of the ENTIRE fitting ladder up
+to that endpoint (every smaller size too). Comparing accuracy at matched
+*size* rather than matched *compute* is exactly the mismatch P1-04's own
+headline finding ("0/18 beat single-scale at matched compute") was
+designed to avoid -- P1-08 was silently redoing (and miscomputing) that
+same comparison instead of reusing it.
+
+**Fix:** added `_matched_compute_single_scale`, which reads P1-04's own
+already-correct `matched_single_scale_accuracy_including_ties` /
+`matched_compute_out_of_range` fields (the log-compute-interpolated
+single-scale baseline P1-04's headline already uses, identical across
+every fitter at a given design since they share the same ladder/compute).
+`extrapolation_beats_single_scale_observed` in `central_claims` now uses
+this matched-compute baseline instead of `ConstantExtrapolator`'s
+same-endpoint accuracy; `ConstantExtrapolator`'s own accuracy is still
+reported, renamed to `single_scale_observed_same_endpoint` to make clear
+it is informational, not the comparison baseline. `matched_compute_out_of_range`
+is now surfaced per central claim so a `<=530M`-design claim (out of
+P1-03's interpolatable range) reads as "no valid comparison" rather than
+silently falling back to something compute-mismatched.
+
+**Not yet done:** `results/p1_08_ceiling_prediction.json` needs
+regenerating once this branch merges past `phase1/bias-variance` and
+`phase1/bound-check`'s own upstream fixes and regenerations.
+
+**Decided by:** Agent, addressing PR #18's review. Full suite: 203 passed.
+
+## 2026-09-19 — P1-08: label budgets, and unassessed is not "lost" (PR #18)
+
+The observed "extrapolation beats single-scale" comparison uses P1-04's matched-compute
+baseline and is now `None` (was `False`) when a design's compute is out of range, with
+`summary.n_observed_evaluable_at_matched_compute` / `n_observed_unassessed_out_of_range` /
+`n_observed_extrapolation_beats_matched_single_scale` reported alongside. The predicted and
+counterfactual comparisons cannot be matched-compute (P1-07 evaluated single-scale only at the
+three endpoint models), so every central claim carries `predicted_comparison_budget: "unmatched: ..."`
+and the summary says so; consumers (F3, the Phase-1 memo) must not present them as matched.
+`results/p1_08_ceiling_prediction.json` is regenerated last in the Phase-1 chain, after P1-04/06/07
+have been regenerated on the fixed fitters.
+
+**Decided by:** Agent, following the review.
+## 2026-09-16 — P1-07's additive bound was an invalid "upper bound" for large fixed bias; estimator-specific uncertainty guard added
+
+**Context:** PR #17's reviewer found two real issues in
+`src/pdt/theory/bound.py`.
+
+**Issue 1 (P1): the additive form `exp(-Delta_k^2 / (2*(bias^2+v)))`
+folds a fixed, signed misspecification (bias) into a variance-like
+denominator term, which is the wrong treatment and produces an invalid
+bound.** Counterexample, reproduced exactly as given: challenger gap=5,
+bias=+10, variance=.01 -- the bias alone dwarfs and reverses the apparent
+5-point gap, so the true decision error is near-certain (~1), yet the old
+formula evaluated to ~0.8825, an "upper bound" *smaller* than the true
+error rate it is supposed to bound -- a violated bound, not just a loose
+one. The bug: averaging a large *fixed* bias into the denominator
+alongside genuinely random variance treats it as if it were symmetric
+noise that merely widens the distribution, when a bias that exceeds the
+gap in the wrong direction should make the term vacuous (-> 1, "no
+guarantee"), not moderately shrink it.
+
+**Fix:** `_bound_term` now treats bias as a worst-case, sign-unknown
+shift that first cancels the apparent gap (`effective_gap = max(0,
+|delta_k| - bias_magnitude)`), and only the *surviving* gap gets the
+variance-driven exponential-tail treatment. At `bias_magnitude=0` this is
+identical to the original formula, so the zero-bias case (and every
+downstream reported bound value that happens to have negligible bias) is
+unaffected. Re-running the exact counterexample now gives `1.0` (fully
+vacuous, correctly signaling "no guarantee" instead of the invalid 0.8825).
+`marginal_bound_term` uses `sqrt(sigma2_extrap_hat)` as the bias
+magnitude (already a squared-magnitude, sign-unknown estimate);
+`pairwise_bound_term` uses `abs(bias_hat)` (a signed point estimate,
+whose sign is itself uncertain at the scale that matters, so its
+magnitude is the defensible worst case). Documented plainly in the module
+docstring that this is **an empirical diagnostic, not a proven
+statistical bound** -- PR #23's review of the paper's own Theorem 1 proof
+(`paper/sections/theorem1_bound.tex`) independently found the nonlinear
+case isn't rigorously established either (smoothness/bounded-Jacobian
+alone don't give exact sub-Gaussian tails), so every value from this
+module should be read as "compare against P1-07's Monte-Carlo empirical
+error estimate," not "certified guarantee."
+
+**Issue 2 (P2): `sandwich_covariance`/`analytic_v_k` silently reported a
+number for every fitter, including two whose actual fitting procedure the
+joint-least-squares sandwich formula does not describe.**
+`ConstantExtrapolator` only fits to the largest-scale observations
+(ignoring the rest), and `sandwich_covariance` called with the *full*
+scales list would wrongly charge it "residuals" at scales it never used.
+`TwoStepLadder` fits in two separate sequential stages with different
+objectives, not one joint simultaneous optimization -- the single
+shared-jacobian/residual M-estimator structure doesn't represent a
+two-stage procedure at all. Both previously produced a plausible-looking
+`analytic_v_k` number that `results/p1_07_bound_coverage.json` reported
+"alongside P1-06's bootstrap `v_hat_k` as a cross-check," implying the two
+measure the same thing when for these two fitters they provably don't.
+
+**Fix:** `analytic_v_k` now raises `UnsupportedEstimatorError` for any
+fitter in the new `UNSUPPORTED_SANDWICH_ESTIMATORS` constant
+(`{"ConstantExtrapolator", "TwoStepLadder"}`) rather than fabricating a
+number. `experiments/p1_07_bound_coverage.py`'s `_compute_analytic_v_k`
+catches it alongside the existing `FitFailure`/`LinAlgError` handling and
+records `unsupported_estimator: true` in the per-recipe result (`false`
+for a genuine fit failure), so a reader of the results file can tell "not
+analytically supported by design" apart from "the fit itself failed."
+Both fitters are simply absent from `analytic_v_k` going forward, rather
+than silently present with a number that doesn't mean what the results
+file's own docstring claims it means.
+
+**Not yet done:** `results/p1_07_bound_coverage.json` needs regenerating
+with both fixes (plus every inherited upstream fix -- P1-04's fitter
+bugs, P1-06's bootstrap correlation/squared-bias/ID-alignment bugs) once
+this branch is merged forward past `phase1/bias-variance`'s own P1-06
+regeneration.
+
+**Decided by:** Agent, addressing PR #17's review. Full suite: 204 passed.
+
+---
+
+## 2026-09-14 — Two real bugs found by external review, fixed, results regenerated
+
+**Context:** PR #12's reviewer found two real correctness bugs in `src/pdt/scaling/`,
+both with concrete, executable reproductions, and flagged that the resulting
+mis-fits/mis-predictions propagate through every downstream task that fits a scaling
+law (essentially all of Phase 1 onward) since PowerLawN/ConstantExtrapolator are used
+throughout.
+
+**Bug 1 (P1): `multi_start_fit`'s uniform-random restart initialization can silently
+converge to the wrong answer with all restarts agreeing.** `x0 = rng.uniform(bounds[0],
+bounds[1])` samples an exponent parameter like `alpha` linearly over `[1e-3, 10]` --
+almost all of that mass lands on `alpha >~ 1`, where `N^-alpha` and its derivatives
+underflow to numerically zero for the parameter counts this project fits over
+(1e6-1e9): a flat region with no gradient signal. `scipy.optimize.least_squares` can
+report `success=True` there anyway (it stops on step size, not residual, going to
+zero), so **every one of the default 8 restarts can land in that flat region and agree
+with each other** -- passing the function's own `objective_spread`-based multi-start
+sanity check while still being badly wrong. Reproduced exactly as the reviewer gave it:
+`PowerLawN(rng=np.random.default_rng(1))` fit to a noiseless `y = 0.9 - 2*N^-0.1` curve
+(`N` from 1e6 to 1.5e8) predicted 0.504 at the target scale instead of the true 0.648,
+with all 8 restarts converging to the identical wrong point (`objective_spread` ~1e-18).
+
+**Fix:** `multi_start_fit` gained a `log_uniform_dims` parameter naming which parameter
+indices are decay-rate exponents; those are now drawn log-uniformly over their own
+bounds instead of linearly, concentrating restarts in the region where the fit's
+gradient signal actually exists. Applied to every fitter with an exponent parameter:
+`PowerLawN`, `PowerLawC` (`alpha`, index 2), `ChinchillaND` (`alpha` and `beta`,
+indices 2 and 4), `TwoStepLadder`'s step 1 (`alpha1`, index 2). Re-running the exact
+counterexample now recovers the true curve exactly (`theta = [0.9, -2.0, 0.1]`,
+`best_cost ~4.5e-30`). Regression tests added:
+`tests/test_scaling.py::test_power_law_n_recovers_a_small_alpha_noiseless_curve_across_seeds`
+(the exact counterexample, checked across 5 seeds, not just the one reported) and
+`test_multi_start_fit_log_uniform_dims_avoids_the_flat_high_alpha_region` (a direct,
+model-agnostic before/after check of the fix itself).
+
+**Bug 2 (P2): `ConstantExtrapolator` used the first observation at the largest scale,
+not the average of every replicate there.** `values[idx]` for whichever row happened to
+be first at max-`N`, when the interface accepts (and every real caller passes) a
+replicate history -- several seeds at the same size. Reproduced exactly as given:
+scales `[(1,1),(2,1),(2,1)]`, `y=[0,0.1,0.9]` predicted 0.1 (the first n=2 row), not the
+mean 0.5; reordering the last two rows changed the answer.
+
+**Fix:** average every observation at the largest scale (respecting the `weights`
+argument when given), not just the first one encountered. Three regression tests
+added, covering averaging, order-independence, and weighted averaging.
+
+`results/p1_04_extrapolation.json` (and every downstream results file computed from a
+scaling-law fit) needs regenerating with both fixes in place -- see the follow-up
+decisions.md entry for the regenerated numbers.
+
+**Decided by:** Agent, addressing PR #12's review. Full suite: 136 passed, 100%
+coverage on `src/pdt/scaling/base.py` and `src/pdt/scaling/fitters.py`.
+
+## 2026-09-14 — P1-04 results regenerated with both fixes: headline finding unchanged, individual fitter accuracies shift
+
+**Context:** follow-up to the entry immediately above. `results/p1_04_extrapolation.json`
+regenerated via `PDT_OVERWRITE=1 uv run python experiments/p1_04_extrapolation_baselines.py`
+on a clean tree with both scaling-law bugs fixed.
+
+**Headline finding is unchanged:** still 0/18 (fitter, design) combinations beat
+single-scale training at matched compute. `summary.n_beat_single_scale_at_matched_compute`
+is `0` both before and after, same as `summary.winners == []`. The consistency check
+(`ConstantExtrapolator`'s predictions matching P1-03's own reported numbers) still
+passes.
+
+**Individual accuracies moved, in the direction the bug predicts.** Every fitter with a
+decay-rate exponent parameter (the ones the `log_uniform_dims` fix touches) changed;
+`ConstantExtrapolator` and `LogLinear` (no exponent parameter, untouched by the fix) are
+bit-for-bit identical before and after, which is itself a useful sanity check that the
+fix is scoped correctly. Macro-averaged decision accuracy (including ties), by fitter
+and design:
+
+| fitter | design | before | after |
+|---|---|---|---|
+| PowerLawN | S_fit≤150M | 0.6452 | 0.7376 |
+| PowerLawN | S_fit≤300M | 0.6006 | 0.8097 |
+| PowerLawN | S_fit≤530M | 0.6891 | 0.8273 |
+| PowerLawC | S_fit≤150M | 0.6973 | 0.7358 |
+| PowerLawC | S_fit≤300M | 0.6915 | 0.7645 |
+| PowerLawC | S_fit≤530M | 0.7164 | 0.8179 |
+| ChinchillaND | S_fit≤150M | 0.7203 | 0.7624 |
+| ChinchillaND | S_fit≤300M | 0.7497 | 0.8148 |
+| ChinchillaND | S_fit≤530M | 0.7858 | 0.8482 |
+| TwoStepLadder | S_fit≤150M | 0.6942 | 0.5979 |
+| TwoStepLadder | S_fit≤300M | 0.7082 | 0.6197 |
+| TwoStepLadder | S_fit≤530M | 0.7697 | 0.6773 |
+| ConstantExtrapolator | (all 3) | 0.7627 / 0.8252 / 0.8509 | unchanged |
+| LogLinear | (all 3) | 0.7639 / 0.8148 / 0.8494 | unchanged |
+
+`PowerLawN`, `PowerLawC`, and `ChinchillaND` all got *more* accurate after the fix (by
+4-21 points) -- the old buggy initialization was landing genuine fits in the numerically
+flat high-alpha region often enough to measurably drag down decision accuracy, not just
+occasionally. `TwoStepLadder` moved the other way, *down* by 9-11 points: its step 1 also
+fits an `alpha`-like exponent, and the old bug's flat-region fits apparently happened to
+produce extrapolations that agreed with the true ranking more often than the genuinely
+optimal fits now do. Neither direction is surprising once the mechanism is understood --
+the old numbers weren't measuring "how good is this functional form", they were partly
+measuring "how did this particular numerical failure mode happen to land" -- but it means
+any pre-fix conclusion about `TwoStepLadder` specifically (e.g. "it's the best of the
+exponent-based fitters") should be treated as an artifact of the bug, not a real result.
+
+**Decided by:** Agent. Regeneration run completed cleanly (`git_dirty: false` in the
+written provenance); no code changes in this entry, data only.
+
+---
+
+## 2026-09-14 — P1-04 results regenerated again: both the scaling-fitter fix and the group_by determinism fix are now in the same file
+
+**Context:** this branch (`phase1/groupby-determinism-audit`, PR #14) and
+`phase1/scaling-fitters` (PR #12) each independently regenerated
+`results/p1_04_extrapolation.json` from a clean tree, from two different
+fixes to two different bugs (the group_by summation-order bug above, and
+the scaling-law initialization/replicate-averaging bugs in the entries
+above that). Merging PR #12's fix forward into this branch produced a
+real conflict in the results file itself -- both versions are genuine,
+correct regenerations of their own fix in isolation, but neither reflects
+both fixes at once. Per this project's provenance discipline (never
+hand-merge a generated results file), resolved by regenerating fresh from
+the merged code, which now has both fixes applied together, rather than
+attempting to reconcile the two JSON payloads by hand.
+
+**Result:** `PDT_OVERWRITE=1 uv run python experiments/p1_04_extrapolation_baselines.py`
+on the merged, clean tree. Headline finding still unchanged (0/18 combinations
+beat single-scale at matched compute); the `ConstantExtrapolator`-vs-P1-03
+consistency check still passes. Superseded both parents' versions of this
+file; no further diffing against either parent version individually is
+meaningful since both were missing one of the two now-combined fixes.
+
+**Decided by:** Agent, resolving the merge of PR #12 into PR #14.
+
+---
+
+## 2026-09-14 — P1-09's Bonferroni threshold was actually a ~12x-too-loose normal approximation; corrected reversal rate is 1.0%, not 15.2%
+
+**Context:** PR #15's reviewer found that `pair_effect_size` is a t-like
+statistic -- both `sigma2_a` and `sigma2_b` are estimated from only
+`n_seeds=3` observations each -- but the Bonferroni-corrected significance
+threshold used `scipy.stats.norm.ppf`, a standard-normal quantile, as if
+the variances were known exactly. Reproduced exactly as given: at `df=4`
+(the pooled-equal-variance case this project's real `n_seeds=3` gives
+everywhere), the normal-based cutoff's actual two-sided false-positive
+rate under the correct `t(4)` distribution is 0.0435, not the intended
+`0.05/14=0.00357` -- **more than 12x the nominal rate**, meaning the
+previously-committed "Bonferroni-corrected" 15.2% reversal rate
+(2026-09-03 entry above) was substantially inflated by the same kind of
+multiple-comparisons problem it was supposed to be correcting for, just a
+smaller version of it.
+
+**Fix:** `rank_reversal.welch_satterthwaite_df()` computes a per-(task,
+size, pair) cell Welch-Satterthwaite degrees of freedom from each
+recipe's own seed variance (they differ in practice, so pooling them into
+a single fixed df is itself an approximation this avoids), and
+`p1_09_rank_reversals._bonferroni_t_threshold()` uses `scipy.stats.t.ppf`
+at that df instead of a single fixed normal quantile shared across every
+cell. Four regression tests added (equal-variance recovers the pooled
+`df=4` case, unequal variance gives a lower df, both degenerate cases
+return `None` and fall back to an infinite threshold rather than
+crashing).
+
+**Regenerated `results/p1_09_rank_reversals.json` with the fix (plus the
+inherited P1-04 fitter fixes and the group_by determinism fix, both
+already merged forward into this branch) on a clean tree.** The corrected
+Bonferroni-calibrated reversal rate is **1.0%** (32/3300 pairs), down from
+the previously-reported 15.2% -- a much sharper conclusion than the earlier
+number suggested, though still nonzero (rank reversals are real, just far
+rarer at the properly-calibrated significance level than the miscalibrated
+threshold made them look). The uncorrected `1.0`-threshold figure is
+unaffected by this fix (61.7%, matching the earlier entry almost exactly --
+the small residual difference is downstream of the P1-04/group_by fixes'
+effect on `seed_variance`, not this fix) since it never used the Bonferroni
+threshold at all.
+
+**How to apply:** any paper draft, figure, or claim citing "15.2% of pairs
+reverse" (the number this project's own earlier decisions.md entry and
+`primary_threshold_label: "bonferroni"` pointed to) must be updated to
+1.0% -- the earlier number was wrong, not superseded by a policy choice.
+The uncorrected 61.7% figure's status as "kept for continuity, not the
+headline" (2026-09-03 entry) is unchanged.
+
+**Decided by:** Agent, addressing PR #15's review. Full suite: 172 passed.
+`results/p1_09_rank_reversals.json` regenerated on a clean tree
+(`git_dirty: false`).
+
+---
+
+## 2026-09-16 — P1-06 results regenerated with all upstream fixes: the sigma2_extrap/v ratio still falls with compute, more starkly for some fitters
+
+**Context:** follow-up to this branch's own PR #16 review-fix commit
+(correlation+1, squared-bias estimator, bootstrap-ID-alignment) and to
+every upstream fix merged forward into this branch (`phase1/scaling-fitters`'s
+fitter-initialization/replicate-averaging bugs, `phase1/groupby-determinism-audit`'s
+summation-order fix, `phase1/rank-reversals`'s calibration fix -- none of
+the latter two touch `p1_06_decomposition.py`'s own computation, but the
+fitter fix does, directly). `results/p1_06_decomposition.json` regenerated
+via `PDT_OVERWRITE=1 uv run python experiments/p1_06_decomposition.py` on
+a clean tree: the full grid (6 fitters x 3 designs x 11 tasks x 2 schemes
+= 396 work units, B=200 replicates x 25 recipes each), 1,980,000
+individual bootstrap fits, **0 failures**. Took ~19.4 hours wall-clock this
+run (vs. the ~75-90 minutes the original 2026-09-03 run took) -- almost
+entirely because the fitter-initialization fix means restarts now do
+genuine optimization work instead of instantly "converging" in the flat
+high-alpha region for a large fraction of fits; this is a real, expected
+cost of the correctness fix, not a regression to chase down.
+
+**The core P1-06 finding (`sigma2_extrap_hat / v_hat` falls with compute,
+contradicting the plan's stated theoretical expectation that it should
+rise) survives, for every one of the 6 fitters, with some fitters' ratios
+shifting substantially in magnitude.** Median ratio by fitter and design
+(`seed_bootstrap` scheme, before -> after both this branch's own fix and
+every upstream fix):
+
+| Fitter | @150M before -> after | @300M before -> after | @530M before -> after |
+|---|---|---|---|
+| ConstantExtrapolator | 1612.6 -> 1611.6 | 574.0 -> 573.0 | 195.1 -> 194.1 |
+| PowerLawN | 9.57 -> 31.68 | 7.21 -> 22.57 | 5.20 -> 14.36 |
+| PowerLawC | 20.79 -> 14.27 | 16.10 -> 8.34 | 11.98 -> 5.07 |
+| ChinchillaND | 8.81 -> 368.69 | 5.20 -> 307.22 | 3.42 -> 275.05 |
+| TwoStepLadder | 16.37 -> 0.87 | 11.32 -> 0.21 | 10.70 -> 0.01 |
+| LogLinear | 310.5 -> 309.5 | 272.7 -> 271.7 | 230.2 -> 229.2 |
+
+`ConstantExtrapolator` and `LogLinear` (no exponent parameter, untouched
+by the P1-04 fitter fix) are essentially unchanged, as expected -- the
+small residual shift is from this PR's own squared-bias-formula
+correction (always non-increasing, since it subtracts an additional
+`v_hat` term) and the group_by determinism fix's last-bit noise, not the
+fitter fix. `PowerLawN`, `PowerLawC`, `ChinchillaND`, and `TwoStepLadder`
+(all fit an exponent parameter) moved substantially -- most strikingly
+`ChinchillaND` (8.81 -> 368.69 at 150M) and `TwoStepLadder` (16.37 -> 0.87,
+now falling all the way to **0.01** at 530M). Every single fitter still
+falls monotonically across the three designs, exactly as the original
+finding reported -- the magnitude shifted (for the affected fitters,
+substantially), but the qualitative conclusion (the theory's own stated
+signature prediction is contradicted by this data, across the board) is
+unchanged and, if anything, now stated with cleaner numbers since they no
+longer reflect the numerical-initialization artifact P1-04's bugs
+introduced.
+
+**Decided by:** Agent. Regeneration completed cleanly (`git_dirty: false`,
+`git_sha` matches this branch's merge commit). `results/p1_07_bound_coverage.json`,
+`results/p1_08_ceiling_prediction.json`, and every other downstream
+results file computed from P1-06's output still need regenerating once
+their own branches merge this fix forward.
+
+---
+
+## 2026-09-16 — Merging the P1-04 fitter fix forward broke a P1-07 test that was passing for the wrong reason
+
+**Context:** merging `phase1/bias-variance` (which itself carries the
+upstream `phase1/scaling-fitters` fix) into `phase1/bound-check` broke
+`tests/test_bound.py::test_analytic_v_k_saturates_for_power_law_n_far_extrapolation`,
+which asserts `PowerLawN`'s delta-method `v_k` saturates (stops growing)
+between `N=1e11` and `N=1e14`.
+
+**Root cause: the test shared this file's module-level mutable `_RNG`
+across every test, so its outcome depended on how many random draws
+earlier tests in the file happened to consume -- and the log-uniform-init
+fix changes exactly that (one extra `rng.uniform()` call per restart per
+exponent dimension).** Diagnosed by reproducing the exact fit this test
+now gets: `PowerLawN` converged to `alpha=0.404` sitting at its own
+parameter's *box boundary* (`a=-10.0`, the lower bound) -- a genuinely
+different, boundary-constrained local optimum on this test's narrow (8
+points, `1e6` to `1e8`) noisy synthetic curve, one of several comparably-
+low-cost optima this specific data supports (checked directly: 20
+independent seeds on the same synthetic curve land in >=3 qualitatively
+different regimes, including two boundary-hugging ones). But the deeper
+issue survives even for a *well-identified*, non-boundary fit with
+`alpha` close to the curve's true `0.3`: `N^-alpha * ln(N)` (the shape of
+the alpha-jacobian entry) decays to 0 as `N -> infinity` for any
+`alpha > 0`, but only logarithmically slowly for `alpha` this small --
+checked directly, a clean `alpha~0.3` fit's `v_k` is still 40-135%
+different between `N=1e11` and `N=1e14`, not remotely saturated; genuine
+saturation to float64 precision for this curve doesn't arrive until
+roughly `N=1e30`-`1e40`. The original test only ever passed because
+whatever fit the old (buggy, uniform-alpha) `_RNG` sequence happened to
+produce at that point in file execution order behaved as if already
+saturated by `1e11` -- plausibly because the old bug's own failure mode
+(restarts landing in the near-flat, large-alpha region) produces
+*faster*-decaying, not truer, fits.
+
+**Fix:** the test now uses a dedicated local `np.random.default_rng(1)`
+(not the shared file-level `_RNG`), wider/more-informative synthetic data
+(14 points over `1e6`-`1e10`, lower noise, reliably identifying `alpha`
+close to `0.3` across independent seeds -- checked directly), and
+genuinely far-apart comparison scales (`1e30` vs `1e40`) that produce real
+saturation regardless of which valid `alpha` the multi-start fit lands on,
+rather than relying on a specific fit's incidental behavior at scales
+nowhere near true saturation. Not a change to `bound.py`'s own logic --
+the delta-method machinery itself was never wrong here, only this test's
+premise about how close `N=1e11`-`1e14` gets to genuine saturation.
+
+**How to apply:** the rest of this file's tests still share the same
+file-level `_RNG` and remain fine today, but any future change to how
+many random draws a fitter's `fit()` consumes internally could silently
+shift which local optimum any of them lands in. Prefer a dedicated local
+`rng` for a new test whose assertion depends on *which* local optimum a
+multi-modal fit converges to (as this one does), not just whether it
+converges.
+
+**Decided by:** Agent, while merging `phase1/bias-variance` forward into
+`phase1/bound-check`. Full suite: 220 passed, confirmed stable across
+repeated runs and running the file in isolation.
+
+---
+
+## 2026-09-18 — P1-07 results regenerated with all fixes: no bound violations, full 198-combo Monte-Carlo run clean
+
+**Context:** follow-up to this branch's own two review-fix commits
+(the invalid additive-bound formula, the estimator-rank-deficiency
+guard) and to every upstream fix merged forward (P1-04's fitter bugs,
+P1-06's three bootstrap-decomposition fixes, the group_by determinism
+fix, the P1-09 calibration fix). `results/p1_07_bound_coverage.json`
+regenerated via `PDT_OVERWRITE=1 uv run python experiments/p1_07_bound_coverage.py`
+on a clean tree: the analytic delta-method pass (6 fitters x 3 designs x
+11 tasks x 25 recipes, minus `ConstantExtrapolator`/`TwoStepLadder` now
+correctly excluded per this branch's own P2 fix) plus the full
+Monte-Carlo pass (198 work units, B=500 each) -- roughly 34 hours
+wall-clock this run (vs. the original run's much shorter time), almost
+entirely for the same reason P1-06's regeneration got slower: the
+fitter-initialization fix means restarts now do genuine optimization
+work instead of instantly "converging" in the flat high-alpha region.
+
+**`any_bound_violation: false`, `violations: []` -- the pairwise bound
+held (ratio >= 1) in every one of the 198 (fitter, design, task)
+cells, with all of this branch's own and every upstream fix applied
+together.** This is the same qualitative finding the original
+(pre-fix) run reported, now resting on a corrected additive-bound
+formula, corrected fitter initialization, corrected bootstrap
+decomposition, and a correctly-excluded set of estimators for the
+analytic cross-check -- the bound-holds conclusion was not an artifact
+of any of the bugs fixed across this whole review pass.
+
+**Decided by:** Agent. Regeneration completed cleanly (`git_dirty: false`,
+`git_sha` matches this branch's merge/fix commits).
+`results/p1_08_ceiling_prediction.json` and every other downstream
+results file computed from P1-07's output still need regenerating once
+their own branches merge this fix forward.
+
+## 2026-09-19 — P1-07 second-round review: `analytic_v_k` requires the target to be identified (PR #17)
+
+**Problem.** `sandwich_covariance` inverts `J^T J` with `np.linalg.pinv`,
+which treats a parameter direction that no observed scale moves as
+carrying *zero* variance. A `LogLinear` fit observed at one N (varying
+only D) therefore reported a small finite `analytic_v_k` for any target N,
+when the true delta-method variance is unbounded.
+
+**Change.** New `pdt.theory.identifiability.target_in_row_space` tests
+whether the target Jacobian lies in the row space of the fitting-scale
+Jacobians (column-equilibrated SVD, `max(shape) * eps` rank cutoff,
+relative residual `<= 1e-8`). `analytic_v_k` raises
+`UnidentifiedTargetError` (an `UnsupportedEstimatorError`) when it does
+not; `p1_07` records these as `unidentified_target: true` instead of a
+number. The check is on the *unweighted* design support (structural), so
+a badly conditioned but identified design still returns a large finite
+variance rather than being rejected. Regression tests cover targets whose
+missing component is 5% / 0.25% / 0.005% of `||J_target||`, an
+identified design, and an ill-conditioned identified design.
+## 2026-09-19 — Second-round review of P1-06's squared-bias correction: calibrate v_hat for the n=3 bootstrap
+
+**Context:** PR #16's re-review accepted the direction of the previous fix
+(subtract the original estimator's own sampling variance) but showed it is
+mis-calibrated for the *actual* resampling scheme. n-out-of-n bootstrap
+variance of a sample mean is the plug-in variance `s_plug^2/n`, a factor
+`(n-1)/n` below the unbiased `sigma^2/n`. With n=3 real seeds, `E[v_hat] = 2/9`
+against a true `Var(original mean) = 1/3`, so after subtracting `v_hat` the
+unclipped correction still has expectation `1/9` when the true squared bias is
+zero. Reproduced independently on 20,000 three-observation datasets with the
+shipped function (B=200): mean `v_hat` 0.2225, mean unclipped correction
++0.106, and the *clipped* reported value averaged 0.218 -- the earlier
+alternating-values regression test could not detect this because it never
+repeated across independent datasets.
+
+**Fix:** `bias_variance_decomposition(..., variance_inflation=...)` now
+subtracts `variance_inflation * v_hat`; the seed bootstrap passes
+`bootstrap.seed_bootstrap_variance_inflation(n_seeds) = n/(n-1)` (3/2 for three
+seeds), for both the marginal and the pairwise (paired-seed difference)
+decomposition, since a difference of two seed-means resampled with the same index
+pattern is itself an n-out-of-n bootstrap of the n paired differences. The
+parametric bootstrap uses 1.0: its `v_hat` is a model-based variance, not the
+plug-in variance of an n-observation resample. `p1_06_decomposition._variance_inflation`
+computes n from the data and raises if seed counts differ across cells.
+
+**What is and isn't justified.** Exact for a sample mean. For the smooth fits used
+here it is the first-order (delta-method) statement of the same fact, and is an
+approximation at n=3 and for boundary-pinned or otherwise non-smooth fits -- an
+approximation, not a proof, and documented as such in the function docstrings.
+
+**Clipped vs unbiased, now distinguished.** Results carry
+`sigma2_extrap_unclipped` (the approximately unbiased squared-bias estimate,
+negative about half the time when the true bias is small) alongside
+`sigma2_extrap_hat = max(0, .)`, a nonnegative *heuristic* biased upward for
+small true bias (E[max(0,X)] > E[X]; checked directly: mean clipped value > 0.05
+with zero true bias). Any average over cells that is meant to estimate a mean
+squared bias -- including the `ratio_vs_compute` medians -- should be read with
+that in mind, and consumers wanting an estimate rather than a floor should use
+the unclipped field.
+
+**Validation across independent datasets (not one hand-built series):**
+`tests/test_bootstrap.py` simulates 3,000 independent three-observation datasets:
+without the calibration the mean unclipped estimate is > 0.08 and > 8 standard
+errors above 0; with n/(n-1) it is within 4 standard errors of 0 (and within
+0.03). The first, reproducing the reviewer's number, is asserted as a regression
+guard so the defect cannot silently return.
+
+**Mechanical:** the added field would push the pretty-printed
+`results/p1_06_decomposition.json` (already 4.9 MB) past the repository's 5 MB
+`check-added-large-files` limit, so `provenance.write_result` gained
+`indent=None` (compact single-line output; default unchanged) and this one
+script uses it.
+
+**Also corrected:** `bootstrap.py`'s module docstring still said both schemes
+share one draw across recipes, which stopped being true for the parametric scheme
+in the previous fix.
+
+**Not yet done in this entry:** `results/p1_06_decomposition.json` regeneration
+(requires the new fitters merged in first) and `docs/findings/p1_06.md`.
+
+**Decided by:** Agent, addressing the PR #16 re-review.
+## 2026-09-19 — Second-round review of the fitter fix: random starts are not enough; "0/18" was mis-stated
+
+**Context:** PR #12's re-review (and the identical blocker restated on #13-#19,
+#27-#34, since they all inherit the fitter blobs) found that the log-uniform
+restart fix repaired the original `PowerLawN` counterexample (100/100 seeds) but
+the compute-based `PowerLawC` still silently fails: noiseless in-family
+`y = 0.9 - 2*C^-0.03` with `default_rng(30)` (and `54`) predicts 0.2463 instead of
+0.4004, all eight restarts "converged", `objective_spread ~ 1e-11`, 2 of 100
+seeds. Reproduced exactly. Randomized starts can only lower the probability that
+every start lands in a flat region, never remove it.
+
+**Fix:** deterministic *informative* starts by variable projection.
+`fitters._power_law_starts` (used by `PowerLawN`, `PowerLawC`, and
+`TwoStepLadder`'s step 1) and `_chinchilla_starts` (`ChinchillaND`) evaluate a
+dense log grid over the exponent(s); for each grid point the linear parameters
+are solved exactly by weighted least squares (then clipped to their bounds), and
+the three lowest-cost grid points become starting points for `least_squares`,
+via a new `multi_start_fit(..., extra_starts=...)` argument, alongside five
+(down from eight) random log-uniform restarts, so per-fit cost is essentially
+unchanged (measured: `ChinchillaND` 602 ms vs 509 ms per fit on a hard synthetic
+curve; power laws 22-240 ms). A start is now informative by construction rather
+than by luck. Verified: 100/100 seeds recover noiseless curves for
+alpha in {0.01, 0.03, 0.1, 0.3, 0.6}, for both N- and compute-based power laws,
+including the reviewer's seeds 30 and 54; `ChinchillaND` recovers across seeds.
+Regression tests added for compute-based models, not just `PowerLawN`
+(`tests/test_scaling.py`).
+
+**Correction to the headline wording (supersedes the phrasing of the
+2026-09-14 entries above, which are left intact per this log's append-only
+rule):** "0/18 (fitter, design) combinations beat single-scale at matched
+compute" counted the six `<=530M` combinations as losses, but those have *no*
+matched-compute comparison at all (`matched_compute_out_of_range: true`,
+`beats: null`) -- a missing comparison is not a negative result. The correct
+statement is **0 wins among the 12 evaluable comparisons, and 6 unassessed**.
+`experiments/p1_04_extrapolation_baselines.py` now reports
+`n_evaluable_at_matched_compute` and `n_unassessed_out_of_range` in its summary
+and headline print; any downstream text still saying "0/18" (notably the Phase-1
+memo, PR #21) must be corrected the same way.
+
+**Not yet done in this entry:** `results/p1_04_extrapolation.json` regeneration
+with the new fitters (running as the next commit), and every downstream result.
+
+**Decided by:** Agent, addressing the PR #12 re-review. Full suite: 149 passed.
+
+## 2026-09-19 — P1-04 regenerated with variable-projection fitter starts (PR #12)
+
+`results/p1_04_extrapolation.json` was regenerated on a clean tree
+(`git_dirty: false`, `git_sha` b0d1deb) with the robust power-law starts. Headline: **0 / 12
+evaluable (fitter, design) combinations beat the single-scale frontier at matched compute; 6 more
+have no matched-compute comparison** (the design's compute lies past the single-scale frontier's
+range) and are *unassessed*, not losses. Versus the previous run, macro-average accuracy (incl.
+ties) rose for every PowerLawN/PowerLawC design (e.g. PowerLawN 150M 0.738 -> 0.761, PowerLawC 300M
+0.765 -> 0.815, PowerLawC 530M 0.818 -> 0.848); ChinchillaND was unchanged to within 0.001;
+TwoStepLadder changed by at most 0.024 (150M +0.008, 300M -0.024, 530M +0.002). The qualitative
+conclusion (extrapolation does not beat single-scale at matched compute on this data) is
+unchanged, now resting on fits that recover the true optimum on a 100/100-seed sweep.
+
+**Decided by:** Agent, following the second-round review.
+
+## 2026-09-19 — P3-02 second-round review: structural identifiability replaces the 10% residual test (PR #28)
+
+**Problem.** `_target_denom` decided whether `J_target` lies in `range(I_k(w))` by
+a 10% relative residual of `I pinv(I) J_target`. That is wrong in both
+directions: `J_target = [1, .05]` against a design that only ever sees
+`[1, 0]` (a 5% missing component, e.g. `LogLinear` observed at N=1, target
+N=e^0.05) passed and received a finite variance, while a tight tolerance
+false-triggered on ordinary designs at condition number ~1e14.
+
+**Change.** Two questions are now separated. (1) *Structural
+identifiability* — is `J_target` in the row space of the Jacobians of the
+scales carrying positive weight — is decided by the shared
+`pdt.theory.identifiability.target_in_row_space` (column-equilibrated SVD,
+numerical-rank cutoff), in `_arm_rate`, `_arm_rate_and_grad`, and once per arm
+in `brute_force_allocation`. (2) *Numerical ill-conditioning* of the weighted
+information is handled by a Jacobi-equilibrated pseudo-inverse
+(`_info_solve`), so it appears as a large finite variance, and the result is
+invariant to parameter units. `_TARGET_RANGE_RTOL` is removed. Regression
+tests: missing component 5% / 0.5% / 0.01%, brute-force path, ill-conditioned
+identified design, unit invariance.
+
+**Decided by:** Agent, following the second-round review.
+
+## 2026-09-19 — ETS: known-variance certification replaces HC0 + Student-t (PR #29, second review)
+
+**Problem (reproduced exactly).** `LogLinear`, two arms with constant means .501/.5, N(0,.05^2)
+noise, fitting scales `N=[1,1.00001,2]`, target `N=2.001`, `eta=0`, `delta=.01`,
+`max_rounds=1`, `solver_n_iter=1`, oracle RNG seeds 0..199: the HC0-variance + Student-t rule
+certified 198/200 runs and 98 of them the wrong arm (49% unconditional error vs 1% requested).
+The high-leverage point near the target makes the fitted residual ~0, so HC0 deletes the
+dominant uncertainty; a t quantile cannot restore it. (Our re-run of the old rule in
+`variance_mode="hc0_heuristic"` gives the same 98 wrong picks.)
+
+**Change.**
+- `pdt.theory.bound.known_noise_v_k`: prediction variance from the *known* noise function,
+  `v = sum_i g_i^2 sigma2(s_i)` with influence weights `g = pinv(J)^T J_target` (exact for
+  linear-in-`theta` fits, first-order otherwise; equals the OLS closed form, checked against it and
+  against Monte Carlo). Unidentified targets give `v = inf` (never certifies).
+- Radius `sqrt(2 (v_a + v_b) log(1/beta))`, `beta = delta / (t (t+1) K (K-1))`: a union over rounds
+  *and* over the `K(K-1)` ordered pairs, because the leader is data-dependent.
+- `variance_mode="known_sigma2"` (default) may return `"certified"`; the certificate lists the
+  assumptions: A1 `sigma2` is a valid sub-Gaussian proxy (an *input*), A2 bias <= `eta`, A3
+  prediction linear in the data (exact for LogLinear; first-order for nonlinear fits, curvature not
+  covered by `eta`), A4 design independent of the certified noise (exact only at the non-adaptive
+  warm-up check).
+- `variance_mode="hc0_heuristic"` keeps the residual-based variance but returns `"recommended"`,
+  never `"certified"`; no error-probability claim.
+
+**Evidence.** Reviewer's high-leverage design and the original evenly spaced design, 200 seeds
+each, `max_rounds=1`: new default certified 0 of 200 on both (0 wrong; the rule is conservative
+there); HC0 mode reproduces 98 wrong on the high-leverage design. Adaptive runs (LogLinear, 3 arms,
+means 0.5+g, 0.5, 0.5-g, sigma .05, delta .1, up to 150 rounds, 60 seeds each): gap g=.1 -> 37
+certified, **0 wrong**, 23 abstained; gap g=0 (all tied) -> **0 certified**, 60 abstained. That is
+120 adaptive runs with no wrong certification -- supporting evidence that the effect of A4 is small
+in this regime, **not** a proof; A4 remains an assumption.
+
+**Not claimed.** No self-normalized / martingale confidence sequence is implemented, so `"certified"`
+is a delta-level statement under A1-A4, not an unconditional guarantee for the adaptive algorithm.
+`paper/sections/theorem4_algorithm.tex` (PR #26) is being brought into line with this scope.
+
+**Decided by:** Agent, following the second-round review.
