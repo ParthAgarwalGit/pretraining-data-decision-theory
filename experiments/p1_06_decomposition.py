@@ -157,48 +157,80 @@ class _ComboWork:
     sigma2_target: dict[str, float]
 
 
-def _shared_draws_per_scale(
+def _shared_seed_pattern_per_scale(
     work: _ComboWork, first_recipe: str, replicate_rng: np.random.Generator
-) -> list:
-    """The ONE shared per-scale draw for this replicate (a resample
-    pattern per scale for seed bootstrap, a standard-normal z per scale
-    for parametric) -- drawn once per scale using `first_recipe` only to
-    learn the scale list (every recipe shares the same scale set for a
+) -> list[np.ndarray]:
+    """The ONE shared per-scale seed-resample pattern for this replicate
+    -- seed_bootstrap only. Drawn once per scale using `first_recipe` only
+    to learn the scale list (every recipe shares the same scale set for a
     given design), then reused for every recipe by `_resample_recipe`.
     This is what makes the pairwise correlation-preservation in
-    `bootstrap.py`'s module docstring actually happen: every recipe sees
-    the identical draw for a given (scale, replicate).
+    `bootstrap.py`'s module docstring actually happen for seed bootstrap:
+    every recipe's OWN seed values get resampled by the identical index
+    pattern for a given (scale, replicate), so genuine shared per-instance
+    noise partially survives into `D_k` without forcing any particular
+    correlation -- the resampled means still differ across recipes because
+    each recipe's underlying seed values differ.
     """
-    if work.scheme == "parametric_bootstrap":
-        return [
-            bs.draw_parametric_noise_z(replicate_rng) for _ in work.avg_trajectory[first_recipe]
-        ]
     return [
         bs.draw_seed_resample_pattern(replicate_rng, len(seed_values))
         for _, seed_values in work.seed_trajectory[first_recipe]
     ]
 
 
-def _resample_recipe(
-    work: _ComboWork, recipe: str, shared_draws: list
-) -> tuple[list[Scale], list[float]]:
-    """Apply this replicate's shared per-scale draws to one recipe's own
-    observed values -- the recipe-specific half of the resample."""
+def _parametric_draws_for_recipe(
+    work: _ComboWork, recipe: str, recipe_rng: np.random.Generator
+) -> list[float]:
+    """This recipe's own independent per-scale z draws for the parametric
+    bootstrap. Deliberately NOT shared across recipes: an earlier version
+    of this module reused one scalar z per scale across every recipe,
+    which forces an exact +1 correlation between any two recipes' bootstrap
+    noise (covariance = sigma_a*sigma_b, not an estimate of the real
+    covariance) -- collapsing the pairwise-difference bootstrap variance to
+    zero whenever two recipes have equal noise, even though their real
+    observations are independent. P1-05 measures only each recipe's own
+    noise variance, not any cross-recipe covariance, so independent draws
+    are the honest default absent a measured joint covariance to sample
+    from. See docs/decisions.md."""
+    return [bs.draw_parametric_noise_z(recipe_rng) for _ in work.avg_trajectory[recipe]]
+
+
+def _resample_recipe(work: _ComboWork, recipe: str, draws: list) -> tuple[list[Scale], list[float]]:
+    """Apply this replicate's per-scale draws to one recipe's own observed
+    values -- the recipe-specific half of the resample. `draws` is this
+    recipe's own independent z list for parametric_bootstrap, or the
+    scheme-wide shared resample pattern for seed_bootstrap."""
     if work.scheme == "parametric_bootstrap":
         scales = [s for s, _ in work.avg_trajectory[recipe]]
         values = [
             bs.apply_parametric_noise(z, mu, work.sigma2_total.get((recipe, s.n), 0.0))
-            for (s, mu), z in zip(work.avg_trajectory[recipe], shared_draws, strict=True)
+            for (s, mu), z in zip(work.avg_trajectory[recipe], draws, strict=True)
         ]
         return scales, values
     scales = [s for s, _ in work.seed_trajectory[recipe]]
     values = [
         bs.apply_seed_resample(pattern, seed_values)
-        for (_, seed_values), pattern in zip(
-            work.seed_trajectory[recipe], shared_draws, strict=True
-        )
+        for (_, seed_values), pattern in zip(work.seed_trajectory[recipe], draws, strict=True)
     ]
     return scales, values
+
+
+def _pairwise_difference_series(
+    k_star_predictions: list[tuple[int, float]], recipe_predictions: list[tuple[int, float]]
+) -> list[float]:
+    """D_k^(b) = mu_hat_k*^(b) - mu_hat_k^(b) for every replicate id `b`
+    that succeeded for BOTH k_star and `recipe`. Intersects by replicate
+    id rather than zipping by list position: each recipe's list of
+    successful predictions can skip different replicate ids when fits
+    fail asymmetrically (e.g. k_star's fit fails at b=0 while recipe's
+    fails at b=1), and zipping by position would then subtract
+    predictions from two different replicates as if they were the same
+    one -- destroying exactly the shared-replicate correlation this
+    decomposition depends on."""
+    k_star_by_id = dict(k_star_predictions)
+    recipe_by_id = dict(recipe_predictions)
+    common_ids = sorted(set(k_star_by_id) & set(recipe_by_id))
+    return [k_star_by_id[i] - recipe_by_id[i] for i in common_ids]
 
 
 _ROUND_SIGFIGS = 8
@@ -239,7 +271,10 @@ def _run_one_combo(work: _ComboWork) -> dict:
     recipes = sorted(work.mu_true.keys())
     first_recipe = recipes[0]
 
-    replicate_predictions: dict[str, list[float]] = {r: [] for r in recipes}
+    # (replicate id, prediction) pairs, not bare predictions -- pairwise
+    # decomposition below needs to intersect by replicate id since
+    # different recipes' fits can fail on different replicates.
+    replicate_predictions: dict[str, list[tuple[int, float]]] = {r: [] for r in recipes}
     n_attempted = 0
     n_failed = 0
 
@@ -247,14 +282,30 @@ def _run_one_combo(work: _ComboWork) -> dict:
         # One rng per replicate, seeded on (design, task, scheme, b) only
         # -- no fitter, no recipe -- so the resampled *data* for this
         # replicate doesn't depend on which fitter will later summarize
-        # it, and every recipe sees the same shared draws below.
+        # it. Only seed_bootstrap uses this directly (its shared resample
+        # pattern); parametric_bootstrap draws independent noise per
+        # recipe below instead of reusing a single shared z (see
+        # `_parametric_draws_for_recipe`).
         replicate_seed = _seed_for(work.design_name, work.task, work.scheme, str(b))
         replicate_rng = np.random.default_rng(replicate_seed)
-        shared_draws = _shared_draws_per_scale(work, first_recipe, replicate_rng)
+        shared_seed_pattern = (
+            _shared_seed_pattern_per_scale(work, first_recipe, replicate_rng)
+            if work.scheme == "seed_bootstrap"
+            else None
+        )
 
         for recipe in recipes:
             n_attempted += 1
-            scales, values = _resample_recipe(work, recipe, shared_draws)
+            if work.scheme == "parametric_bootstrap":
+                recipe_noise_seed = _seed_for(
+                    work.design_name, work.task, work.scheme, recipe, "noise", str(b)
+                )
+                draws = _parametric_draws_for_recipe(
+                    work, recipe, np.random.default_rng(recipe_noise_seed)
+                )
+            else:
+                draws = shared_seed_pattern
+            scales, values = _resample_recipe(work, recipe, draws)
             fit_seed = _seed_for(
                 work.fitter_name, work.design_name, work.task, work.scheme, recipe, str(b)
             )
@@ -268,11 +319,11 @@ def _run_one_combo(work: _ComboWork) -> dict:
             if not math.isfinite(pred):
                 n_failed += 1
                 continue
-            replicate_predictions[recipe].append(pred)
+            replicate_predictions[recipe].append((b, pred))
 
     marginal: dict[str, dict] = {}
     for recipe in recipes:
-        preds = replicate_predictions[recipe]
+        preds = [p for _, p in replicate_predictions[recipe]]
         if len(preds) < _MIN_SUCCESSFUL_REPLICATES:
             marginal[recipe] = {
                 "insufficient_replicates": True,
@@ -289,15 +340,14 @@ def _run_one_combo(work: _ComboWork) -> dict:
     for recipe in recipes:
         if recipe == work.k_star:
             continue
-        preds = replicate_predictions[recipe]
-        n_common = min(len(preds), len(k_star_preds))
+        d_k_replicates = _pairwise_difference_series(k_star_preds, replicate_predictions[recipe])
+        n_common = len(d_k_replicates)
         if n_common < _MIN_SUCCESSFUL_REPLICATES:
             pairwise[recipe] = {
                 "insufficient_replicates": True,
                 "n_successful_replicates": n_common,
             }
             continue
-        d_k_replicates = [k_star_preds[i] - preds[i] for i in range(n_common)]
         true_gap = work.mu_true[work.k_star] - work.mu_true[recipe]
         pairwise_sigma2_target = work.sigma2_target.get(work.k_star, 0.0) + work.sigma2_target.get(
             recipe, 0.0
