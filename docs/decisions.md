@@ -2142,3 +2142,15 @@ conclusion (extrapolation does not beat single-scale at matched compute on this 
 unchanged, now resting on fits that recover the true optimum on a 100/100-seed sweep.
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-19 — P1-10 regenerated after the independence/fitter fixes (PR #19)
+
+`results/p1_10_secondary_ladder.json` was regenerated (clean tree, `git_dirty: false`) with independent per-recipe
+parametric draws and the repaired fitters. The ConstantExtrapolator median `sigma2_extrap / v` ratio moved from
+131.0 (`le_160m`) / 137.6 (`le_410m`) -- rising, "not replicated" -- to 135.2 / 127.5, i.e. falling with the larger design as in
+P1-06 (`replicates_p1_06_decreasing_direction` false -> true). The change is a consequence of removing the
+forced +1 cross-recipe correlation. The gap is ~6% with two usable design points and two fitters, so
+this is **weak evidence consistent with P1-06's direction, not a replication**; the "P1-10 is underpowered" caveat stands.
+Downstream text quoting the old 131.0 vs 137.6 (memo, PR #21) is updated separately.
+
+**Decided by:** Agent, following the review.
