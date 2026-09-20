@@ -1219,3 +1219,32 @@ conclusion (extrapolation does not beat single-scale at matched compute on this 
 unchanged, now resting on fits that recover the true optimum on a 100/100-seed sweep.
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-20 — P1-06 regenerated on the repaired fitters with the calibrated squared-bias estimator (PR #16)
+
+`results/p1_06_decomposition.json` regenerated on a clean tree (`git_dirty: false`, base `f728bc5`): 396 (fitter, design, task) work units,
+B = 200 replicates x 2 schemes, **0 of 1,980,000 individual bootstrap fits failed**, ~24.9 h wall (the machine slept for part of it). It uses the variable-projection power-law starts (PR #12), the
+`n/(n-1)` seed-bootstrap variance inflation and the unclipped estimator (`sigma2_extrap_unclipped`, stored alongside the clipped heuristic), and compact output (3.4 MB).
+
+Median per-cell `sigma2_extrap_hat / v_hat` (`seed_bootstrap`), previous committed run -> this run, @150M / @300M / @530M:
+
+| Fitter | @150M | @300M | @530M |
+|---|---|---|---|
+| ConstantExtrapolator | 1611.56 -> 1611.06 | 573.00 -> 572.50 | 194.07 -> 193.57 |
+| PowerLawN | 31.68 -> 359.74 | 22.57 -> 305.71 | 14.36 -> 274.08 |
+| PowerLawC | 14.27 -> 356.72 | 8.34 -> 308.23 | 5.07 -> 265.69 |
+| ChinchillaND | 368.69 -> 376.51 | 307.22 -> 306.72 | 275.05 -> 274.06 |
+| TwoStepLadder | 0.87 -> 0.15 | 0.21 -> 0.00 | 0.01 -> 0.00 |
+| LogLinear | 309.50 -> 309.00 | 271.67 -> 271.17 | 229.17 -> 228.67 |
+
+Readings (all from this table and the file, not from theory):
+- The ratio still **falls as the design grows toward the target for every fitter** (P1-06's original, plan-contradicting finding survives).
+- **PowerLawN and PowerLawC moved from 5-32 to 266-360**, i.e. they now behave like ChinchillaND and LogLinear. The old small values are consistent with their
+  power-law fits having been stuck in flat-exponent regions before the initialization repair (the reviewers' seed-1/30/54 counterexamples); the new values are
+  what a working fit gives. That attribution is an inference from the coincident P1-04 fix, not separately proved.
+- **Bias dominates estimation variance by ~200-1600x for every fitter except TwoStepLadder**, whose variance is large (median `v_hat` ~6e-3) and whose bias is not distinguishable from zero.
+- **13.6% of cells (672/4950) have a negative unclipped bias-squared estimate** -- the bias is undetectable against the estimation variance there; the clipped `sigma2_extrap_hat` reports 0 for those, which is why any average of the clipped field overstates the mean squared bias.
+- The `n/(n-1)` correction is negligible for Constant/LogLinear/ChinchillaND-type cells (their `v_hat` is tiny) and matters only where `v_hat` is large (TwoStepLadder).
+- Highest per-task bias at 150M: `hellaswag` (~0.055 for PowerLawN and ChinchillaND); the lowest tasks are near zero/negative (`boolq`).
+
+**Decided by:** Agent, following the second-round review.
