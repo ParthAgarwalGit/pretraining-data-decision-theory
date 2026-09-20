@@ -66,9 +66,12 @@ provisional until `docs/findings/p1_06.md` and the P1-07/08 result files are ref
   **15.2%** (500/3,300 pairs) — still real and non-trivial, just not the inflated number.
 - **P1-10 — secondary ladder (Pythia).** Scoped to Pythia only, per the plan's own escape
   clause. Only 2 of 6 fitters can even fit (3 usable proxy sizes below target), and the
-  P1-06 ratio-vs-compute finding **does not clearly replicate in either direction**
-  (131.0 vs. 137.6 median ratio across the 2 usable designs, ~5% apart) — reported
-  inconclusive rather than forced into a verdict.
+  P1-06 ratio-vs-compute finding is **only weakly consistent with the decreasing
+  direction** after regeneration on the repaired fitters and independent-noise
+  decomposition (median ratio 135.2 at `le_160m` vs. 127.5 at `le_410m`, ~6% apart; the
+  earlier run, which forced a +1 cross-recipe correlation, gave 131.0 vs. 137.6 in the
+  opposite direction) — two design points and two fitters, so reported as weak,
+  not as a replication.
 - **P1-11 — figures.** F1-F5 generated and visually verified (not just checked for
   exceptions); several legibility bugs caught and fixed this way, documented in
   `docs/decisions.md`.
@@ -125,8 +128,8 @@ with it, not in tension with it.
   changing the qualitative one — worth flagging in Phase 2 rather than treating P1-08's
   0.0% as a deep fact about extrapolation.
 - **P1-10 is underpowered.** Only 2 usable design points and 1 fitter able to run at
-  both means the "does not replicate" verdict is weak evidence of absence, not strong
-  evidence of a real difference from DataDecide. A second secondary ladder (OLMo 2, not
+  both means the regenerated "weakly consistent" reading (a ~6% gap) is weak evidence,
+  not a replication, and could as easily reverse with one more design point. A second secondary ladder (OLMo 2, not
   attempted, per the plan's own scope cap) would strengthen or weaken this considerably.
 - **The 3 fixed designs (`<=150M`/`<=300M`/`<=530M`) are a single, fairly coarse choice.**
   All of P1-04/06/07/08's headline numbers are computed at exactly these 3 points; P5-02
