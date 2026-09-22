@@ -16,10 +16,13 @@ Writes results/p1_08_ceiling_prediction.json.
 "Predicted accuracy" here means `max(0, 1 - bound)` (the plug-in bound
 used as a point estimate, clipped to a valid probability -- the raw,
 unclipped `1 - bound` is reported too, since P1-07 already found
-`bound_pairwise > 1` in every one of its 396 cells: a union bound summed
-over ~24 mostly-near-tied comparisons per task routinely exceeds 1, most
-directly because P1-02 already found 9 of 11 tasks have no statistically
-resolvable winner at all. `max(0, ...)` is the standard, correct way to
+`bound_pairwise > 1` for every fitter that actually extrapolates, in every
+one of its cells (2 of 396 cells are below 1, both the non-extrapolating
+`ConstantExtrapolator` baseline at its closest-to-target design -- see
+docs/decisions.md): a union bound summed over ~24 mostly-near-tied
+comparisons per task routinely exceeds 1, most directly because P1-02
+already found 9 of 11 tasks have no statistically resolvable winner at
+all. `max(0, ...)` is the standard, correct way to
 read a probability bound that overshoots 1 -- it means "no informative
 lower bound on accuracy," not literally negative accuracy. See
 docs/decisions.md for the full reasoning.
