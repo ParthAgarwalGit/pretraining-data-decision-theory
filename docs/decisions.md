@@ -1504,3 +1504,28 @@ Readings (all from this table and the file, not from theory):
 - Highest per-task bias at 150M: `hellaswag` (~0.055 for PowerLawN and ChinchillaND); the lowest tasks are near zero/negative (`boolq`).
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-22 — P1-07 regenerated on the regenerated P1-06 and the fixed fitters/identifiability (PR #17)
+
+`results/p1_07_bound_coverage.json` regenerated on a clean tree (`git_dirty: false`, base `c4d740a`): 198 (fitter, design, task)
+combinations x 2 bootstrap schemes = 396 cells, B = 500 Monte-Carlo replicates each, ~38.7 h wall
+(mostly the Monte-Carlo pass; some individual combos took far longer than others -- e.g. one jumped from
+5107s to 40524s elapsed between combos 60 and 70 -- plausibly this machine going idle/asleep partway
+through, not a per-combo cost change). `any_bound_violation: false`, `violations: []` -- the pairwise bound
+held (tightness ratio >= 1) in every one of the 396 cells, now computed with the corrected `_bound_term`
+(gap-reduction form, PR #17/#23) and with `analytic_v_k` raising `UnidentifiedTargetError` where the target
+is unidentified from the fitting scales (0 of 3,300 per-recipe analytic checks hit that path on real
+DataDecide designs, i.e. every real design here does identify its own extrapolation target).
+
+**Correction to prior wording:** this run's own `bound_pairwise` (seed_bootstrap scheme) is **not** `>= 1`
+in literally every cell -- 2 of 198 are below 1 (informative): `ConstantExtrapolator` at `<=530M` on
+`arc_easy` (0.665) and `hellaswag` (0.971), both the least-extrapolating baseline at its closest-to-target
+design. `tightness_ratio_pairwise` (bound / empirical MC error) is `>= 1` everywhere regardless (min 1.16,
+median 11.15, max 508 for seed_bootstrap; min 3.02, median 22.1, max 1370 for parametric_bootstrap) --
+that is the quantity "never violated" actually refers to, and it is unaffected by whether the raw bound
+itself happens to dip under 1 for two near-degenerate cells. Downstream text (P1-08, the Phase-1 memo)
+should say "vacuous (`bound_pairwise >= 1`) in all but 2 of 396 cells, both the non-extrapolating baseline
+at its closest design" rather than "all 396", and should quote `tightness_ratio`, not `bound_pairwise`,
+for the "never violated" claim.
+
+**Decided by:** Agent, following the second-round review.
