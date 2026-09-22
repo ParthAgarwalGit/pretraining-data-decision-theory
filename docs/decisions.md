@@ -2545,5 +2545,85 @@ P1-06 (`replicates_p1_06_decreasing_direction` false -> true). The change is a c
 forced +1 cross-recipe correlation. The gap is ~6% with two usable design points and two fitters, so
 this is **weak evidence consistent with P1-06's direction, not a replication**; the "P1-10 is underpowered" caveat stands.
 Downstream text quoting the old 131.0 vs 137.6 (memo, PR #21) is updated separately.
+## 2026-09-20 — P1-06 regenerated on the repaired fitters with the calibrated squared-bias estimator (PR #16)
+
+`results/p1_06_decomposition.json` regenerated on a clean tree (`git_dirty: false`, base `f728bc5`): 396 (fitter, design, task) work units,
+B = 200 replicates x 2 schemes, **0 of 1,980,000 individual bootstrap fits failed**, ~24.9 h wall (the machine slept for part of it). It uses the variable-projection power-law starts (PR #12), the
+`n/(n-1)` seed-bootstrap variance inflation and the unclipped estimator (`sigma2_extrap_unclipped`, stored alongside the clipped heuristic), and compact output (3.4 MB).
+
+Median per-cell `sigma2_extrap_hat / v_hat` (`seed_bootstrap`), previous committed run -> this run, @150M / @300M / @530M:
+
+| Fitter | @150M | @300M | @530M |
+|---|---|---|---|
+| ConstantExtrapolator | 1611.56 -> 1611.06 | 573.00 -> 572.50 | 194.07 -> 193.57 |
+| PowerLawN | 31.68 -> 359.74 | 22.57 -> 305.71 | 14.36 -> 274.08 |
+| PowerLawC | 14.27 -> 356.72 | 8.34 -> 308.23 | 5.07 -> 265.69 |
+| ChinchillaND | 368.69 -> 376.51 | 307.22 -> 306.72 | 275.05 -> 274.06 |
+| TwoStepLadder | 0.87 -> 0.15 | 0.21 -> 0.00 | 0.01 -> 0.00 |
+| LogLinear | 309.50 -> 309.00 | 271.67 -> 271.17 | 229.17 -> 228.67 |
+
+Readings (all from this table and the file, not from theory):
+- The ratio still **falls as the design grows toward the target for every fitter** (P1-06's original, plan-contradicting finding survives).
+- **PowerLawN and PowerLawC moved from 5-32 to 266-360**, i.e. they now behave like ChinchillaND and LogLinear. The old small values are consistent with their
+  power-law fits having been stuck in flat-exponent regions before the initialization repair (the reviewers' seed-1/30/54 counterexamples); the new values are
+  what a working fit gives. That attribution is an inference from the coincident P1-04 fix, not separately proved.
+- **Bias dominates estimation variance by ~200-1600x for every fitter except TwoStepLadder**, whose variance is large (median `v_hat` ~6e-3) and whose bias is not distinguishable from zero.
+- **13.6% of cells (672/4950) have a negative unclipped bias-squared estimate** -- the bias is undetectable against the estimation variance there; the clipped `sigma2_extrap_hat` reports 0 for those, which is why any average of the clipped field overstates the mean squared bias.
+- The `n/(n-1)` correction is negligible for Constant/LogLinear/ChinchillaND-type cells (their `v_hat` is tiny) and matters only where `v_hat` is large (TwoStepLadder).
+- Highest per-task bias at 150M: `hellaswag` (~0.055 for PowerLawN and ChinchillaND); the lowest tasks are near zero/negative (`boolq`).
+
+**Decided by:** Agent, following the second-round review.
+
+## 2026-09-22 — P1-07 regenerated on the regenerated P1-06 and the fixed fitters/identifiability (PR #17)
+
+`results/p1_07_bound_coverage.json` regenerated on a clean tree (`git_dirty: false`, base `c4d740a`): 198 (fitter, design, task)
+combinations x 2 bootstrap schemes = 396 cells, B = 500 Monte-Carlo replicates each, ~38.7 h wall
+(mostly the Monte-Carlo pass; some individual combos took far longer than others -- e.g. one jumped from
+5107s to 40524s elapsed between combos 60 and 70 -- plausibly this machine going idle/asleep partway
+through, not a per-combo cost change). `any_bound_violation: false`, `violations: []` -- the pairwise bound
+held (tightness ratio >= 1) in every one of the 396 cells, now computed with the corrected `_bound_term`
+(gap-reduction form, PR #17/#23) and with `analytic_v_k` raising `UnidentifiedTargetError` where the target
+is unidentified from the fitting scales (0 of 3,300 per-recipe analytic checks hit that path on real
+DataDecide designs, i.e. every real design here does identify its own extrapolation target).
+
+**Correction to prior wording:** this run's own `bound_pairwise` (seed_bootstrap scheme) is **not** `>= 1`
+in literally every cell -- 2 of 198 are below 1 (informative): `ConstantExtrapolator` at `<=530M` on
+`arc_easy` (0.665) and `hellaswag` (0.971), both the least-extrapolating baseline at its closest-to-target
+design. `tightness_ratio_pairwise` (bound / empirical MC error) is `>= 1` everywhere regardless (min 1.16,
+median 11.15, max 508 for seed_bootstrap; min 3.02, median 22.1, max 1370 for parametric_bootstrap) --
+that is the quantity "never violated" actually refers to, and it is unaffected by whether the raw bound
+itself happens to dip under 1 for two near-degenerate cells. Downstream text (P1-08, the Phase-1 memo)
+should say "vacuous (`bound_pairwise >= 1`) in all but 2 of 396 cells, both the non-extrapolating baseline
+at its closest design" rather than "all 396", and should quote `tightness_ratio`, not `bound_pairwise`,
+for the "never violated" claim.
+
+**Decided by:** Agent, following the second-round review.
+
+## 2026-09-22 — P1-08 regenerated on the regenerated P1-04/06/07 (PR #18)
+
+`results/p1_08_ceiling_prediction.json` regenerated on a clean tree (`git_dirty: false`, base `9544054`), reading the
+regenerated `p1_04_extrapolation.json`, `p1_06_decomposition.json`, and `p1_07_bound_coverage.json`. This is the first
+run of this file with PR #18's own fix (same-decision-event comparison, matched-compute observed baseline, unmatched-budget
+labeling for the predicted/counterfactual comparisons) actually applied to non-stale upstream inputs.
+
+- **Observed, matched-compute (the valid headline number):** `n_observed_evaluable_at_matched_compute: 10`,
+  `n_observed_extrapolation_beats_matched_single_scale: 0`, `n_observed_unassessed_out_of_range: 5` (of 15 central claims
+  = 5 extrapolation fitters x 3 designs) -- **0 of 10 evaluable comparisons favor extrapolation**, consistent with
+  P1-04's own headline (0/12 evaluable there; the two counts differ only because P1-08's central claims exclude
+  `ConstantExtrapolator`, which is the baseline being compared against, not an extrapolation method).
+- **`observed_best_arm_accuracy`** (P1-07's Monte-Carlo P(select the true best recipe), the event the bound actually
+  lower-bounds) is dramatically lower than the all-pairs `observed_accuracy` for every fitter/design -- e.g. PowerLawN
+  @150M: 24.9% best-arm vs 76.1% all-pairs; @530M: 32.8% vs 84.8%. This is the numeric confirmation of P1-08's own module
+  docstring: all-pairs ordering accuracy is a much easier, different statistic from best-arm selection, and the earlier
+  (pre-#18) version of this file conflated them.
+- **Predicted/counterfactual comparisons (UNMATCHED budget, labeled as such in every `central_claims` row and the summary):**
+  12/15 pairs flip vs single-scale's real predicted accuracy (was 5/15 on stale pre-fix inputs), 4/15 flip vs single-scale's
+  own bias-free counterfactual (was 1/15). Both counts moved because the underlying bound is now the corrected gap-reduction
+  form (PR #17/#23) computed on the regenerated P1-06/07, not because the comparison became matched-compute -- it remains
+  labeled `unmatched: extrapolation ladder compute vs single-scale endpoint-only compute` and should not be read as a
+  matched-compute finding.
+- `predicted_accuracy` is 0.0% (clipped) in every cell as before -- the bound remains vacuous for the predicted/counterfactual
+  comparisons (see PR #17's decisions entry: only 2 of 396 P1-07 cells have an informative raw bound, and neither is an
+  extrapolation fitter's predicted-accuracy cell here).
 
 **Decided by:** Agent, following the review.
