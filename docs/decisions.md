@@ -1680,3 +1680,32 @@ at its closest design" rather than "all 396", and should quote `tightness_ratio`
 for the "never violated" claim.
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-22 — P1-08 regenerated on the regenerated P1-04/06/07 (PR #18)
+
+`results/p1_08_ceiling_prediction.json` regenerated on a clean tree (`git_dirty: false`, base `9544054`), reading the
+regenerated `p1_04_extrapolation.json`, `p1_06_decomposition.json`, and `p1_07_bound_coverage.json`. This is the first
+run of this file with PR #18's own fix (same-decision-event comparison, matched-compute observed baseline, unmatched-budget
+labeling for the predicted/counterfactual comparisons) actually applied to non-stale upstream inputs.
+
+- **Observed, matched-compute (the valid headline number):** `n_observed_evaluable_at_matched_compute: 10`,
+  `n_observed_extrapolation_beats_matched_single_scale: 0`, `n_observed_unassessed_out_of_range: 5` (of 15 central claims
+  = 5 extrapolation fitters x 3 designs) -- **0 of 10 evaluable comparisons favor extrapolation**, consistent with
+  P1-04's own headline (0/12 evaluable there; the two counts differ only because P1-08's central claims exclude
+  `ConstantExtrapolator`, which is the baseline being compared against, not an extrapolation method).
+- **`observed_best_arm_accuracy`** (P1-07's Monte-Carlo P(select the true best recipe), the event the bound actually
+  lower-bounds) is dramatically lower than the all-pairs `observed_accuracy` for every fitter/design -- e.g. PowerLawN
+  @150M: 24.9% best-arm vs 76.1% all-pairs; @530M: 32.8% vs 84.8%. This is the numeric confirmation of P1-08's own module
+  docstring: all-pairs ordering accuracy is a much easier, different statistic from best-arm selection, and the earlier
+  (pre-#18) version of this file conflated them.
+- **Predicted/counterfactual comparisons (UNMATCHED budget, labeled as such in every `central_claims` row and the summary):**
+  12/15 pairs flip vs single-scale's real predicted accuracy (was 5/15 on stale pre-fix inputs), 4/15 flip vs single-scale's
+  own bias-free counterfactual (was 1/15). Both counts moved because the underlying bound is now the corrected gap-reduction
+  form (PR #17/#23) computed on the regenerated P1-06/07, not because the comparison became matched-compute -- it remains
+  labeled `unmatched: extrapolation ladder compute vs single-scale endpoint-only compute` and should not be read as a
+  matched-compute finding.
+- `predicted_accuracy` is 0.0% (clipped) in every cell as before -- the bound remains vacuous for the predicted/counterfactual
+  comparisons (see PR #17's decisions entry: only 2 of 396 P1-07 cells have an informative raw bound, and neither is an
+  extrapolation fitter's predicted-accuracy cell here).
+
+**Decided by:** Agent, following the review.
