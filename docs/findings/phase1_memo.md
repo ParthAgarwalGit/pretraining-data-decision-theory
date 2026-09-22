@@ -13,9 +13,10 @@ one of the 396 bounds is at least 1, so *any* empirical error probability passes
 check cannot distinguish a valid bound from an invalid one (and the original additive
 bound is in fact invalid, see below); (2) missing matched-compute comparisons were
 counted as losses. Numbers for P1-04 below come from the regenerated run on the repaired
-fitters; P1-06/07/08 numbers are from the runs before the bootstrap-calibration and
-identifiability fixes (PRs #16/#17) and are **being regenerated** — treat them as
-provisional until `docs/findings/p1_06.md` and the P1-07/08 result files are refreshed.
+fitters and the P1-06 numbers are from the regenerated run (2026-09-20, with the bootstrap
+calibration of PR #16); the P1-07/08 numbers are from the runs before the identifiability fix
+(PR #17) and are **being regenerated** — treat them as provisional until those result files are
+refreshed.
 
 ## What we found
 
@@ -37,13 +38,17 @@ provisional until `docs/findings/p1_06.md` and the P1-07/08 result files are ref
 - **P1-05 — noise floor.** Seed variance does **not** shrink monotonically with model
   scale (median ~2.9e-5 to ~5.9e-5, 4M through 1B, no clear trend) — contradicts the
   naive "bigger models are less noisy" intuition the plan started from.
-- **P1-06 — the core decomposition.** `sigma2_extrap` (extrapolation bias-squared-plus-
-  excess-variance) is real, non-trivial, and clearly **task-dependent**: a ~14x spread
-  across tasks for the same fitter and design, comparable to or larger than the plain
-  estimation variance `v` almost everywhere. It is not a rounding error. But the ratio
-  `sigma2_extrap / v` moves **opposite** to the plan's own predicted signature: it *falls*
-  as designs grow toward the target (e.g. PowerLawN: 9.6 -> 7.2 -> 5.2), because
-  `sigma2_extrap` shrinks faster than `v` does, not slower.
+- **P1-06 — the core decomposition** (regenerated 2026-09-20 on the repaired fitters and
+  the calibrated squared-bias estimator). `sigma2_extrap` (squared extrapolation bias) is
+  real, non-trivial, and clearly **task-dependent**: ~28x spread across tasks for the same
+  fitter and design (PowerLawN @150M: 0.0019 `piqa` to 0.0546 `hellaswag`), and 200-1,600x the
+  plain estimation variance `v` in the median cell for every fitter except `TwoStepLadder`
+  (variance-dominated, bias indistinguishable from 0). 13.6% of cells have a negative unclipped
+  bias estimate, i.e. undetectable bias. The ratio `sigma2_extrap / v` still moves **opposite**
+  to the plan's own predicted signature: it *falls* as designs grow toward the target (e.g.
+  PowerLawN: 359.7 -> 305.7 -> 274.1), because `sigma2_extrap` shrinks faster than `v` does, not
+  slower. (The earlier run's PowerLawN ratios of 9.6 -> 5.2 came from power-law fits stuck at flat
+  exponents before the initialization repair.)
 - **P1-07/P1-08 — does the theory explain the ceiling?** **Not testable with these
   bounds.** The plug-in selection-error bound is a union bound over ~24 mostly-near-tied
   per-task comparisons (a direct consequence of P1-02's ambiguity finding) and is **at
