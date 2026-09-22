@@ -49,23 +49,28 @@ refreshed.
   PowerLawN: 359.7 -> 305.7 -> 274.1), because `sigma2_extrap` shrinks faster than `v` does, not
   slower. (The earlier run's PowerLawN ratios of 9.6 -> 5.2 came from power-law fits stuck at flat
   exponents before the initialization repair.)
-- **P1-07/P1-08 — does the theory explain the ceiling?** **Not testable with these
-  bounds.** The plug-in selection-error bound is a union bound over ~24 mostly-near-tied
-  per-task comparisons (a direct consequence of P1-02's ambiguity finding) and is **at
-  least 1 in all 396 cells**. A bound that is at least 1 holds for every possible
-  empirical error probability, so "never violated" is *not* evidence the theory is
-  right — it would pass for an invalid formula too, and the original additive form
+- **P1-07/P1-08 — does the theory explain the ceiling?** (Regenerated 2026-09-22 on the
+  full corrected chain.) **Not testable with these bounds, for any extrapolating fitter.**
+  The plug-in selection-error bound is a union bound over ~24 mostly-near-tied per-task
+  comparisons (a direct consequence of P1-02's ambiguity finding); `bound_pairwise` is
+  `>= 1` in every cell that uses an extrapolating fitter (196 of 198 `seed_bootstrap`
+  cells overall -- the 2 exceptions are `ConstantExtrapolator`, the non-extrapolating
+  baseline, at `<=530M`). A bound that is at least 1 holds for every possible empirical
+  error probability, so "never violated" is *not* evidence the theory is right — it would
+  pass for an invalid formula too, and the original additive form
   `exp(-Delta^2 / (2(bias^2 + v)))` is in fact invalid (a challenger with gap 5, bias 10,
   variance .01 has error probability near 1 against a claimed 0.88; PR #17, acknowledged in
   PR #23; the code now uses the gap-reduction form). The pairwise-vs-marginal tightness
-  ratios (~20.6 vs. ~24.1) compare two vacuous quantities and say little. The resulting
-  predicted accuracy clips to 0.0% everywhere. The `sigma2_extrap = 0` counterfactual
-  (only 1 of 15 pairs beat single-scale's own bias-free counterfactual) is computed on the
-  same vacuous bound and against a single-scale bound taken at the design's endpoint model
-  only — an **unmatched-compute** comparison — so it is not evidence about bias either
-  way. The valid same-event comparison is the bound versus P1-07's Monte-Carlo
-  P(select the best arm), which P1-08 now reports separately from the all-pairs ordering
-  accuracy.
+  ratios (min 1.16, median 11.15 for `seed_bootstrap`) compare two vacuous quantities and
+  say little. The resulting predicted accuracy clips to 0.0% in every extrapolating-fitter
+  cell. The `sigma2_extrap = 0` counterfactual (4 of 15 pairs beat single-scale's own
+  bias-free counterfactual, up from 1 of 15 on stale pre-regeneration inputs) is computed
+  on the same vacuous bound and against a single-scale bound taken at the design's endpoint
+  model only — an **unmatched-compute** comparison — so it is not evidence about bias
+  either way. The valid same-event comparison is the bound versus P1-07's Monte-Carlo
+  P(select the best arm), `observed_best_arm_accuracy`, which ranges only 7-40% across
+  fitters and designs (far below the 59.5-85.1% all-pairs range) and which P1-08 now
+  reports separately from the all-pairs ordering accuracy (F3, PR #20).
 - **P1-09 — rank reversals.** Naive reversal rate across the 14-size ladder was 61.7%,
   but that used 14 uncorrected simultaneous per-pair tests; Bonferroni-corrected, it's
   **15.2%** (500/3,300 pairs) — still real and non-trivial, just not the inflated number.
@@ -77,9 +82,10 @@ refreshed.
   earlier run, which forced a +1 cross-recipe correlation, gave 131.0 vs. 137.6 in the
   opposite direction) — two design points and two fitters, so reported as weak,
   not as a replication.
-- **P1-11 — figures.** F1-F5 generated and visually verified (not just checked for
-  exceptions); several legibility bugs caught and fixed this way, documented in
-  `docs/decisions.md`.
+- **P1-11 — figures.** F1-F5 regenerated (2026-09-22) from the fully regenerated
+  P1-04/06/07/08 chain and visually verified, not just checked for exceptions; F3 now
+  correctly separates best-arm selection from all-pairs ordering into two panels
+  (PR #20's fix) instead of plotting them on one axis.
 
 ## Which framing does the evidence support?
 
@@ -90,20 +96,27 @@ story instead (extrapolation as a cheaper route to *similar* accuracy, not *bett
 accuracy).
 
 **The evidence does not support (B).** `sigma2_extrap` is not small: P1-06 shows it is
-routinely comparable to or larger than `v` at the smallest design, with a 14x spread
-across tasks. There is no task or fitter where it is negligible.
+200-1,600x `v` in the median cell for every fitter but one, with a ~28x spread across
+tasks at a fixed fitter and design. There is no task or fitter where it is negligible.
 
 **The evidence supports (A), but only qualitatively, with an important caveat the paper
 needs to be honest about.** `sigma2_extrap` is real and plausibly *a* cause of the
 observed gap — that part of framing (A) holds up. But its precise theoretical
-consequence, the plug-in bound, is vacuous at these gap sizes (P1-07/P1-08; "never
-violated" is uninformative when every bound is at least 1). More
-tellingly, the counterfactual that removes bias flips the outcome in only 1 of 15
-cases — but that counterfactual runs on the vacuous bound and an unmatched-compute
-baseline (above), so it does **not** establish that `sigma2_extrap` is a minor
-contributor; the honest reading is that it is *inconclusive*. What the matched-compute
-evidence does show is that extrapolation wins in **0 of 12 evaluable** comparisons (6 more
-unassessed). One candidate explanation for that, which P1-02 supports independently, is
+consequence, the plug-in bound, is vacuous at these gap sizes for every extrapolating
+fitter (P1-07/P1-08, regenerated 2026-09-22: `predicted_accuracy` is 0% in all 15
+relevant cells; the raw bound is `>= 1` in every one of them, so "never violated"
+carries no weight). The valid same-event comparison, `observed_best_arm_accuracy`
+(P1-07's Monte-Carlo P(select the true best recipe)), is itself only 7-40% across
+fitters and designs -- far below the 60-85% all-pairs accuracy this memo otherwise
+quotes, confirming these are genuinely different, and much harder, events. More
+tellingly, the counterfactual that removes bias flips the outcome in only 4 of 15
+cases (was 1 of 15 on stale pre-regeneration inputs) — but that counterfactual runs
+on the vacuous bound and an unmatched-compute baseline (above), so it does **not**
+establish that `sigma2_extrap` is a minor contributor; the honest reading is that it
+is *inconclusive*. What the matched-compute evidence does show is that extrapolation
+wins in **0 of 10 evaluable** comparisons for extrapolating fitters (5 more
+unassessed; P1-04's own headline is 0/12 evaluable, 6 unassessed, across a slightly
+different denominator that also counts `ConstantExtrapolator`). One candidate explanation for that, which P1-02 supports independently, is
 that with 9 of 11 tasks statistically ambiguous at the target scale, "beat single-scale"
 is a demanding bar for *any* method to clear, extrapolation included, simply because
 there is usually no stable winner to correctly recover in the first place. That is a
