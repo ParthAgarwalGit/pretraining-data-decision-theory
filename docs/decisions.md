@@ -1626,3 +1626,57 @@ conclusion (extrapolation does not beat single-scale at matched compute on this 
 unchanged, now resting on fits that recover the true optimum on a 100/100-seed sweep.
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-20 — P1-06 regenerated on the repaired fitters with the calibrated squared-bias estimator (PR #16)
+
+`results/p1_06_decomposition.json` regenerated on a clean tree (`git_dirty: false`, base `f728bc5`): 396 (fitter, design, task) work units,
+B = 200 replicates x 2 schemes, **0 of 1,980,000 individual bootstrap fits failed**, ~24.9 h wall (the machine slept for part of it). It uses the variable-projection power-law starts (PR #12), the
+`n/(n-1)` seed-bootstrap variance inflation and the unclipped estimator (`sigma2_extrap_unclipped`, stored alongside the clipped heuristic), and compact output (3.4 MB).
+
+Median per-cell `sigma2_extrap_hat / v_hat` (`seed_bootstrap`), previous committed run -> this run, @150M / @300M / @530M:
+
+| Fitter | @150M | @300M | @530M |
+|---|---|---|---|
+| ConstantExtrapolator | 1611.56 -> 1611.06 | 573.00 -> 572.50 | 194.07 -> 193.57 |
+| PowerLawN | 31.68 -> 359.74 | 22.57 -> 305.71 | 14.36 -> 274.08 |
+| PowerLawC | 14.27 -> 356.72 | 8.34 -> 308.23 | 5.07 -> 265.69 |
+| ChinchillaND | 368.69 -> 376.51 | 307.22 -> 306.72 | 275.05 -> 274.06 |
+| TwoStepLadder | 0.87 -> 0.15 | 0.21 -> 0.00 | 0.01 -> 0.00 |
+| LogLinear | 309.50 -> 309.00 | 271.67 -> 271.17 | 229.17 -> 228.67 |
+
+Readings (all from this table and the file, not from theory):
+- The ratio still **falls as the design grows toward the target for every fitter** (P1-06's original, plan-contradicting finding survives).
+- **PowerLawN and PowerLawC moved from 5-32 to 266-360**, i.e. they now behave like ChinchillaND and LogLinear. The old small values are consistent with their
+  power-law fits having been stuck in flat-exponent regions before the initialization repair (the reviewers' seed-1/30/54 counterexamples); the new values are
+  what a working fit gives. That attribution is an inference from the coincident P1-04 fix, not separately proved.
+- **Bias dominates estimation variance by ~200-1600x for every fitter except TwoStepLadder**, whose variance is large (median `v_hat` ~6e-3) and whose bias is not distinguishable from zero.
+- **13.6% of cells (672/4950) have a negative unclipped bias-squared estimate** -- the bias is undetectable against the estimation variance there; the clipped `sigma2_extrap_hat` reports 0 for those, which is why any average of the clipped field overstates the mean squared bias.
+- The `n/(n-1)` correction is negligible for Constant/LogLinear/ChinchillaND-type cells (their `v_hat` is tiny) and matters only where `v_hat` is large (TwoStepLadder).
+- Highest per-task bias at 150M: `hellaswag` (~0.055 for PowerLawN and ChinchillaND); the lowest tasks are near zero/negative (`boolq`).
+
+**Decided by:** Agent, following the second-round review.
+
+## 2026-09-22 — P1-07 regenerated on the regenerated P1-06 and the fixed fitters/identifiability (PR #17)
+
+`results/p1_07_bound_coverage.json` regenerated on a clean tree (`git_dirty: false`, base `c4d740a`): 198 (fitter, design, task)
+combinations x 2 bootstrap schemes = 396 cells, B = 500 Monte-Carlo replicates each, ~38.7 h wall
+(mostly the Monte-Carlo pass; some individual combos took far longer than others -- e.g. one jumped from
+5107s to 40524s elapsed between combos 60 and 70 -- plausibly this machine going idle/asleep partway
+through, not a per-combo cost change). `any_bound_violation: false`, `violations: []` -- the pairwise bound
+held (tightness ratio >= 1) in every one of the 396 cells, now computed with the corrected `_bound_term`
+(gap-reduction form, PR #17/#23) and with `analytic_v_k` raising `UnidentifiedTargetError` where the target
+is unidentified from the fitting scales (0 of 3,300 per-recipe analytic checks hit that path on real
+DataDecide designs, i.e. every real design here does identify its own extrapolation target).
+
+**Correction to prior wording:** this run's own `bound_pairwise` (seed_bootstrap scheme) is **not** `>= 1`
+in literally every cell -- 2 of 198 are below 1 (informative): `ConstantExtrapolator` at `<=530M` on
+`arc_easy` (0.665) and `hellaswag` (0.971), both the least-extrapolating baseline at its closest-to-target
+design. `tightness_ratio_pairwise` (bound / empirical MC error) is `>= 1` everywhere regardless (min 1.16,
+median 11.15, max 508 for seed_bootstrap; min 3.02, median 22.1, max 1370 for parametric_bootstrap) --
+that is the quantity "never violated" actually refers to, and it is unaffected by whether the raw bound
+itself happens to dip under 1 for two near-degenerate cells. Downstream text (P1-08, the Phase-1 memo)
+should say "vacuous (`bound_pairwise >= 1`) in all but 2 of 396 cells, both the non-extrapolating baseline
+at its closest design" rather than "all 396", and should quote `tightness_ratio`, not `bound_pairwise`,
+for the "never violated" claim.
+
+**Decided by:** Agent, following the second-round review.
