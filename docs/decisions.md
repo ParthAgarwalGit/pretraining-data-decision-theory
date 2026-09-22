@@ -3173,3 +3173,17 @@ labeling for the predicted/counterfactual comparisons) actually applied to non-s
   extrapolation fitter's predicted-accuracy cell here).
 
 **Decided by:** Agent, following the review.
+
+## 2026-09-22 — F1-F5 regenerated from the fully regenerated P1-04/06/07/08 chain (PR #20)
+
+`python -m pdt.viz.build_all` regenerated all five Phase-1 figures from the now-consistent
+`results/p1_0{3,4,6,7,8}_*.json` (all regenerated this pass on clean trees, see PRs #12/#16/#17/#18's
+decisions entries). F3 (two-panel fix, PR #20's review) now renders with real
+`observed_best_arm_accuracy` data: Panel A shows best-arm selection is far below 50% for every
+(fitter, design) and the plug-in bound is ~0 throughout (2 informative cells out of 396 in the
+underlying P1-07 data are not extrapolation-fitter cells and don't show up here); Panel B shows the
+much higher (76-85%, except TwoStepLadder ~60-68%) all-pairs ordering accuracy on the same x-axis,
+visibly a different quantity from Panel A -- confirming the two should never have been plotted
+together. F1/F2/F4/F5 are unchanged in structure, only in the numbers they read.
+
+**Decided by:** Agent, following the review.
