@@ -1,0 +1,40 @@
+{
+  "provenance": {
+    "git_sha": "f94abde0aa9868e73a05bc1033cca22a033fb642",
+    "git_dirty": false,
+    "utc_timestamp": "2026-09-25T10:53:26.011460+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "P1-07-analytic-recheck"
+    }
+  },
+  "data": {
+    "stored_file": "results/p1_07_bound_coverage.json",
+    "relative_tolerance": 1e-06,
+    "n_compared": 3300,
+    "n_changed_beyond_tolerance": 1458,
+    "n_newly_unidentified": 0,
+    "n_without_stored_counterpart": 0,
+    "max_relative_difference": 1.7326032153532582,
+    "worst_case": {
+      "fitter": "PowerLawC",
+      "design": "S_fit_le_150M",
+      "task": "winogrande",
+      "recipe": "DCLM-Baseline (QC FW 3%)",
+      "stored": -0.0001677472388026402,
+      "fresh": 0.00012289216651344503
+    }
+  }
+}

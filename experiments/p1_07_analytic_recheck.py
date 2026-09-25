@@ -69,6 +69,7 @@ def main() -> None:
     n_missing_stored = 0
     max_rel_diff = 0.0
     worst: dict | None = None
+    by_fitter: dict[str, dict] = {}
     for design_name, design_sizes in designs.items():
         avg_by_task = da.recipe_trajectories(
             long_frame, p107._METRIC, design_sizes, seed_mode="average"
@@ -95,8 +96,23 @@ def main() -> None:
                     n_compared += 1
                     denom = max(abs(old), abs(new), 1e-300)
                     rel = abs(new - old) / denom
+                    fb = by_fitter.setdefault(
+                        fitter_name,
+                        {
+                            "n_compared": 0,
+                            "n_changed": 0,
+                            "n_stored_negative": 0,
+                            "n_changed_by_more_than_10pct": 0,
+                            "max_relative_difference": 0.0,
+                        },
+                    )
+                    fb["n_compared"] += 1
+                    fb["n_stored_negative"] += int(old < 0.0)
+                    fb["max_relative_difference"] = max(fb["max_relative_difference"], rel)
                     if rel > _REL_TOL:
                         n_changed += 1
+                        fb["n_changed"] += 1
+                        fb["n_changed_by_more_than_10pct"] += int(rel > 0.1)
                     if rel > max_rel_diff:
                         max_rel_diff = rel
                         worst = {
@@ -123,6 +139,9 @@ def main() -> None:
         "n_without_stored_counterpart": n_missing_stored,
         "max_relative_difference": max_rel_diff,
         "worst_case": worst,
+        # A stored variance below zero is impossible (v = sum_i g_i^2 r_i^2 >= 0): the old
+        # pinv(J^T J) sandwich could return one when it truncated a weak direction.
+        "by_fitter": by_fitter,
     }
     provenance.write_result(
         "results/p1_07_analytic_recheck.json",
