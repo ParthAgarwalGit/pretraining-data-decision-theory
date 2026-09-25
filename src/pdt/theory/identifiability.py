@@ -93,3 +93,55 @@ def target_in_row_space(
     basis = vt[:rank]
     residual = t - basis.T @ (basis @ t)
     return bool(np.linalg.norm(residual) <= rtol * t_norm)
+
+
+def prediction_influence_weights(
+    jacobian_rows: np.ndarray, j_target: np.ndarray, *, rtol: float = 1e-8
+) -> np.ndarray | None:
+    """Influence weights `g` (one per observed scale) with `prediction = sum_i g_i y_i`,
+    i.e. `g = pinv(J)^T j_target`, computed from the SVD of the (column-equilibrated)
+    DESIGN `J`, never from `J^T J`. `None` if the target is not identified.
+
+    Second-round review of PR #17: `sandwich_covariance` formed `pinv(J^T J)`, which
+    squares the condition number. A full-rank design with `cond(J) ~ 2e8` has
+    `cond(J^T J) ~ 6e16`, so `pinv`'s cutoff silently discards a weak but genuinely
+    identified direction and reports a variance of 1.5e-4 where the true (SVD-based)
+    value is 5e11 -- enormous uncertainty turned into apparent precision. Working from
+    the design's own SVD keeps the conditioning at `cond(J)`.
+
+    Fails closed: if any singular direction is discarded by the rank cutoff and the
+    target has a non-negligible component in it (relative residual > `rtol`), the
+    target's variance is not computable from this design and `None` is returned --
+    the caller must treat that as infinite variance / unidentified, never as zero.
+    """
+    rows = np.atleast_2d(np.asarray(jacobian_rows, dtype=float))
+    target = np.asarray(j_target, dtype=float)
+    n_scales = rows.shape[0]
+    if not np.any(target):
+        return np.zeros(n_scales)
+    if rows.size == 0:
+        return None
+
+    col_norms = np.linalg.norm(rows, axis=0)
+    max_col = float(col_norms.max())
+    if max_col == 0.0:
+        return None
+    keep = col_norms > _ZERO_COLUMN_RTOL * max_col
+    target_norm = float(np.linalg.norm(target))
+    if np.linalg.norm(target[~keep]) > rtol * target_norm:
+        return None
+    if not keep.any():
+        return np.zeros(n_scales)
+
+    a = rows[:, keep] / col_norms[keep]
+    t = target[keep] / col_norms[keep]
+    u, singular_values, vt = np.linalg.svd(a, full_matrices=False)
+    tol = max(a.shape) * np.finfo(float).eps * singular_values[0]
+    retained = singular_values > tol
+    basis = vt[retained]
+    residual = t - basis.T @ (basis @ t)
+    t_norm = float(np.linalg.norm(t))
+    if t_norm > 0.0 and np.linalg.norm(residual) > rtol * t_norm:
+        return None
+    coeffs = (basis @ t) / singular_values[retained]
+    return u[:, retained] @ coeffs
