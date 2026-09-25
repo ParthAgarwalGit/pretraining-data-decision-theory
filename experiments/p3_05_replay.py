@@ -272,6 +272,10 @@ def _run_task(
             eta=eta,
             sigma2=lambda _s: 1e-4,
             model_factory=PowerLawN,
+            # Real data, adaptive tracking, nonlinear fit, approximate noise: none of the proved
+            # conditions hold (third review of PR #29), so a "certified" outcome could only ever be
+            # "under caller-assumed, unproved conditions" -- accepted explicitly here.
+            certification="assume_unproved_conditions",
             epsilon_0=0.02,
             max_rounds=max_rounds,
             solver_n_restarts=1,
@@ -400,6 +404,11 @@ def main() -> None:
         headline.append(row)
 
     payload = {
+        "certification_mode": "assume_unproved_conditions",
+        "certification_note": (
+            "any 'certified' ETS outcome is under caller-assumed, UNPROVED conditions (adaptive "
+            "design, nonlinear PowerLawN fit, sigma2 = 1e-4 only approximating the real seed noise)"
+        ),
         "scope_note": (
             "4-task pilot (2 reversal-heavy + 2 stable, by P1-09's own kendall_tau), "
             "not all 11 DataDecide tasks; ETS is a single real-data run per task, not "

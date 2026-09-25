@@ -30,6 +30,7 @@ from pdt.bai.ets import (
     _fit_recipe,
     _largest_observed_scale,
     _pair_beta,
+    _unmet_support_conditions,
     extrapolation_track_and_stop,
     fixed_ladder_extrapolation,
     single_scale_recommendation,
@@ -319,6 +320,91 @@ def test_hc0_heuristic_mode_never_reports_certified():
     assert all(o != "certified" for o, _ in outcomes)
     # ...and it is heuristic for a reason: it does stop (recommends) on this design.
     assert any(o == "recommended" for o, _ in outcomes)
+
+
+# ---------------------------------------------------------------------------
+# Third review of PR #29: known noise alone must not enable "certified"
+# ---------------------------------------------------------------------------
+
+
+class _DeclaredNonlinear(LogLinear):
+    """A LogLinear fit that declares itself nonlinear in its parameters (stand-in for the
+    power-law fits, whose prediction is not an exactly Gaussian linear functional)."""
+
+    linear_in_parameters = False
+
+
+def _run_constant_means(gap, model_factory, certification, *, sigma=0.05, max_rounds=400):
+    means = {"a": 0.5 + gap, "b": 0.5}
+    scales = [Scale(n=n, d=1.0) for n in (1.0, 2.0, 3.0)]
+    return extrapolation_track_and_stop(
+        _ConstantMeanOracle(means, sigma, 7),
+        ["a", "b"],
+        scales,
+        Scale(n=4.0, d=1.0),
+        delta=0.1,
+        eta={"a": 0.0, "b": 0.0},
+        sigma2=lambda s: sigma**2,
+        model_factory=model_factory,
+        cost=lambda s: 1.0,
+        max_rounds=max_rounds,
+        solver_n_iter=5,
+        certification=certification,
+    )
+
+
+def test_certified_is_returned_at_a_non_adaptive_check_for_a_linear_unconstrained_fit():
+    res = _run_constant_means(0.9, LogLinear, "supported_only", sigma=0.01)
+    assert res.outcome == "certified"
+    assert res.recipe == "a"
+    assert res.certificate["round"] == 1  # the first check, before any adaptive pull
+    assert res.certificate["unmet_supported_conditions"] == []
+    assert "proved" in res.certificate["guarantee"]
+    assert [a[:2] for a in res.certificate["assumptions"]] == ["A1", "A2"]
+
+
+def test_a_stop_after_adaptive_pulls_is_only_recommended_unless_the_caller_accepts_it():
+    # gap .12 with sigma .05: not certifiable at the first check, so any stop comes after
+    # adaptive tracking, where no adaptive confidence sequence is proved.
+    supported = _run_constant_means(0.12, LogLinear, "supported_only")
+    assumed = _run_constant_means(0.12, LogLinear, "assume_unproved_conditions")
+    assert supported.certificate["round"] > 1
+    assert supported.outcome == "recommended"
+    assert any("adapted" in c for c in supported.certificate["unmet_supported_conditions"])
+    assert "none" in supported.certificate["guarantee"]
+    # the caller's explicit acceptance changes the LABEL, not the trajectory or the decision
+    assert assumed.outcome == "certified"
+    assert assumed.certificate["guarantee"].startswith("assumed_unproved")
+    assert (assumed.recipe, assumed.n_pulls) == (supported.recipe, supported.n_pulls)
+
+
+def test_a_nonlinear_fit_is_recommended_even_at_the_first_non_adaptive_check():
+    res = _run_constant_means(0.9, _DeclaredNonlinear, "supported_only", sigma=0.01)
+    assert res.certificate["round"] == 1
+    assert res.outcome == "recommended"
+    assert any("nonlinear" in c for c in res.certificate["unmet_supported_conditions"])
+    accepted = _run_constant_means(
+        0.9, _DeclaredNonlinear, "assume_unproved_conditions", sigma=0.01
+    )
+    assert accepted.outcome == "certified"
+    assert accepted.certificate["guarantee"].startswith("assumed_unproved")
+
+
+def test_unmet_conditions_names_an_active_parameter_bound_and_hc0():
+    model = LogLinear()
+    model._theta = np.array([0.5, 10.0])  # the slope sits on its upper bound
+    assert not model.bounds_inactive()
+    interior = LogLinear()
+    interior._theta = np.array([0.5, 0.1])
+    assert interior.bounds_inactive()
+    unmet = _unmet_support_conditions({"a": model, "b": interior}, "known_sigma2", 0)
+    assert len(unmet) == 1 and "bound is active" in unmet[0]
+    assert _unmet_support_conditions({"b": interior}, "hc0_heuristic", 0)
+
+
+def test_certification_mode_is_validated():
+    with pytest.raises(ValueError, match="certification"):
+        _run_constant_means(0.9, LogLinear, "bogus")
 
 
 def test_variance_mode_is_validated():

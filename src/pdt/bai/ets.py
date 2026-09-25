@@ -41,20 +41,29 @@ noise variance function `sigma2` as the *known* noise level
 `sqrt(2 (v_a + v_b) log(1/beta))`, `beta = delta / (t (t+1) K (K-1))`: a union
 bound over rounds `t` AND over the `K (K-1)` ordered arm pairs (the
 leader is data-dependent, so every ordered pair must be covered
-simultaneously). A `"certified"` outcome is then a delta-level claim ONLY under
-the assumptions listed in `certificate["assumptions"]`: (A1) `sigma2` is a
-valid sub-Gaussian variance proxy for the oracle's noise (it is an INPUT,
-not estimated); (A2) each arm's extrapolation bias is at most `eta`; (A3) the
-prediction is linear in the observations -- exact for `LogLinear`, a
-first-order delta-method approximation for the nonlinear power-law
-fits, whose curvature error is not covered by `eta` unless the caller folds it
-in; (A4) the pulled design at each check is independent of the noise in the
-data being certified -- exactly true only for the non-adaptive warm-up
-design (the first check); once the tracking rule adapts scales to earlier
-noise, A4 is a heuristic (its effect is small in the simulations recorded in
-docs/decisions.md but is not bounded by any argument here). Use
-`variance_mode="hc0_heuristic"` for the residual-based variance: it never
-returns `"certified"`, only `"recommended"`, with no error-probability claim.
+simultaneously).
+
+**Known noise alone does not license "certified" (third review of PR #29).** The
+Chernoff step needs the prediction gap to be an exactly (sub-)Gaussian, centred
+functional of the noise GIVEN a design that does not depend on that noise. Neither
+holds in general: after adaptive tracking the design is a function of earlier noise (no
+adaptive confidence sequence is implemented), and a nonlinear or bound-clipped fit is
+not a linear functional of the noise (a constrained mean of Gaussian data,
+`clip(sample_mean, 0, 1)`, is neither Gaussian nor centred). So `certification=
+"supported_only"` (the default) returns `"certified"` ONLY where the argument is
+proved -- (A1) `sigma2` is a valid sub-Gaussian variance proxy (an input), (A2) each
+arm's bias is at most `eta` (an input), the model is linear in its parameters with
+inactive bounds (`Extrapolator.linear_in_parameters` and `bounds_inactive()`, verified
+at run time), and the design has not adapted (the first check, right after the
+non-adaptive warm-up). Every other stopping event returns `"recommended"`, with
+`certificate["unmet_supported_conditions"]` naming what failed and NO error-probability
+claim. A caller who accepts the unproved conditions -- (A3) linearization for a
+nonlinear fit, (A4) adaptive-design independence -- must say so explicitly with
+`certification="assume_unproved_conditions"`; the outcome is then `"certified"` on any
+round but the certificate is flagged `assumed_unproved` (its simulations in
+docs/decisions.md are supporting evidence, not proof). `variance_mode="hc0_heuristic"`
+uses the residual-based variance: it never returns `"certified"`, only
+`"recommended"`, with no error-probability claim.
 """
 
 from __future__ import annotations
@@ -81,11 +90,16 @@ class SelectionResult:
     baselines and `extrapolation_track_and_stop`), so P3-04/P3-05 can
     compare them uniformly.
 
-    `outcome` is one of `"certified"` (a delta-level decision under the
-    assumptions in the module docstring / `certificate["assumptions"]`; only
-    `extrapolation_track_and_stop` in `variance_mode="known_sigma2"` can return
-    it), `"recommended"` (ETS stopped on a residual-variance HEURISTIC rule,
-    `variance_mode="hc0_heuristic"` -- no error-probability claim at all),
+    `outcome` is one of `"certified"` (a delta-level decision. In the default
+    `certification="supported_only"` mode it is returned only where the confidence
+    argument is proved -- known noise, a linear unconstrained fit, a non-adaptive design,
+    valid `eta`; with `certification="assume_unproved_conditions"` it is returned on any
+    round under conditions the CALLER has accepted but which are unproved, and
+    `certificate["guarantee"]` says `assumed_unproved`. Only
+    `extrapolation_track_and_stop` can return it), `"recommended"` (ETS's stopping rule
+    fired but no delta-level claim is made: a residual-variance heuristic
+    (`variance_mode="hc0_heuristic"`), or the proved conditions do not hold and the caller
+    has not accepted them -- `certificate["unmet_supported_conditions"]` says which),
     `"abstained"` (ETS declined to certify; `recipe` is then the single-scale
     fallback, per theorem4_algorithm.tex), or `"decided"` (a baseline's
     unconditional pick -- no statistical guarantee is claimed).
@@ -238,12 +252,55 @@ def _assert_design_identified(
 
 _VARIANCE_MODES = ("known_sigma2", "hc0_heuristic")
 
+#: `"supported_only"` (default): a `"certified"` outcome is returned ONLY where the
+#: confidence argument is actually proved -- known noise, a family linear in its parameters
+#: with inactive bounds (exactly OLS), and a design that has not adapted to the data
+#: (the first check, right after the non-adaptive warm-up); every other stopping event is
+#: labelled `"recommended"`. `"assume_unproved_conditions"`: the caller explicitly
+#: accepts A3 (linearization) and A4 (adaptive-design independence), which are NOT
+#: established, and gets `"certified"` on any round, flagged `assumed_unproved` in the
+#: certificate. Third review of PR #29: `known_sigma2` alone must not enable a certified
+#: result after adaptive tracking or for a nonlinear fit.
+_CERTIFICATION_MODES = ("supported_only", "assume_unproved_conditions")
+
+
+def _unmet_support_conditions(
+    models: dict[str, Extrapolator], variance_mode: str, n_adaptive_pulls: int
+) -> list[str]:
+    """The conditions of the proved fixed-design result that do NOT hold at this check."""
+    unmet: list[str] = []
+    if variance_mode != "known_sigma2":
+        unmet.append("variance is estimated from residuals (hc0_heuristic), not known")
+    reported: set[str] = set()
+    for recipe, model in models.items():
+        name = type(model).__name__
+        if not getattr(model, "linear_in_parameters", False):
+            if name not in reported:
+                unmet.append(
+                    f"{name} is nonlinear in its parameters: its prediction is not an exactly "
+                    "sub-Gaussian linear functional of the noise (A3)"
+                )
+                reported.add(name)
+        elif not model.bounds_inactive():
+            unmet.append(
+                f"{recipe}: a parameter bound is active, so the fit is a clipped (non-Gaussian, "
+                "non-centred) estimator (A3)"
+            )
+    if n_adaptive_pulls > 0:
+        unmet.append(
+            f"the design adapted to earlier observations ({n_adaptive_pulls} adaptive pulls): "
+            "no adaptive confidence sequence is proved (A4)"
+        )
+    return unmet
+
+
 _CERTIFICATE_ASSUMPTIONS = (
     "A1: sigma2 is a valid sub-Gaussian variance proxy for the oracle noise (input, not estimated)",
-    "A2: each arm's extrapolation bias is at most eta",
-    "A3: prediction linear in observations (exact for LogLinear; first-order for nonlinear fits)",
-    "A4: pulled design independent of the noise being certified (exact only at the warm-up "
-    "check; a heuristic once tracking adapts)",
+    "A2: each arm's extrapolation bias is at most eta (input)",
+    "A3: prediction linear in observations, fit unconstrained (exact for LogLinear with inactive "
+    "bounds; only a first-order approximation for nonlinear fits)",
+    "A4: pulled design independent of the noise being certified (exact only at the non-adaptive "
+    "warm-up check; an unproved heuristic once tracking adapts)",
 )
 
 
@@ -520,6 +577,7 @@ def extrapolation_track_and_stop(
     min_pulls_per_pair: int = 1,
     rng: np.random.Generator | None = None,
     variance_mode: str = "known_sigma2",
+    certification: str = "supported_only",
 ) -> SelectionResult:
     """Extrapolation-Track-and-Stop: an active compute-allocation
     algorithm for best-arm identification when the target-scale reward
@@ -578,6 +636,14 @@ def extrapolation_track_and_stop(
     (49% unconditional error against a requested 1% on a high-leverage
     design, PR #29's second review).
 
+    `certification` decides what a satisfied stopping rule is allowed to be called.
+    The default `"supported_only"` returns `"certified"` only where the confidence
+    argument is proved (linear model with inactive bounds, known noise, no adaptive pull
+    yet) and `"recommended"` otherwise -- known noise alone does not cover adaptive
+    tracking or a nonlinear fit (PR #29's third review). `"assume_unproved_conditions"`
+    is the caller's explicit acceptance of the unproved conditions (A3 linearization, A4
+    adaptive-design independence): `"certified"` on any round, flagged `assumed_unproved`.
+
     `solver_n_restarts`/`solver_n_iter` default far below
     `solve_allocation`'s own defaults (6 x 4000): T* is re-solved every
     round here, so a cheap solve is a deliberate, documented
@@ -588,6 +654,10 @@ def extrapolation_track_and_stop(
         raise ValueError("need at least 2 recipes to compare")
     if variance_mode not in _VARIANCE_MODES:
         raise ValueError(f"variance_mode must be one of {_VARIANCE_MODES}, got {variance_mode!r}")
+    if certification not in _CERTIFICATION_MODES:
+        raise ValueError(
+            f"certification must be one of {_CERTIFICATION_MODES}, got {certification!r}"
+        )
     if len(candidate_scales) < model_factory().n_params + 1:
         raise ValueError(
             f"need at least {model_factory().n_params + 1} candidate scales to identify "
@@ -633,6 +703,7 @@ def extrapolation_track_and_stop(
             for _ in range(min_pulls_per_pair):
                 pull(recipe, scale)
 
+    n_adaptive_pulls = 0  # pulls chosen by the tracking rule, i.e. depending on observed data
     for t in range(1, max_rounds + 1):
         fits = {
             r: _fit_recipe(
@@ -677,15 +748,40 @@ def extrapolation_track_and_stop(
                 abstain_any = True
 
         if certified_all:
-            if variance_mode == "known_sigma2":
-                certificate["assumptions"] = list(_CERTIFICATE_ASSUMPTIONS)
-            else:
+            unmet = _unmet_support_conditions(models, variance_mode, n_adaptive_pulls)
+            certificate["certification_mode"] = certification
+            certificate["unmet_supported_conditions"] = unmet
+            if variance_mode != "known_sigma2":
+                outcome = "recommended"
+                certificate["guarantee"] = "none (residual-variance heuristic)"
                 certificate["assumptions"] = [
                     "HC0 residual-variance heuristic: no error-probability guarantee"
                 ]
+            elif not unmet:
+                outcome = "certified"
+                certificate["guarantee"] = (
+                    "delta-level, proved for a non-adaptive design and a linear unconstrained "
+                    "least-squares fit, under A1 and A2 only"
+                )
+                certificate["assumptions"] = list(_CERTIFICATE_ASSUMPTIONS[:2])
+            elif certification == "assume_unproved_conditions":
+                outcome = "certified"
+                certificate["guarantee"] = (
+                    "assumed_unproved: delta-level only IF the caller's accepted conditions "
+                    "A3/A4 hold (see unmet_supported_conditions)"
+                )
+                certificate["assumptions"] = list(_CERTIFICATE_ASSUMPTIONS)
+            else:
+                outcome = "recommended"
+                certificate["guarantee"] = (
+                    "none: the stopping rule fired but the proved conditions do not hold "
+                    "(see unmet_supported_conditions); pass certification="
+                    "'assume_unproved_conditions' to accept them explicitly"
+                )
+                certificate["assumptions"] = list(_CERTIFICATE_ASSUMPTIONS[:2])
             return SelectionResult(
                 method="ExtrapolationTrackAndStop",
-                outcome="certified" if variance_mode == "known_sigma2" else "recommended",
+                outcome=outcome,
                 recipe=k_hat,
                 compute_spent=compute_spent,
                 n_pulls=n_pulls,
@@ -741,6 +837,7 @@ def extrapolation_track_and_stop(
         target_flat = int(np.argmin(ratio))
         target_r_idx, target_s_idx = np.unravel_index(target_flat, ratio.shape)
         pull(recipes[target_r_idx], candidate_scales[target_s_idx])
+        n_adaptive_pulls += 1
 
     # Round cap exhausted without either resolving -- must still behave
     # exactly like a genuine abstention (same fallback computation, same

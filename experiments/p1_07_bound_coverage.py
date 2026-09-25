@@ -23,6 +23,16 @@ See plan/02-phase1-datadecide.md task P1-07. Three pieces:
 
 Writes results/p1_07_bound_coverage.json.
 
+**Refresh mode (`--reuse-monte-carlo PATH`).** The Monte-Carlo pass takes ~39 h and depends
+only on the fitters, the bootstrap resampling and P1-06's trajectories -- NOT on the
+analytic covariance (`bound.analytic_v_k`) or on `_bound_term`. When a change is confined to
+that analytic path (PR #17's third review: `pinv(J^T J)` -> the design's SVD), this flag
+recomputes everything else on the fixed code and carries the per-cell `empirical_error_rate`
+/ `n_valid_mc_replicates` over from an earlier result file. The carry-over is recorded in
+the payload (`monte_carlo_reused_from`, `monte_carlo_source_git_sha`) and refused unless
+`B` and the MC scheme match. It must not be used after any change to the fitters, the
+bootstrap code, or P1-06's outputs -- those need the full pass.
+
 **If the tightness ratio for a task/design/fitter ever drops below 1**
 (the bound is violated), this script does NOT silently continue past it:
 it prints the offending cells explicitly and records
@@ -43,6 +53,7 @@ for _blas_env_var in (
 ):
     os.environ.setdefault(_blas_env_var, "1")
 
+import argparse  # noqa: E402
 import concurrent.futures  # noqa: E402
 import hashlib  # noqa: E402
 import json  # noqa: E402
@@ -229,7 +240,41 @@ def _run_mc_combo(work: _McWork) -> dict:
     }
 
 
+def _load_reused_monte_carlo(path: str) -> tuple[dict, str]:
+    """Per-(fitter, design, task) Monte-Carlo results from an earlier P1-07 file (see the
+    module docstring's refresh mode), and that file's recorded git sha."""
+    with open(path, encoding="utf-8") as f:
+        source = json.load(f)
+    data = source["data"]
+    if data.get("b_monte_carlo") != _B_MONTE_CARLO or data.get("mc_scheme") != _MC_SCHEME:
+        raise ValueError(
+            f"{path}: Monte-Carlo settings (B={data.get('b_monte_carlo')}, "
+            f"scheme={data.get('mc_scheme')}) differ from this script's "
+            f"(B={_B_MONTE_CARLO}, scheme={_MC_SCHEME}); a full pass is required"
+        )
+    reused: dict[tuple[str, str, str], dict] = {}
+    for fitter, by_design in data["by_fitter"].items():
+        for design, by_task in by_design.items():
+            for task, by_scheme in by_task.items():
+                entry = by_scheme.get(_MC_SCHEME)
+                if entry is None:
+                    continue
+                reused[(fitter, design, task)] = {
+                    "empirical_error_rate": entry["empirical_error_rate"],
+                    "n_valid_replicates": entry["n_valid_mc_replicates"],
+                }
+    return reused, source.get("provenance", {}).get("git_sha", "unknown")
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--reuse-monte-carlo",
+        metavar="PATH",
+        default=None,
+        help="carry the Monte-Carlo results over from an earlier P1-07 file (see module docstring)",
+    )
+    args = parser.parse_args()
     long_frame = frame_mod.build_frame(source="macro_avg", metrics=(_METRIC,))
     ground_truth = gt.compute_ground_truth(long_frame, _METRIC, _TARGET)
     p1_06 = _load_p1_06()
@@ -276,6 +321,14 @@ def main() -> None:
     print(f"p1_07_bound_coverage: analytic v_k done in {time.perf_counter() - t0:.1f}s")
 
     # Piece 3: Monte-Carlo empirical selection error -- expensive, parallelized.
+    reused_mc: dict | None = None
+    reused_sha: str | None = None
+    if args.reuse_monte_carlo:
+        reused_mc, reused_sha = _load_reused_monte_carlo(args.reuse_monte_carlo)
+        print(
+            f"p1_07_bound_coverage: REUSING Monte-Carlo results for {len(reused_mc)} combos from "
+            f"{args.reuse_monte_carlo} (recorded git sha {reused_sha[:8]}); no MC pass"
+        )
     mc_work_units = [
         _McWork(
             fitter_name=fitter_name,
@@ -297,21 +350,23 @@ def main() -> None:
     t0 = time.perf_counter()
     mc_results = []
     n_workers = os.cpu_count() or 4
-    with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as pool:
-        futures = {pool.submit(_run_mc_combo, w): w for w in mc_work_units}
-        n_done = 0
-        for future in concurrent.futures.as_completed(futures):
-            mc_results.append(future.result())
-            n_done += 1
-            if n_done % 10 == 0 or n_done == len(mc_work_units):
-                elapsed = time.perf_counter() - t0
-                print(
-                    f"p1_07_bound_coverage: {n_done}/{len(mc_work_units)} MC combos done "
-                    f"({elapsed:.0f}s elapsed)"
-                )
-    print(f"p1_07_bound_coverage: Monte-Carlo done in {time.perf_counter() - t0:.0f}s")
-
-    mc_by_combo = {(r["fitter"], r["design"], r["task"]): r for r in mc_results}
+    if reused_mc is None:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as pool:
+            futures = {pool.submit(_run_mc_combo, w): w for w in mc_work_units}
+            n_done = 0
+            for future in concurrent.futures.as_completed(futures):
+                mc_results.append(future.result())
+                n_done += 1
+                if n_done % 10 == 0 or n_done == len(mc_work_units):
+                    elapsed = time.perf_counter() - t0
+                    print(
+                        f"p1_07_bound_coverage: {n_done}/{len(mc_work_units)} MC combos done "
+                        f"({elapsed:.0f}s elapsed)"
+                    )
+        print(f"p1_07_bound_coverage: Monte-Carlo done in {time.perf_counter() - t0:.0f}s")
+        mc_by_combo = {(r["fitter"], r["design"], r["task"]): r for r in mc_results}
+    else:
+        mc_by_combo = reused_mc
 
     # Assemble bounds + tightness ratios.
     by_fitter: dict[str, dict] = {}
@@ -408,12 +463,14 @@ def main() -> None:
         "any_bound_violation": len(violations) > 0,
         "violations": violations,
         "dataset_revision_macro_avg": dd.cached_revision("macro_avg"),
+        "monte_carlo_reused_from": args.reuse_monte_carlo,
+        "monte_carlo_source_git_sha": reused_sha,
     }
 
     provenance.write_result(
         "results/p1_07_bound_coverage.json",
         payload=payload,
-        config={"task": "P1-07"},
+        config={"task": "P1-07", "reuse_monte_carlo": args.reuse_monte_carlo},
     )
     print("wrote results/p1_07_bound_coverage.json")
 

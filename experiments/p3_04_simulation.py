@@ -317,6 +317,11 @@ def _run_one_cell(
             eta=eta_assumed,
             sigma2=lambda _s: _SIGMA**2,
             model_factory=PowerLawN,
+            # This pilot studies ETS in the ADAPTIVE, NONLINEAR (PowerLawN) regime, where the
+            # confidence argument is unproved (third review of PR #29): the caller explicitly
+            # accepts A3/A4, so "certified" here means "certified under caller-assumed conditions",
+            # supported by these simulations, not proved.
+            certification="assume_unproved_conditions",
             epsilon_0=0.03,
             max_rounds=max_rounds,
             solver_n_restarts=1,
@@ -481,6 +486,12 @@ def main() -> None:
         "target_scale": {"n": _TARGET.n, "d": _TARGET.d},
         "sigma": _SIGMA,
         "eta_fractions": ETA_FRACTIONS,
+        "certification_mode": "assume_unproved_conditions",
+        "certification_note": (
+            "'certified' outcomes are under caller-assumed, UNPROVED conditions (A3 "
+            "linearization of the nonlinear PowerLawN fit, A4 adaptive-design independence): "
+            "empirical evidence only"
+        ),
         "scope_note": (
             "Pilot run, not the plan's literal K in {5,10,25} x delta in "
             "{0.05,0.1,0.2} x eta in {0,small,medium,large} x gap_structure in "
