@@ -2641,3 +2641,24 @@ visibly a different quantity from Panel A -- confirming the two should never hav
 together. F1/F2/F4/F5 are unchanged in structure, only in the numbers they read.
 
 **Decided by:** Agent, following the review.
+
+## 2026-09-25 — P3-02 third review: the weighted-information solve dropped weak identified directions (PR #28)
+
+**Reviewer's reproduction.** `LogLinear`, candidates `N = e, e^2`, target `N = e^3`, `sigma2 = 1`, gap `.1`, weights
+`[1, 1e-16]`: `_arm_rate` returned ~`.00125`; the direct two-point regression gives `.01 / (2 (1 + 4/1e-16)) = 1.25e-19`. At weight `1e-20`
+it still returned `.00125` instead of `1.25e-23`. The structural row-space check passed (the target IS in the row space);
+`_info_solve` and the brute-force batched path inverted the weighted information matrix `I = A^T A` with `pinv`, whose cutoff dropped the
+weak eigen-direction and treated its variance as zero. A different bug from the earlier rank-deficiency-tolerance one.
+
+**Fix.** The solve now works from the weighted design `A` (rows `sqrt(w_s / sigma2_s) J_s`) via `_solve_weighted`: an SVD of the
+column-equilibrated `A`, `f = ||S^-1 V^T j_eq||^2` and `y = V S^-2 V^T j_eq / col` -- conditioning of `A`, not of `A^T A`. It **fails closed**: if
+the rank cutoff discards a singular direction in which the target has a component (> 1e-8 relative), the arm gets `f = 0` = "no information"
+(`rate = 0`), the conservative reading -- never a small finite variance from a dropped direction. One function serves the scalar path
+(`_arm_rate`, `_arm_rate_and_grad`) and the brute-force stack (`brute_force_allocation`), so both are covered. Checked: rates match the closed
+form at weights `1e-16`, `1e-20`, `1e-30`; a weight of `1e-40` (below the cutoff) fails closed to 0; batched == scalar; agreement with `inv(A^T A)` on a
+well-conditioned design. 38 allocation tests, 381 tests total pass on this branch.
+
+**Consequence for results.** Well-conditioned cases are numerically unchanged (to ~1e-10), but `solve_allocation` is iterative, so ETS trajectories
+that depend on it can differ in the last bits; every P3 result that runs the solver (P3-04/05/06/07) is regenerated after the last Phase-3 code change.
+
+**Decided by:** Agent, following the third review.
