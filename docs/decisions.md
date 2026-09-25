@@ -2866,3 +2866,25 @@ visibly a different quantity from Panel A -- confirming the two should never hav
 together. F1/F2/F4/F5 are unchanged in structure, only in the numbers they read.
 
 **Decided by:** Agent, following the review.
+
+## 2026-09-25 — ETS third review: `known_sigma2` alone no longer enables "certified" (PR #29)
+
+**Finding.** `ets.py` returned `outcome="certified"` solely because `variance_mode == "known_sigma2"`, including after adaptive tracking and for the default
+nonlinear `PowerLawN`. Known observation variance does not repair (i) adaptive-design selection (the design at round `t` depends on earlier noise; no
+adaptive confidence sequence is implemented) or (ii) nonlinear / bound-clipped finite-sample prediction error (a clipped mean is neither Gaussian nor centred).
+
+**Change.** New `certification` argument (default `"supported_only"`):
+- `"supported_only"`: `"certified"` **only** where the argument is proved -- (A1) `sigma2` valid, (A2) `eta` valid, the model **linear in its parameters**
+  (`Extrapolator.linear_in_parameters`, true only for `LogLinear`), its parameters strictly **inside** the box bounds (`bounds_inactive()`, checked at run time, so the fit
+  is exactly OLS), and **no adaptive pull yet** (the first check, right after the non-adaptive warm-up). Every other time the rule fires the outcome is `"recommended"` with
+  `certificate["unmet_supported_conditions"]` naming the failed conditions and no error-probability claim (same treatment as the HC0 mode).
+- `"assume_unproved_conditions"`: the caller explicitly accepts A3 (linearization) and A4 (adaptive independence); `"certified"` on any round, flagged
+  `certificate["guarantee"] = "assumed_unproved..."`. The decision and trajectory are identical to the supported mode's -- only the label changes (tested).
+
+**Consequences.** By default `"certified"` is now rare (round-1 only, `LogLinear`, unclipped) -- deliberately: it is the only case the theorem covers. Every experiment that studies ETS
+under the adaptive/nonlinear regime (P3-04/05/06) now passes `certification="assume_unproved_conditions"` explicitly and reports its `"certified"` outcomes as
+"certified under caller-assumed conditions"; they are regenerated after the last Phase-3 code change. README, the trust guide, and the CLI/config are updated in PR #34.
+
+**Not claimed.** No adaptive confidence sequence exists here; the assumed mode's error rate is empirical (P3-04/05/06), not proved.
+
+**Decided by:** Agent, following the third review.
