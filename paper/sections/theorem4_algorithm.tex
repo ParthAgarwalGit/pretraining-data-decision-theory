@@ -14,8 +14,14 @@
 \subsection{The algorithm}
 \label{sec:theorem4-algorithm}
 
-\textbf{Inputs:} $\delta \in (0, 1/2)$, an upper bound $\eta_k \ge \sqrt{\sigma^2_{\mathrm{extrap},k}}$
-on each arm's bias magnitude at the current design shape (an \emph{assumed} bound supplied
+\textbf{Inputs:} $\delta \in (0, 1/2)$, an upper bound $\eta_k$ on each arm's
+\emph{conditional estimator bias} $\big|\mathbb{E}[\hat\mu_k(s^\star;t) \mid \text{design}_t] -
+\mu_k(s^\star)\big|$ at every round $t$ (Assumption~B below). For unconstrained linear least
+squares on a non-adaptive design this conditional mean is $g(\theta_k^{\dagger}, s^\star)$, so
+$\eta_k \ge \sqrt{\sigma^2_{\mathrm{extrap},k}}$ suffices; for nonlinear or constrained fits, or
+adaptive designs, the conditional mean also carries finite-sample estimator bias and
+constraint (clipping) bias, which $\sigma^2_{\mathrm{extrap},k}$ does \emph{not} bound, so
+$\eta_k$ must cover them (an \emph{assumed} bound supplied
 by the user -- see Section~\ref{sec:theorem4-eta} for why it must be an input, not a
 discovered quantity; a point estimate such as P1-06's clipped estimator,
 Remark~\ref{rem:sigma2-extrap-estimator}, is a heuristic and does not by itself make the
@@ -72,21 +78,23 @@ below is driven by $\eta$, not $\epsilon_0$, as $t \to \infty$).
 \subsection{Why a bias floor, not a growing threshold}
 \label{sec:theorem4-eta}
 
-\begin{remark}[The naive Track-and-Stop never stops here]
+\begin{remark}[Why a bias floor: the naive statistic is confidently wrong, or undecided at a tie]
 Classical Track-and-Stop's GLR statistic is (up to constants) $\widehat{\Delta}_k(t)^2 /
 (2(v_{\hat{k}}(t)+v_k(t)))$, compared against a threshold $\sim \log(t/\delta)$ that
-\emph{grows} with $t$ -- correct when $v_k(t) \to 0$ and $\widehat\Delta_k(t)$ converges
-to the \emph{true} gap $\Delta_k > 0$, since then the statistic diverges and eventually
-crosses any growing threshold. Here, $\widehat\Delta_k(t) \to \Delta_k +
-\mathrm{bias}(D_k)$ (Corollary~\ref{cor:pairwise}), not $\Delta_k$ itself -- if
-$|\mathrm{bias}(D_k)|$ is large enough to matter, the naive statistic converges to a
-\emph{finite} limit and a growing threshold is eventually never crossed: the algorithm
-runs forever. This is exactly why route (b) (condition on a known/estimated $\eta$,
-rather than route (a), inflating the confidence level) is used:
-$\textsc{Certified}_k(t)$'s threshold does \emph{not} grow -- it compares a
-\emph{shrinking} $c_k(t,\delta)$ against a \emph{fixed} bias floor
-$\eta_{\hat{k}}+\eta_k$, so the algorithm correctly recognizes when further compute
-cannot help, rather than chasing a threshold it can never reach.
+\emph{grows} with $t$. Here $\widehat\Delta_k(t) \to D_k^\dagger = \Delta_k +
+\mathrm{bias}(D_k)$ (Corollary~\ref{cor:pairwise}), not $\Delta_k$, while $v(t) \to 0$.
+\emph{If $D_k^\dagger \ne 0$} -- whatever its sign -- the statistic $\widehat\Delta_k(t)^2/v(t)$
+\emph{diverges} and crosses any threshold growing only logarithmically, so the naive rule
+\emph{does} stop. It stops \emph{confidently on the wrong arm} whenever the bias has
+reversed the gap, $D_k^\dagger = \Delta_k + \mathrm{bias}(D_k) < 0$: a large bias produces a
+confident false selection, not a run-forever. Only a \emph{cancelling} gap,
+$D_k^\dagger \approx 0$ ($\mathrm{bias}(D_k) \approx -\Delta_k$), leaves the statistic bounded
+and the naive rule undecided; that case needs its own analysis. This is why route (b)
+(condition on a known/assumed $\eta$, rather than route (a), inflating the confidence level)
+is used: $\textsc{Certified}_k(t)$ compares a \emph{shrinking} $c_k(t,\delta)$ against a
+\emph{fixed} bias floor $\eta_{\hat{k}}+\eta_k$, so it certifies only when the observed gap
+exceeds what the assumed bias could account for -- it is not fooled by a bias-reversed gap
+(provided $\eta$ is valid) and it recognizes when further compute cannot help.
 \end{remark}
 
 \subsection{Correctness: what is proved and what is assumed}
@@ -105,8 +113,15 @@ pair $(a,b)$ of arms, the \emph{noise part} of the difference statistic is withi
 
 \begin{theorem}[$\delta$-correctness, conditional on $\eta$ and on $\mathcal{E}$]
 \label{thm:algorithm-correctness}
-(a) \emph{Deterministic implication.} If $\eta_k \ge \sqrt{\sigma^2_{\mathrm{extrap},k}}$ for every $k$
-and $\mathcal{E}$ holds, then whenever the algorithm stops and outputs $\hat{k}$, $\hat{k} =
+(a) \emph{Deterministic implication.} \textbf{Assumption B:} for every arm $k$ and every
+round $t$, $\big|\mathbb{E}[\hat\mu_k(s^\star;t) \mid \text{design}_t] - \mu_k(s^\star)\big|
+\le \eta_k$ -- $\eta_k$ bounds the \emph{conditional estimator bias} that
+Definition~\ref{def:sc} centres on, not the population projection bias
+$\sqrt{\sigma^2_{\mathrm{extrap},k}}$ alone. (For unconstrained linear least squares and a
+non-adaptive design the two coincide, so $\eta_k \ge \sqrt{\sigma^2_{\mathrm{extrap},k}}$
+suffices there; for nonlinear or constrained fits, or adaptive designs, they differ by the
+finite-sample estimator bias and Assumption~B must be supplied separately.) Under
+Assumption~B and $\mathcal{E}$, whenever the algorithm stops and outputs $\hat{k}$, $\hat{k} =
 k^\star$. Hence $\mathbb{P}[\hat{k} \ne k^\star] \le \mathbb{P}[\mathcal{E}^c]$.
 (b) \emph{$\mathbb{P}[\mathcal{E}^c] \le \delta$ for a fixed, non-adaptive schedule.} If $g$ is linear
 in $\theta$, the noise is independent sub-Gaussian with the \emph{known} variance proxy
@@ -133,8 +148,9 @@ but not proved.
 (a) Suppose the algorithm stops at $\tau$ with $\hat{k} = \hat{k}(\tau) \ne k^\star$. Then for the
 pair $(a,b) = (\hat{k}, k^\star)$, $\textsc{Certified}$ gives $\widehat\Delta_{k^\star}(\tau) -
 \eta_{\hat{k}} - \eta_{k^\star} > c_{ab}(\tau,\delta)$. The estimator's conditional mean satisfies
-$\mathbb{E}[\hat\mu_a - \hat\mu_b] \le \mu_a(s^\star) - \mu_b(s^\star) + \eta_a + \eta_b$
-(each arm's bias is at most $\eta$ in magnitude, using the assumed bounds), and
+$\mathbb{E}[\hat\mu_a - \hat\mu_b \mid \text{design}] \le \mu_a(s^\star) - \mu_b(s^\star) + \eta_a
++ \eta_b$ (Assumption~B applied to each arm at round $\tau$, conditionally on that round's
+design), and
 $\mu_a(s^\star) - \mu_b(s^\star) < 0$ because $a \ne k^\star$ is worse than $b = k^\star$. So the
 noise part exceeds $c_{ab}(\tau,\delta)$, contradicting $\mathcal{E}$ at $(\tau, a, b)$. (b) is the
 stated Chernoff-plus-union-bound computation; the tail bound is one-sided sub-Gaussian

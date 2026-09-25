@@ -227,6 +227,7 @@ class LogLinear(Extrapolator):
     well, and that is the point of including it."""
 
     n_params = 2
+    linear_in_parameters = True
     _bounds = (np.array([-10.0, -10.0]), np.array([10.0, 10.0]))
 
     def _fit_theta(self, scales, values, weights):

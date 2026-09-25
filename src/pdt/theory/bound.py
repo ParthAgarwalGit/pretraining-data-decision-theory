@@ -59,7 +59,7 @@ from collections.abc import Callable
 import numpy as np
 
 from pdt.scaling.base import Extrapolator, Scale
-from pdt.theory.identifiability import target_in_row_space
+from pdt.theory.identifiability import prediction_influence_weights
 
 #: Fitters whose actual estimation procedure `sandwich_covariance` cannot
 #: describe -- see `analytic_v_k`'s docstring.
@@ -214,18 +214,25 @@ def sandwich_covariance(
     residual variance is constant across scales, matching what "sandwich"
     means as opposed to the simpler `sigma^2 (J^T J)^-1` OLS covariance.
 
-    Uses the Moore-Penrose pseudo-inverse rather than a direct inverse,
-    so a near-singular `J^T J` (an under-identified or nearly-degenerate
-    fit) degrades gracefully instead of raising.
+    Computed as `J^+ diag(r^2) J^+^T` with `J^+ = pinv(J)` from the SVD of the
+    (column-equilibrated) DESIGN -- algebraically identical to the formula above
+    for a full-rank `J` (`(J^T J)^-1 J^T = J^+`), but it never forms `J^T J`.
+    Second-round review of PR #17: `pinv(J^T J)` squares the condition number, so a
+    full-rank design with `cond(J) ~ 2e8` had its weak identified direction
+    silently discarded (variance 1.5e-4 reported, 5e11 true). A direction that is
+    genuinely below the rank cutoff of `J` itself is still dropped here (it is
+    unobserved); callers that need a target variance must use `analytic_v_k`, which
+    fails closed when the target depends on such a direction.
     """
     predictions = np.array([model.predict(s) for s in scales])
     residuals = predictions - np.asarray(values, dtype=float)
-    jacobian_rows = np.array([model.jacobian(s) for s in scales])
+    jacobian_rows = np.asarray([model.jacobian(s) for s in scales], dtype=float)
 
-    jtj = jacobian_rows.T @ jacobian_rows
-    jtj_inv = np.linalg.pinv(jtj)
-    meat = jacobian_rows.T @ np.diag(residuals**2) @ jacobian_rows
-    return jtj_inv @ meat @ jtj_inv
+    col = np.linalg.norm(jacobian_rows, axis=0)
+    col = np.where(col > 0.0, col, 1.0)
+    pinv_eq = np.linalg.pinv(jacobian_rows / col)  # (p, n): J_eq^+
+    sigma_eq = (pinv_eq * residuals**2) @ pinv_eq.T
+    return sigma_eq / np.outer(col, col)
 
 
 def analytic_v_k(
@@ -275,15 +282,17 @@ def analytic_v_k(
         )
     j_target = np.asarray(model.jacobian(target_scale), dtype=float)
     jacobian_rows = np.array([model.jacobian(s) for s in scales], dtype=float)
-    if not target_in_row_space(jacobian_rows, j_target):
+    weights = prediction_influence_weights(jacobian_rows, j_target)
+    if weights is None:
         raise UnidentifiedTargetError(
             f"{fitter_name}: the target scale {target_scale} is not identified by the "
-            "fitting scales (its parameter Jacobian is outside their row space), so the "
-            "delta-method variance is unbounded -- refusing to report the pseudo-inverse's "
-            "finite (and wrong) value."
+            "fitting scales (its parameter Jacobian is outside their row space, or depends "
+            "on a direction below the design's numerical rank cutoff), so the delta-method "
+            "variance is unbounded -- refusing to report a finite (and wrong) value."
         )
-    sigma_theta = sandwich_covariance(model, scales, values)
-    return float(j_target @ sigma_theta @ j_target)
+    residuals = np.array([model.predict(s) for s in scales]) - np.asarray(values, dtype=float)
+    # v = j^T Sigma_theta j with Sigma_theta = J^+ diag(r^2) J^+^T, i.e. sum_i g_i^2 r_i^2.
+    return float(np.sum(weights**2 * residuals**2))
 
 
 def known_noise_v_k(
@@ -303,7 +312,7 @@ def known_noise_v_k(
     target Jacobian, both at the fitted parameters). For independent noise with
     variance (proxy) `sigma2(s_i)`:
 
-        v = sum_i g_i^2 sigma2(s_i)  =  J_t^T (J^T J)^+ J^T diag(sigma2) J (J^T J)^+ J_t.
+        v = sum_i g_i^2 sigma2(s_i)  =  J_t^T J^+ diag(sigma2) J^+^T J_t.
 
     This is exact for a model linear in its parameters (`LogLinear`,
     `ConstantExtrapolator`) and a first-order (delta-method) approximation for
@@ -328,18 +337,17 @@ def known_noise_v_k(
         )
     j_target = np.asarray(model.jacobian(target_scale), dtype=float)
     jac = np.array([model.jacobian(s) for s in scales], dtype=float)
-    if not target_in_row_space(jac, j_target):
+    weights = prediction_influence_weights(jac, j_target)
+    if weights is None:
         raise UnidentifiedTargetError(
             f"{fitter_name}: the target scale {target_scale} is not identified by the "
-            "fitting scales, so the prediction variance is unbounded."
+            "fitting scales (outside their row space, or depending on a direction below the "
+            "design's numerical rank cutoff), so the prediction variance is unbounded."
         )
     noise = np.array([sigma2(s) for s in scales], dtype=float)
     if np.any(noise <= 0):
         raise ValueError("sigma2(scale) must be positive at every fitting scale")
-    # Column-equilibrated pseudo-inverse: prediction = sum_i g_i y_i with
-    # g = pinv(J)^T J_target, computed on J / col_norm so parameters whose
-    # Jacobian entries differ by many orders of magnitude do not degrade pinv.
-    col = np.linalg.norm(jac, axis=0)
-    col = np.where(col > 0.0, col, 1.0)
-    g = np.linalg.pinv(jac / col).T @ (j_target / col)
-    return float(np.sum(g**2 * noise))
+    # prediction = sum_i g_i y_i with g = pinv(J)^T J_target from the SVD of the
+    # (column-equilibrated) DESIGN -- never pinv(J^T J), which squares the condition number
+    # (third review of PR #17).
+    return float(np.sum(weights**2 * noise))

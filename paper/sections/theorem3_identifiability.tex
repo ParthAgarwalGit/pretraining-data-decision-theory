@@ -99,11 +99,20 @@ $J^\top (X^\top X)^{-1} X^\top \mathrm{diag}(\sigma^2) X (X^\top X)^{-1} J$
 and matches the rate only up to a constant factor $\ge 1$, with equality when the noise is
 homoscedastic.
 
-\textbf{Two risks, not one.} The display is the risk for the \emph{in-family} target
-$g(\theta', s^\star)$. If the truth is misspecified, $\mu_k(s^\star) = g(\theta_k, s^\star)
-+ h_k(s^\star)$, the risk for estimating $\mu_k(s^\star)$ itself is at least
-$\sigma^2_{\mathrm{extrap},k}$ plus the display, and the bias term does \emph{not} decrease with $C$
-(Remark~\ref{rem:design-dependence}).
+\textbf{Two risks, not one -- and only the first is a minimax statement.} The display is a
+minimax rate for the \emph{in-family} target $g(\theta', s^\star)$, proved by the two-point
+argument below. If the truth is misspecified, $\mu_k(s^\star) = g(\theta_k, s^\star) +
+h_k(s^\star)$, then the \emph{projection (least-squares) estimator} $g(\hat\theta_k,
+s^\star)$ has risk for $\mu_k(s^\star)$ that is $\sigma^2_{\mathrm{extrap},k}$ plus a term of
+the display's order $v_k(C)$, and the bias part does \emph{not} decrease with $C$
+(Remark~\ref{rem:design-dependence}). That is a statement about \emph{this estimator}. It is
+\textbf{not} a lower bound over all estimators: $\sigma^2_{\mathrm{extrap},k}$ is the
+squared bias of the chosen parametric projection, and another estimator -- one that knows
+$h_k$, or uses a larger identifiable family -- can remove it. A minimax floor for the
+misspecified target would have to come from alternatives in the stated class
+$\mathcal{H}$ that are indistinguishable on the accessible scales yet differ at $s^\star$
+(the construction of Theorem~\ref{thm:impossibility}); it is not established here, and the
+in-family information proof does not supply an additive misspecification term.
 \end{theorem}
 
 \begin{proof}[Proof sketch]
