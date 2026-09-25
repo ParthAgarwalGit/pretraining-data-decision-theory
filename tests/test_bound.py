@@ -331,5 +331,57 @@ def test_analytic_v_k_ill_conditioned_but_identified_design_is_not_rejected():
     assert np.isfinite(v)
 
 
+# ---------------------------------------------------------------------------
+# Second-round review of PR #17: pinv(J^T J) squared the condition number
+# ---------------------------------------------------------------------------
+
+
+def _reviewer_ill_conditioned_case():
+    xs = np.array([1.0, 1.0 + 1e-8, 1.0 + 2e-8])
+    ys = [0.51, 0.48, 0.51]
+    scales = [Scale(n=float(np.exp(x)), d=1.0) for x in xs]
+    model = fitters.LogLinear(rng=np.random.default_rng(0)).fit(scales, ys)
+    return model, scales, ys, Scale(n=float(np.exp(2.0)), d=1.0)
+
+
+def test_analytic_v_k_ill_conditioned_full_rank_design_matches_direct_svd_sandwich():
+    # J has rank 2 and cond(J) ~ 2.4e8, so cond(J^T J) ~ 6e16 and pinv(J^T J) drops the
+    # weak (but identified) direction: the old code returned 1.5e-4 where the truth is ~5e11.
+    model, scales, ys, target = _reviewer_ill_conditioned_case()
+    jac = np.array([model.jacobian(s) for s in scales])
+    j_target = model.jacobian(target)
+    resid = np.array([model.predict(s) for s in scales]) - np.array(ys)
+    assert np.linalg.matrix_rank(jac) == 2
+    assert np.linalg.cond(jac) > 1e8
+    expected = float(np.sum((np.linalg.pinv(jac).T @ j_target) ** 2 * resid**2))
+    assert expected > 1e11
+    got = bound.analytic_v_k(model, scales, ys, target)
+    assert got == pytest.approx(expected, rel=1e-4)
+
+
+def test_sandwich_covariance_matches_the_textbook_formula_on_a_well_conditioned_design():
+    ns = np.array([1.0, 2.0, 3.0, 5.0, 8.0])
+    scales = [Scale(n=n, d=1.0) for n in ns]
+    ys = list(0.4 + 0.03 * np.log(ns) + np.array([0.01, -0.02, 0.015, -0.005, 0.002]))
+    model = fitters.LogLinear(rng=np.random.default_rng(0)).fit(scales, ys)
+    jac = np.array([model.jacobian(s) for s in scales])
+    resid = np.array([model.predict(s) for s in scales]) - np.array(ys)
+    bread = np.linalg.inv(jac.T @ jac)
+    expected = bread @ jac.T @ np.diag(resid**2) @ jac @ bread
+    assert bound.sandwich_covariance(model, scales, ys) == pytest.approx(expected, rel=1e-8)
+
+
+def test_analytic_v_k_fails_closed_when_the_target_uses_a_direction_below_the_rank_cutoff():
+    # Two scales that differ by 1e-14 in log N: the slope direction is below the design's
+    # numerical rank cutoff. A target elsewhere depends on it, so the variance is not
+    # computable -- must raise, never return a small finite number.
+    xs = np.array([1.0, 1.0 + 1e-15, 1.0 + 2e-15])
+    scales = [Scale(n=float(np.exp(x)), d=1.0) for x in xs]
+    ys = [0.51, 0.48, 0.51]
+    model = fitters.LogLinear(rng=np.random.default_rng(0)).fit(scales, ys)
+    with pytest.raises(bound.UnidentifiedTargetError):
+        bound.analytic_v_k(model, scales, ys, Scale(n=float(np.exp(3.0)), d=1.0))
+
+
 def test_unsupported_sandwich_estimators_matches_the_two_flagged_fitters():
     assert bound.UNSUPPORTED_SANDWICH_ESTIMATORS == {"ConstantExtrapolator", "TwoStepLadder"}
