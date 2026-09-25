@@ -16,10 +16,12 @@ core = [
     "polars>=1.9",
     "pyarrow>=17.0",
 ]
-# Hugging Face Hub access for DataDecide / Pythia / OLMo artifacts.
+# Hugging Face Hub access for DataDecide artifacts, plus direct HTTP for
+# Pythia's published evals (EleutherAI/pythia on GitHub, not HF Hub).
 hub = [
     "huggingface_hub>=0.35",
     "datasets>=3.0",
+    "requests>=2.31",
 ]
 # scipy.optimize (already in `core`) plus statsmodels for scaling-law fits
 # and the delta-method sandwich covariance used by src/pdt/theory/bound.py.
@@ -38,9 +40,17 @@ dev = [
     "mypy>=1.11",
     "pre-commit>=3.8",
 ]
+# The `pdt select` CLI (src/pdt/cli.py, P3-08) -- YAML config parsing on
+# top of `core` (already needed for the oracle/algorithm machinery).
+cli = [
+    "pyyaml>=6.0",
+]
 # NOTE: no `train` extra yet. Torch and the training stack are added in
 # task P4-01, deliberately kept out of the default environment until then --
 # see plan/05-phase4-training.md.
+
+[project.scripts]
+pdt = "pdt.cli:main"
 
 [build-system]
 requires = ["hatchling"]

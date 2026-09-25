@@ -1,0 +1,383 @@
+{
+  "provenance": {
+    "git_sha": "4d087e6418876e8fce747d803d90bb97dece2c93",
+    "git_dirty": false,
+    "utc_timestamp": "2026-09-25T11:50:50.604783+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "P3-05",
+      "tasks": [
+        "winogrande",
+        "boolq",
+        "arc_easy",
+        "mmlu"
+      ],
+      "delta": 0.1,
+      "n_bootstrap": 20,
+      "max_rounds": 60,
+      "solver_n_iter": 20
+    }
+  },
+  "data": {
+    "certification_mode": "assume_unproved_conditions",
+    "certification_note": "any 'certified' ETS outcome is under caller-assumed, UNPROVED conditions (adaptive design, nonlinear PowerLawN fit, sigma2 = 1e-4 only approximating the real seed noise)",
+    "scope_note": "4-task pilot (2 reversal-heavy + 2 stable, by P1-09's own kendall_tau), not all 11 DataDecide tasks; ETS is a single real-data run per task, not bootstrapped (baselines are) -- see this file's own module docstring and docs/decisions.md for why.",
+    "delta": 0.1,
+    "eta_assumed": 0.02,
+    "n_bootstrap_baselines_only": 20,
+    "cells": [
+      {
+        "task": "winogrande",
+        "reversal_heavy": true,
+        "true_winner": "Falcon+CC (QC Orig 10%)",
+        "n_recipes": 25,
+        "n_fit_scales": 13,
+        "baselines": {
+          "SingleScale": {
+            "accuracy": 0.15,
+            "accuracy_ci95": [
+              0.0,
+              0.30649345034217884
+            ],
+            "mean_compute": 6.967296e+21,
+            "n_bootstrap": 20
+          },
+          "FixedLadderExtrapolation": {
+            "accuracy": 0.0,
+            "accuracy_ci95": [
+              0.0,
+              0.0
+            ],
+            "mean_compute": 9.0800529997824e+21,
+            "n_bootstrap": 20
+          },
+          "UniformAllocation": {
+            "accuracy": 0.0,
+            "accuracy_ci95": [
+              0.0,
+              0.0
+            ],
+            "mean_compute": 5.448031799869438e+22,
+            "n_bootstrap": 20
+          },
+          "SuccessiveHalvingOverScales": {
+            "accuracy": 0.0,
+            "accuracy_ci95": [
+              0.0,
+              0.0
+            ],
+            "mean_compute": 3.63980495781888e+20,
+            "n_bootstrap": 20
+          }
+        },
+        "ets_single_run": {
+          "outcome": "pool_exhausted",
+          "recipe": null,
+          "correct": null,
+          "compute_spent": null,
+          "n_pulls": null,
+          "wall_seconds": 187.34340357780457,
+          "certificate_reason": null,
+          "hit_round_cap": false,
+          "pool_exhausted": true,
+          "note": "real+pseudo replicate pool exhausted before resolving: Falcon+CC (QC 10%)/Scale(n=4000000, d=375193600.0): real+pseudo replicate pool exhausted at seed=12 -- refusing to recycle an already-observed value as if it were fresh, independent data."
+        }
+      },
+      {
+        "task": "boolq",
+        "reversal_heavy": true,
+        "true_winner": "Falcon+CC (QC Orig 10%)",
+        "n_recipes": 25,
+        "n_fit_scales": 13,
+        "baselines": {
+          "SingleScale": {
+            "accuracy": 0.15,
+            "accuracy_ci95": [
+              0.0,
+              0.30649345034217884
+            ],
+            "mean_compute": 6.967296e+21,
+            "n_bootstrap": 20
+          },
+          "FixedLadderExtrapolation": {
+            "accuracy": 0.0,
+            "accuracy_ci95": [
+              0.0,
+              0.0
+            ],
+            "mean_compute": 9.0800529997824e+21,
+            "n_bootstrap": 20
+          },
+          "UniformAllocation": {
+            "accuracy": 0.0,
+            "accuracy_ci95": [
+              0.0,
+              0.0
+            ],
+            "mean_compute": 5.448031799869438e+22,
+            "n_bootstrap": 20
+          },
+          "SuccessiveHalvingOverScales": {
+            "accuracy": 0.0,
+            "accuracy_ci95": [
+              0.0,
+              0.0
+            ],
+            "mean_compute": 3.63980495781888e+20,
+            "n_bootstrap": 20
+          }
+        },
+        "ets_single_run": {
+          "outcome": "abstained",
+          "recipe": "Falcon+CC (QC Orig 10%)",
+          "correct": true,
+          "compute_spent": 1.2564810866098176e+22,
+          "n_pulls": 410,
+          "wall_seconds": 91.21282291412354,
+          "certificate_reason": "max_rounds exhausted without certifying or abstaining",
+          "hit_round_cap": true,
+          "pool_exhausted": false,
+          "note": "single real-data run, no bootstrap -- see module docstring"
+        }
+      },
+      {
+        "task": "arc_easy",
+        "reversal_heavy": false,
+        "true_winner": "DCLM-Baseline (QC 7%, FW3)",
+        "n_recipes": 25,
+        "n_fit_scales": 13,
+        "baselines": {
+          "SingleScale": {
+            "accuracy": 1.0,
+            "accuracy_ci95": [
+              1.0,
+              1.0
+            ],
+            "mean_compute": 6.967296e+21,
+            "n_bootstrap": 20
+          },
+          "FixedLadderExtrapolation": {
+            "accuracy": 0.5,
+            "accuracy_ci95": [
+              0.28086533820502063,
+              0.7191346617949794
+            ],
+            "mean_compute": 9.0800529997824e+21,
+            "n_bootstrap": 20
+          },
+          "UniformAllocation": {
+            "accuracy": 0.55,
+            "accuracy_ci95": [
+              0.3319637644793876,
+              0.7680362355206125
+            ],
+            "mean_compute": 5.448031799869438e+22,
+            "n_bootstrap": 20
+          },
+          "SuccessiveHalvingOverScales": {
+            "accuracy": 0.0,
+            "accuracy_ci95": [
+              0.0,
+              0.0
+            ],
+            "mean_compute": 3.63980495781888e+20,
+            "n_bootstrap": 20
+          }
+        },
+        "ets_single_run": {
+          "outcome": "pool_exhausted",
+          "recipe": null,
+          "correct": null,
+          "compute_spent": null,
+          "n_pulls": null,
+          "wall_seconds": 44.28056025505066,
+          "certificate_reason": null,
+          "hit_round_cap": false,
+          "pool_exhausted": true,
+          "note": "real+pseudo replicate pool exhausted before resolving: DCLM-Baseline (QC FW 3%)/Scale(n=4000000, d=375193600.0): real+pseudo replicate pool exhausted at seed=12 -- refusing to recycle an already-observed value as if it were fresh, independent data."
+        }
+      },
+      {
+        "task": "mmlu",
+        "reversal_heavy": false,
+        "true_winner": "DCLM-Baseline (QC 7%, FW3)",
+        "n_recipes": 25,
+        "n_fit_scales": 13,
+        "baselines": {
+          "SingleScale": {
+            "accuracy": 1.0,
+            "accuracy_ci95": [
+              1.0,
+              1.0
+            ],
+            "mean_compute": 6.967296e+21,
+            "n_bootstrap": 20
+          },
+          "FixedLadderExtrapolation": {
+            "accuracy": 1.0,
+            "accuracy_ci95": [
+              1.0,
+              1.0
+            ],
+            "mean_compute": 9.0800529997824e+21,
+            "n_bootstrap": 20
+          },
+          "UniformAllocation": {
+            "accuracy": 1.0,
+            "accuracy_ci95": [
+              1.0,
+              1.0
+            ],
+            "mean_compute": 5.448031799869438e+22,
+            "n_bootstrap": 20
+          },
+          "SuccessiveHalvingOverScales": {
+            "accuracy": 0.55,
+            "accuracy_ci95": [
+              0.3319637644793876,
+              0.7680362355206125
+            ],
+            "mean_compute": 3.63980495781888e+20,
+            "n_bootstrap": 20
+          }
+        },
+        "ets_single_run": {
+          "outcome": "abstained",
+          "recipe": "DCLM-Baseline (QC 7%, FW3)",
+          "correct": true,
+          "compute_spent": 1.2564731192672256e+22,
+          "n_pulls": 410,
+          "wall_seconds": 198.848646402359,
+          "certificate_reason": "max_rounds exhausted without certifying or abstaining",
+          "hit_round_cap": true,
+          "pool_exhausted": false,
+          "note": "single real-data run, no bootstrap -- see module docstring"
+        }
+      }
+    ],
+    "headline_table": [
+      {
+        "task": "winogrande",
+        "true_winner": "Falcon+CC (QC Orig 10%)",
+        "SingleScale": {
+          "accuracy": 0.15,
+          "mean_compute": 6.967296e+21
+        },
+        "FixedLadderExtrapolation": {
+          "accuracy": 0.0,
+          "mean_compute": 9.0800529997824e+21
+        },
+        "UniformAllocation": {
+          "accuracy": 0.0,
+          "mean_compute": 5.448031799869438e+22
+        },
+        "SuccessiveHalvingOverScales": {
+          "accuracy": 0.0,
+          "mean_compute": 3.63980495781888e+20
+        },
+        "ExtrapolationTrackAndStop": {
+          "outcome": "pool_exhausted",
+          "hit_round_cap": false,
+          "correct": null,
+          "compute": null
+        }
+      },
+      {
+        "task": "boolq",
+        "true_winner": "Falcon+CC (QC Orig 10%)",
+        "SingleScale": {
+          "accuracy": 0.15,
+          "mean_compute": 6.967296e+21
+        },
+        "FixedLadderExtrapolation": {
+          "accuracy": 0.0,
+          "mean_compute": 9.0800529997824e+21
+        },
+        "UniformAllocation": {
+          "accuracy": 0.0,
+          "mean_compute": 5.448031799869438e+22
+        },
+        "SuccessiveHalvingOverScales": {
+          "accuracy": 0.0,
+          "mean_compute": 3.63980495781888e+20
+        },
+        "ExtrapolationTrackAndStop": {
+          "outcome": "abstained",
+          "hit_round_cap": true,
+          "correct": true,
+          "compute": 1.2564810866098176e+22
+        }
+      },
+      {
+        "task": "arc_easy",
+        "true_winner": "DCLM-Baseline (QC 7%, FW3)",
+        "SingleScale": {
+          "accuracy": 1.0,
+          "mean_compute": 6.967296e+21
+        },
+        "FixedLadderExtrapolation": {
+          "accuracy": 0.5,
+          "mean_compute": 9.0800529997824e+21
+        },
+        "UniformAllocation": {
+          "accuracy": 0.55,
+          "mean_compute": 5.448031799869438e+22
+        },
+        "SuccessiveHalvingOverScales": {
+          "accuracy": 0.0,
+          "mean_compute": 3.63980495781888e+20
+        },
+        "ExtrapolationTrackAndStop": {
+          "outcome": "pool_exhausted",
+          "hit_round_cap": false,
+          "correct": null,
+          "compute": null
+        }
+      },
+      {
+        "task": "mmlu",
+        "true_winner": "DCLM-Baseline (QC 7%, FW3)",
+        "SingleScale": {
+          "accuracy": 1.0,
+          "mean_compute": 6.967296e+21
+        },
+        "FixedLadderExtrapolation": {
+          "accuracy": 1.0,
+          "mean_compute": 9.0800529997824e+21
+        },
+        "UniformAllocation": {
+          "accuracy": 1.0,
+          "mean_compute": 5.448031799869438e+22
+        },
+        "SuccessiveHalvingOverScales": {
+          "accuracy": 0.55,
+          "mean_compute": 3.63980495781888e+20
+        },
+        "ExtrapolationTrackAndStop": {
+          "outcome": "abstained",
+          "hit_round_cap": true,
+          "correct": true,
+          "compute": 1.2564731192672256e+22
+        }
+      }
+    ],
+    "ets_abstention_rate_reversal_heavy_tasks": 0.0,
+    "ets_abstention_rate_stable_tasks": 0.0,
+    "ets_round_cap_rate_reversal_heavy_tasks": 0.5,
+    "ets_round_cap_rate_stable_tasks": 0.5,
+    "ets_pool_exhausted_rate_reversal_heavy_tasks": 0.5,
+    "ets_pool_exhausted_rate_stable_tasks": 0.5
+  }
+}
