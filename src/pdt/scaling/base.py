@@ -51,6 +51,13 @@ class Extrapolator:
 
     n_params: int
 
+    #: True only for a family whose prediction is LINEAR in its parameters and whose fit,
+    #: when no parameter bound binds, is exactly ordinary least squares (an exactly
+    #: Gaussian / sub-Gaussian linear functional of the noise). `extrapolation_track_and_stop`
+    #: certifies under its default `certification="supported_only"` only for such families
+    #: (PR #29's third review).
+    linear_in_parameters: bool = False
+
     def __init__(self, rng: np.random.Generator | None = None):
         self._rng = rng if rng is not None else np.random.default_rng(0)
         self._theta: np.ndarray | None = None
@@ -66,6 +73,20 @@ class Extrapolator:
             )
         self._theta, self.fit_diagnostics = self._fit_theta(scales, values, weights)
         return self
+
+    def bounds_inactive(self, rel_margin: float = 1e-6) -> bool:
+        """Whether the fitted parameters lie strictly inside the family's box bounds
+        (`_bounds`, if it has any), so the constraint is not binding and a linear family's
+        constrained fit coincides with unconstrained least squares. A binding bound makes the
+        estimator a clipped -- non-Gaussian, non-centred -- functional of the noise."""
+        if self._theta is None:
+            return False
+        bounds = getattr(self, "_bounds", None)
+        if bounds is None:
+            return True
+        lo, hi = bounds
+        margin = rel_margin * (np.asarray(hi) - np.asarray(lo))
+        return bool(np.all(self._theta > lo + margin) and np.all(self._theta < hi - margin))
 
     def _fit_theta(
         self, scales: list[Scale], values: list[float], weights: list[float] | None

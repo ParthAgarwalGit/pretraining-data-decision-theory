@@ -50,18 +50,30 @@ s^\star)$ be the delta-method variance (Section~\ref{sec:theorem1-step2}). Defin
   \qquad (x)_+ = \max(x, 0).
 \]
 
-\textbf{(i) Linear-in-$\theta$ family, independent sub-Gaussian noise (proved).} If
-$g(\theta, s)$ is linear in $\theta$ and the observation noise is independent
-sub-Gaussian with variance proxy $\sigma^2(s)$ at each fitting observation, the fit is
-a fixed linear function of the noise, $\hat\mu_k(s^\star)$ is exactly sub-Gaussian
-around $g(\theta_k^{\dagger}, s^\star)$ with variance proxy $v_k(C)$, and
+\textbf{(i) Unconstrained linear least squares (proved).} If $g(\theta, s)$ is linear in
+$\theta$, the design matrix has full column rank, the fit is the \emph{unconstrained}
+(weighted) least-squares estimate -- i.e.\ $\Theta = \mathbb{R}^p$, or the constraint is
+not imposed by the estimator -- and the observation noise is independent sub-Gaussian
+with variance proxy $\sigma^2(s)$ at each fitting observation, then $\hat\theta_k$ is a
+fixed linear function of the noise, $\hat\mu_k(s^\star)$ is exactly sub-Gaussian around
+$g(\theta_k^{\dagger}, s^\star)$ with variance proxy $v_k(C)$, and
 \[
   \mathbb{P}[\hat{k} \ne k^\star] \;\le\; B(0, 0, v_k(C), v_{k^\star}(C)).
 \]
-\textbf{(ii) Nonlinear $g$ (conditional, not proved here).} For nonlinear $g$ the
-delta-method variance $v_k(C)$ is a first-order approximation and the fitted prediction
-is neither exactly sub-Gaussian nor centred at $g(\theta_k^{\dagger}, s^\star)$: the
-Taylor remainder and the finite-sample bias of the nonlinear least-squares estimator
+\emph{Linearity of $g$ alone does not give this.} If $\Theta$ is a compact set and the
+estimator respects it, the fit is no longer linear in the noise: for $g(\theta, s) =
+\theta$, $\Theta = [0, 1]$, true $\theta = 0$ and Gaussian observations, the constrained
+least-squares estimate is $\mathrm{clip}(\bar y, 0, 1)$, which is neither Gaussian nor
+centred at the population projection (half its mass sits at $0$, the rest is folded
+positive). The shipped fitters impose box bounds, so their fits belong to (i) only when
+no bound binds -- a checkable, run-time condition (\texttt{Extrapolator.bounds\_inactive}
+in \texttt{src/pdt/scaling/base.py}) -- and to (ii) otherwise.
+
+\textbf{(ii) Nonlinear $g$, or a binding constraint (conditional, not proved here).} For
+nonlinear $g$, or whenever a constraint binds, the delta-method variance $v_k(C)$ is a
+first-order approximation and the fitted prediction is neither exactly sub-Gaussian nor
+centred at $g(\theta_k^{\dagger}, s^\star)$: the Taylor remainder, the finite-sample bias
+of the nonlinear least-squares estimator and any constraint-induced (clipping) bias
 shift its centre by some $\rho_k(C)$, and its true tails are governed by some proxy
 $\bar v_k(C)$ that need not equal $v_k(C)$. \emph{If} one assumes
 \begin{quote}
@@ -113,14 +125,17 @@ way, so the two forms were never actually distinguished by that check.
 \paragraph{Step 1 -- concentration of the least-squares estimate.}
 \label{sec:theorem1-step1}
 For a \emph{linear-in-$\theta$} family (Assumption~\ref{asn:family} with $g(\theta, s)$
-linear in $\theta$), $\hat\theta_k$ is an exact linear function of the noise
-$\{\varepsilon_{k,i}(s)\}$, hence exactly Gaussian (if $\varepsilon$ is Gaussian) or
-exactly sub-Gaussian with the stated parameter (for general sub-Gaussian $\varepsilon$,
-via sub-Gaussian linearity) -- no approximation is involved, and
-Step~\ref{sec:theorem1-step2}'s delta method is exact rather than a linearization. This
-is the whole of Theorem~\ref{thm:main-bound}(i)'s proof of concentration.
+linear in $\theta$) fit by \emph{unconstrained} full-rank least squares, $\hat\theta_k$ is
+an exact linear function of the noise $\{\varepsilon_{k,i}(s)\}$, hence exactly Gaussian
+(if $\varepsilon$ is Gaussian) or exactly sub-Gaussian with the stated parameter (for
+general sub-Gaussian $\varepsilon$, via sub-Gaussian linearity) -- no approximation is
+involved, and Step~\ref{sec:theorem1-step2}'s delta method is exact rather than a
+linearization. This is the whole of Theorem~\ref{thm:main-bound}(i)'s proof of
+concentration. If the estimator instead minimizes over a compact $\Theta$, the
+solution is a projection of the unconstrained solution onto $\Theta$ and the linearity
+step fails (see the clipped-mean example after the theorem statement).
 
-For a \emph{nonlinear} $g$ this step is \textbf{not proved}. $\hat\theta_k$ is an
+For a \emph{nonlinear} $g$, or a binding constraint, this step is \textbf{not proved}. $\hat\theta_k$ is an
 M-estimator minimizing a (noisy, misspecified) sum of squares; consistency and
 asymptotic normality as $C \to \infty$ are standard under smoothness and a non-degenerate
 Hessian of the population objective near $\theta_k^{\dagger}$ (van der Vaart, 1998,
@@ -287,8 +302,9 @@ Theorem~\ref{thm:main-bound}'s bound (the corrected, gap-reduction form). Every
 population quantity ($\theta_k^\dagger$, $\sigma^2_{\mathrm{extrap},k}$, $v_k$) is
 computed in exact closed form (ordinary least squares on a linear-in-$\theta$ family),
 so this certificate isolates Steps~\ref{sec:theorem1-step2}--\ref{sec:theorem1-step4}
-of the proof from Step~\ref{sec:theorem1-step1}'s nonlinear-$g$ caveat. It is a check of
-Theorem~\ref{thm:main-bound}(i) only, in a linear Gaussian setting; it is \emph{not}
+of the proof from Step~\ref{sec:theorem1-step1}'s nonlinear-$g$ and constraint caveats. It is a
+check of Theorem~\ref{thm:main-bound}(i) only, in an \emph{unconstrained} linear Gaussian
+setting (closed-form ordinary least squares, no bound on $\theta$); it is \emph{not}
 evidence for the conditional nonlinear statement~(ii), whose hypothesis (H) it never
 exercises.
 

@@ -204,6 +204,11 @@ def _run_trials(
             eta=eta_assumed,
             sigma2=lambda _s: _SIGMA**2,
             model_factory=LogLinear,
+            # LogLinear is linear, but tracking is ADAPTIVE: only a first-check stop is inside
+            # the proved regime (third review of PR #29). This sweep studies the adaptive
+            # algorithm, so the caller accepts A4 explicitly; "certified" means "under
+            # caller-assumed, unproved conditions".
+            certification="assume_unproved_conditions",
             epsilon_0=0.03,
             max_rounds=max_rounds,
             solver_n_restarts=1,
@@ -312,6 +317,11 @@ def main() -> None:
             eta=eta_hat,
             sigma2=lambda _s: _SIGMA**2,
             model_factory=LogLinear,
+            # LogLinear is linear, but tracking is ADAPTIVE: only a first-check stop is inside
+            # the proved regime (third review of PR #29). This sweep studies the adaptive
+            # algorithm, so the caller accepts A4 explicitly; "certified" means "under
+            # caller-assumed, unproved conditions".
+            certification="assume_unproved_conditions",
             epsilon_0=0.03,
             max_rounds=args.max_rounds,
             solver_n_restarts=1,
@@ -374,6 +384,11 @@ def main() -> None:
             "~0.048-0.17, results/p1_06_decomposition.json) -- see module docstring"
         ),
         "delta": _DELTA,
+        "certification_mode": "assume_unproved_conditions",
+        "certification_note": (
+            "'certified' = the stopping rule fired under caller-assumed, UNPROVED conditions "
+            "(adaptive design, A4); only a first-check stop is inside the proved regime"
+        ),
         "sweep": sweep,
         "plugin": plugin_result,
         # True only for a STATISTICALLY DETECTABLE violation at this n_runs; False means

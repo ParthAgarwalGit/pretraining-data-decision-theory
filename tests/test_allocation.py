@@ -19,6 +19,7 @@ from pdt.bai.allocation import (
     _arm_rate_and_grad,
     _fisher_information,
     _project_to_simplex,
+    _solve_weighted,
     brute_force_allocation,
     solve_allocation,
 )
@@ -226,6 +227,67 @@ def test_rate_is_invariant_to_parameter_units():
     r2 = _arm_rate(rescaled, scales, lambda s: 1.0, w, target, delta_k=0.1)
     assert r1 > 0.0
     assert r2 == pytest.approx(r1, rel=1e-6)
+
+
+def _loglinear_two_point():
+    model = LogLinear()
+    model._theta = np.array([0.5, 0.1])
+    scales = [Scale(n=float(np.e), d=1.0), Scale(n=float(np.e**2), d=1.0)]
+    return model, scales, Scale(n=float(np.e**3), d=1.0)
+
+
+@pytest.mark.parametrize("weak_weight", [1e-16, 1e-20, 1e-30])
+def test_weak_but_identified_direction_keeps_its_large_variance(weak_weight):
+    # Second-round review of PR #28: candidates N=e, e^2 (log N = 1, 2), target N=e^3, sigma2=1,
+    # gap=.1, weights [1, w]. Direct two-point regression gives
+    # Var = 1 + 4/w  =>  rate = .01 / (2 (1 + 4/w)). The old pinv(A^T A) path dropped the weak
+    # eigen-direction and returned ~.00125 no matter how small w was.
+    model, scales, target = _loglinear_two_point()
+    w = np.array([1.0, weak_weight])
+    expected = 0.01 / (2.0 * (1.0 + 4.0 / weak_weight))
+    rate = _arm_rate(model, scales, lambda s: 1.0, w, target, delta_k=0.1)
+    assert rate == pytest.approx(expected, rel=1e-6)
+    rate_g, grad = _arm_rate_and_grad(model, scales, lambda s: 1.0, w, target, delta_k=0.1)
+    assert rate_g == pytest.approx(expected, rel=1e-6)
+    assert np.all(np.isfinite(grad))
+
+
+def test_weak_direction_below_the_rank_cutoff_fails_closed_to_zero_information():
+    # A weight so small that sqrt(w) is below the design's numerical rank cutoff: the target
+    # needs that direction, so the honest answer is "no information" (rate 0), never a small
+    # finite variance from a dropped direction.
+    model, scales, target = _loglinear_two_point()
+    w = np.array([1.0, 1e-40])
+    assert _arm_rate(model, scales, lambda s: 1.0, w, target, delta_k=0.1) == 0.0
+    rate, grad = _arm_rate_and_grad(model, scales, lambda s: 1.0, w, target, delta_k=0.1)
+    assert rate == 0.0 and np.all(grad == 0.0)
+
+
+def test_batched_solve_matches_the_scalar_path_including_weak_weights():
+    # The brute-force path solves a whole stack of weighted designs at once.
+    model, scales, target = _loglinear_two_point()
+    j_scales = np.array([model.jacobian(s) for s in scales])
+    j_star = model.jacobian(target)
+    weights = np.array([[1.0, 1e-16], [1.0, 1e-20], [1.0, 1.0], [0.3, 0.7], [1.0, 1e-40]])
+    stack = np.sqrt(weights)[:, :, None] * j_scales[None, :, :]
+    f_batch, y_batch = _solve_weighted(stack, j_star)
+    for i in range(len(weights)):
+        f_one, y_one = _solve_weighted(stack[i][None, ...], j_star)
+        assert f_batch[i] == pytest.approx(f_one[0], rel=1e-12)
+        assert y_batch[i] == pytest.approx(y_one[0], rel=1e-9, abs=1e-30)
+    assert f_batch[0] == pytest.approx(1.0 + 4.0 / 1e-16, rel=1e-6)
+    assert f_batch[1] == pytest.approx(1.0 + 4.0 / 1e-20, rel=1e-6)
+    assert f_batch[4] == 0.0  # below the cutoff: fails closed
+
+
+def test_solve_weighted_matches_the_textbook_inverse_on_a_well_conditioned_design():
+    rng = np.random.default_rng(3)
+    a = rng.normal(size=(7, 3))
+    j_star = rng.normal(size=3)
+    f, y = _solve_weighted(a[None, ...], j_star)
+    info_inv = np.linalg.inv(a.T @ a)
+    assert f[0] == pytest.approx(float(j_star @ info_inv @ j_star), rel=1e-10)
+    assert y[0] == pytest.approx(info_inv @ j_star, rel=1e-10)
 
 
 def test_fisher_information_rejects_nonpositive_sigma2():
