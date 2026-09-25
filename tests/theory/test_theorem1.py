@@ -285,3 +285,21 @@ if __name__ == "__main__":
     import sys
 
     sys.exit(pytest.main([__file__, "-v", "-s"]))
+
+
+def test_constrained_linear_least_squares_is_not_centred_gaussian():
+    # Third review of PR #23: g(theta, s) = theta (linear!) on Theta = [0, 1], true theta = 0,
+    # Gaussian observations. Constrained least squares is clip(sample_mean, 0, 1): half its
+    # mass sits exactly at 0 and its mean is strictly positive, so it is neither Gaussian nor
+    # centred at the population projection theta_dagger = 0. Linearity of g alone therefore
+    # does not give Theorem 1(i)'s exact sub-Gaussian premise; unconstrained OLS does.
+    rng = np.random.default_rng(11)
+    n_obs, sigma, n_draws = 5, 1.0, 400_000
+    ybar = rng.normal(0.0, sigma / np.sqrt(n_obs), size=n_draws)
+    constrained = np.clip(ybar, 0.0, 1.0)
+    assert np.mean(constrained == 0.0) == pytest.approx(0.5, abs=0.005)
+    expected_mean = sigma / np.sqrt(2 * np.pi * n_obs)  # E[max(Z, 0)] for Z ~ N(0, sigma^2/n)
+    assert np.mean(constrained) == pytest.approx(expected_mean, rel=0.02)
+    assert np.mean(constrained) > 0.1  # far from the centre 0, in units of the standard error
+    # the unconstrained estimate IS exactly centred
+    assert abs(np.mean(ybar)) < 4 * sigma / np.sqrt(n_obs * n_draws)
