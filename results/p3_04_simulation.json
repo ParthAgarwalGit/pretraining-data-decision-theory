@@ -1,8 +1,8 @@
 {
   "provenance": {
-    "git_sha": "bff337d8948e264820ee27acedd698716fcbdbbb",
+    "git_sha": "008ea8ce464c5cc106c1189b66ffa26c96667572",
     "git_dirty": false,
-    "utc_timestamp": "2026-09-19T11:44:35.801568+00:00",
+    "utc_timestamp": "2026-09-25T16:55:54.250681+00:00",
     "python_version": "3.12.10",
     "package_versions": {
       "numpy": "2.5.2",
@@ -69,6 +69,8 @@
       "medium": 1.0,
       "large": 2.0
     },
+    "certification_mode": "assume_unproved_conditions",
+    "certification_note": "'certified' outcomes are under caller-assumed, UNPROVED conditions (A3 linearization of the nonlinear PowerLawN fit, A4 adaptive-design independence): empirical evidence only",
     "scope_note": "Pilot run, not the plan's literal K in {5,10,25} x delta in {0.05,0.1,0.2} x eta in {0,small,medium,large} x gap_structure in {well-separated,close top-two,reversing}, 200+ runs/cell grid -- see this file's own module docstring and docs/decisions.md for why.",
     "cells": [
       {
@@ -78,12 +80,12 @@
         "gap_structure": "well_separated",
         "n_runs": 15,
         "ets_outcomes": {
-          "abstained": 4,
-          "certified": 11
+          "certified": 13,
+          "abstained": 2
         },
-        "ets_abstention_rate": 0.26666666666666666,
+        "ets_abstention_rate": 0.13333333333333333,
         "ets_abstention_rate_bias_floor": 0.0,
-        "ets_abstention_rate_timeout": 0.26666666666666666,
+        "ets_abstention_rate_timeout": 0.13333333333333333,
         "ets_error_rate_given_certified": 0.0,
         "ets_error_rate_overall": 0.0,
         "ets_n_wrong_certified": 0,
@@ -91,8 +93,8 @@
           0.0,
           0.21801936091053403
         ],
-        "ets_mean_compute_given_certified": 3.06708e+18,
-        "ets_mean_compute_overall": 3.288072e+18,
+        "ets_mean_compute_given_certified": 3.1379261538461537e+18,
+        "ets_mean_compute_overall": 3.241984e+18,
         "baseline_accuracy": {
           "SingleScale": 1.0,
           "FixedLadderExtrapolation": 1.0,
@@ -120,7 +122,7 @@
           0.21801936091053403
         ],
         "ets_mean_compute_given_certified": null,
-        "ets_mean_compute_overall": 3.909192e+18,
+        "ets_mean_compute_overall": 3.920632e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -148,7 +150,7 @@
           0.21801936091053403
         ],
         "ets_mean_compute_given_certified": null,
-        "ets_mean_compute_overall": 3.99848e+18,
+        "ets_mean_compute_overall": 4.00328e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -176,7 +178,7 @@
           0.21801936091053403
         ],
         "ets_mean_compute_given_certified": null,
-        "ets_mean_compute_overall": 3.933016e+18,
+        "ets_mean_compute_overall": 3.920808e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -205,7 +207,7 @@
           0.21801936091053403
         ],
         "ets_mean_compute_given_certified": 2.9088e+18,
-        "ets_mean_compute_overall": 3.05944e+18,
+        "ets_mean_compute_overall": 3.051776e+18,
         "baseline_accuracy": {
           "SingleScale": 1.0,
           "FixedLadderExtrapolation": 1.0,
@@ -233,7 +235,7 @@
           0.21801936091053403
         ],
         "ets_mean_compute_given_certified": null,
-        "ets_mean_compute_overall": 3.930024e+18,
+        "ets_mean_compute_overall": 3.912288e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -261,7 +263,7 @@
           0.21801936091053403
         ],
         "ets_mean_compute_given_certified": null,
-        "ets_mean_compute_overall": 3.989016e+18,
+        "ets_mean_compute_overall": 3.994712e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -289,7 +291,7 @@
           0.21801936091053403
         ],
         "ets_mean_compute_given_certified": null,
-        "ets_mean_compute_overall": 3.893568e+18,
+        "ets_mean_compute_overall": 3.90368e+18,
         "baseline_accuracy": {
           "SingleScale": 0.0,
           "FixedLadderExtrapolation": 0.0,
@@ -302,7 +304,7 @@
       "holds": true,
       "violations": []
     },
-    "claim2_compute_to_stop_note": "compute-to-stop by delta (smaller delta should cost more, if the T*log(1/delta) scaling holds): delta=0.05: mean=3.07e+18, delta=0.2: mean=2.91e+18",
+    "claim2_compute_to_stop_note": "compute-to-stop by delta (smaller delta should cost more, if the T*log(1/delta) scaling holds): delta=0.05: mean=3.14e+18, delta=0.2: mean=2.91e+18",
     "claim3_reversing_regime_abstention_vs_baselines": [
       {
         "eta_level": "none",
