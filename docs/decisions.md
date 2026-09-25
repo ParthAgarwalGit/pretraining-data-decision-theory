@@ -3309,3 +3309,105 @@ visibly a different quantity from Panel A -- confirming the two should never hav
 together. F1/F2/F4/F5 are unchanged in structure, only in the numbers they read.
 
 **Decided by:** Agent, following the review.
+
+## 2026-09-25 — ETS third review: `known_sigma2` alone no longer enables "certified" (PR #29)
+
+**Finding.** `ets.py` returned `outcome="certified"` solely because `variance_mode == "known_sigma2"`, including after adaptive tracking and for the default
+nonlinear `PowerLawN`. Known observation variance does not repair (i) adaptive-design selection (the design at round `t` depends on earlier noise; no
+adaptive confidence sequence is implemented) or (ii) nonlinear / bound-clipped finite-sample prediction error (a clipped mean is neither Gaussian nor centred).
+
+**Change.** New `certification` argument (default `"supported_only"`):
+- `"supported_only"`: `"certified"` **only** where the argument is proved -- (A1) `sigma2` valid, (A2) `eta` valid, the model **linear in its parameters**
+  (`Extrapolator.linear_in_parameters`, true only for `LogLinear`), its parameters strictly **inside** the box bounds (`bounds_inactive()`, checked at run time, so the fit
+  is exactly OLS), and **no adaptive pull yet** (the first check, right after the non-adaptive warm-up). Every other time the rule fires the outcome is `"recommended"` with
+  `certificate["unmet_supported_conditions"]` naming the failed conditions and no error-probability claim (same treatment as the HC0 mode).
+- `"assume_unproved_conditions"`: the caller explicitly accepts A3 (linearization) and A4 (adaptive independence); `"certified"` on any round, flagged
+  `certificate["guarantee"] = "assumed_unproved..."`. The decision and trajectory are identical to the supported mode's -- only the label changes (tested).
+
+**Consequences.** By default `"certified"` is now rare (round-1 only, `LogLinear`, unclipped) -- deliberately: it is the only case the theorem covers. Every experiment that studies ETS
+under the adaptive/nonlinear regime (P3-04/05/06) now passes `certification="assume_unproved_conditions"` explicitly and reports its `"certified"` outcomes as
+"certified under caller-assumed conditions"; they are regenerated after the last Phase-3 code change. README, the trust guide, and the CLI/config are updated in PR #34.
+
+**Not claimed.** No adaptive confidence sequence exists here; the assumed mode's error rate is empirical (P3-04/05/06), not proved.
+## 2026-09-25 — P3-02 third review: the weighted-information solve dropped weak identified directions (PR #28)
+
+**Reviewer's reproduction.** `LogLinear`, candidates `N = e, e^2`, target `N = e^3`, `sigma2 = 1`, gap `.1`, weights
+`[1, 1e-16]`: `_arm_rate` returned ~`.00125`; the direct two-point regression gives `.01 / (2 (1 + 4/1e-16)) = 1.25e-19`. At weight `1e-20`
+it still returned `.00125` instead of `1.25e-23`. The structural row-space check passed (the target IS in the row space);
+`_info_solve` and the brute-force batched path inverted the weighted information matrix `I = A^T A` with `pinv`, whose cutoff dropped the
+weak eigen-direction and treated its variance as zero. A different bug from the earlier rank-deficiency-tolerance one.
+
+**Fix.** The solve now works from the weighted design `A` (rows `sqrt(w_s / sigma2_s) J_s`) via `_solve_weighted`: an SVD of the
+column-equilibrated `A`, `f = ||S^-1 V^T j_eq||^2` and `y = V S^-2 V^T j_eq / col` -- conditioning of `A`, not of `A^T A`. It **fails closed**: if
+the rank cutoff discards a singular direction in which the target has a component (> 1e-8 relative), the arm gets `f = 0` = "no information"
+(`rate = 0`), the conservative reading -- never a small finite variance from a dropped direction. One function serves the scalar path
+(`_arm_rate`, `_arm_rate_and_grad`) and the brute-force stack (`brute_force_allocation`), so both are covered. Checked: rates match the closed
+form at weights `1e-16`, `1e-20`, `1e-30`; a weight of `1e-40` (below the cutoff) fails closed to 0; batched == scalar; agreement with `inv(A^T A)` on a
+well-conditioned design. 38 allocation tests, 381 tests total pass on this branch.
+
+**Consequence for results.** Well-conditioned cases are numerically unchanged (to ~1e-10), but `solve_allocation` is iterative, so ETS trajectories
+that depend on it can differ in the last bits; every P3 result that runs the solver (P3-04/05/06/07) is regenerated after the last Phase-3 code change.
+## 2026-09-25 — Theorem 4: `eta` bounds the conditional estimator bias; the naive-rule remark corrected (PR #26, third review)
+
+1. **P1 -- wrong bias.** The simultaneous event is centred at `E[prediction gap | design]`, but `eta` was tied to the population projection bias
+   `sqrt(sigma2_extrap)`; for nonlinear/constrained fits or adaptive designs the conditional mean differs (finite-sample and clipping bias).
+   Part (a) now takes **Assumption B**: `|E[mu_hat_k(s*; t) | design_t] - mu_k(s*)| <= eta_k` at every round; it coincides with `eta >= sqrt(sigma2_extrap)` only for
+   unconstrained linear least squares on a non-adaptive design. The Inputs paragraph and proof use it. Test: the clipped-mean fit has projection bias 0 but conditional bias `sigma/sqrt(2 pi n) > 0`.
+2. **P2 -- naive Track-and-Stop.** With a nonzero limit gap `D = Delta + bias` (either sign) and `v(t) -> 0`, `D^2 / v` diverges, so the naive rule *does* stop -- confidently
+   on the wrong arm when the bias reverses the gap (`D < 0`); only a cancelling gap (`D ~ 0`) leaves it undecided. The remark previously claimed it "runs forever". The bias floor
+   is justified by this instead. Test: numeric divergence with `D = -0.2` (stops at t = 209) vs a bounded statistic at `D ~ 0`.
+## 2026-09-25 — Theorem 3: `sigma2_extrap` is the projection estimator's bias, not a universal minimax floor (PR #25, third review)
+
+Reviewer: the "two risks" paragraph added `sigma2_extrap` to a minimax lower bound for the misspecified target. That quantity is the squared bias
+of the chosen parametric projection; an estimator that knows `h` or uses a larger identifiable family can remove it, and the in-family information
+proof does not supply an additive misspecification term. Fix: the in-family display is the (only) minimax statement; the
+misspecified-target statement is restricted to the **projection (least-squares) estimator** (risk = `sigma2_extrap` + a term of order `v_k(C)`); a
+minimax floor for `mu_k(s*)` would need indistinguishable alternatives in `H` (Theorem 2 Part B's construction) and is not claimed.
+Test: a projection estimator has squared bias ~0.15 at `s*` while an estimator using the known bump has ~0.
+## 2026-09-25 — Theorem 2: the closed form is the fixed-`h` (in-family) bound, not the full-class infimum (PR #24, third review)
+
+Reviewer: `Alt_k` lets both `theta_k` and `h_k` change, but the quadratic equality optimizes a `theta` shift with `h` unchanged;
+admissibility of that shift shows it is *one* candidate, not the minimizer over all `h`. A target-only bump that is zero on every
+accessible scale flips the winner with zero observed KL, while the Fisher quadratic is positive. Fix: the closed form is now
+stated as `R_lin`, the infimum over `Alt^h_k` (the `h`-fixed subclass); since `Alt^h_k ⊆ Alt_k`, `R <= R_lin`, hence
+`T^chal >= T^lin` and `E[C] >= kl * T^lin` -- a **valid but weaker** lower-bound program (what P3-02 solves), with equality only when `h` is
+fixed and known. New Remark: with rich `H` the full-class rate is 0 (the impossibility regime of Part B). The Lemma is restated for the
+fixed-`h` subclass. Test: a zero-on-accessible-scales bump has KL exactly 0 and flips the winner, against a strictly positive in-family rate.
+## 2026-09-25 — Theorem 1: the proved linear case is *unconstrained* least squares (PR #23, third review)
+
+Reviewer: `theorem1_bound.tex` said "linear `g` makes the fit a fixed linear function of the noise, hence exactly
+Gaussian / sub-Gaussian", but the setup allows a compact `Theta` and the shipped fitters use box bounds. For `g(theta, s) = theta`,
+`Theta = [0, 1]`, true `theta = 0` and Gaussian observations, constrained least squares is `clip(sample_mean, 0, 1)`:
+half its mass sits at 0 and its mean is strictly positive -- neither Gaussian nor centred at the population projection.
+Theorem 1(i) is now stated for **unconstrained full-rank linear least squares**; a compact/binding constraint moves a fit
+to case (ii) (conditional on (H), with `rho_k` covering the constraint-induced bias). Step 1 and the numerical-certificate scope
+say the same; the certificate (closed-form OLS) is an unconstrained check. `Extrapolator.bounds_inactive` (PR #29's branch)
+gives the run-time test for whether a shipped fit is in case (i). Test: the clipped-mean example (mass at 0 = 0.5, mean =
+`sigma / sqrt(2 pi n)`) vs the exactly centred unconstrained mean.
+## 2026-09-25 — P1-07 third review: covariance conditioning fix, recheck, and artifact refresh (PR #17)
+
+**Finding (reviewer).** `sandwich_covariance` formed `pinv(J^T J)`; squaring the condition number let the cutoff drop a weak *identified* direction. With `LogLinear`, `x = [1, 1+1e-8, 1+2e-8]`,
+`y = [.51, .48, .51]`, target `exp(2)`: `J` has rank 2 (`cond ~ 2.4e8`, `cond(J^T J) ~ 6e16`) and `analytic_v_k` returned `1.5e-4`, while the same HC0 sandwich through the SVD of `J` gives `4.994e11`.
+The row-space guard of the previous round does not catch it (the target *is* in the row space).
+
+**Fix.** `sandwich_covariance` is now `J^+ diag(r^2) J^+^T` on the column-equilibrated design; `analytic_v_k` computes `sum_i g_i^2 r_i^2` with `g = pinv(J)^T j_target` from the design's SVD
+(`identifiability.prediction_influence_weights`) and **fails closed** (`UnidentifiedTargetError`) if the target uses a direction below the numerical rank cutoff. The reviewer's case now gives `4.994e11`
+(relative difference `2.7e-8` from the direct SVD sandwich). Regression tests: the reviewer's ill-conditioned full-rank design, equality with the textbook formula on a well-conditioned one,
+fail-closed when a direction is below cutoff, and the weights themselves.
+
+**Recheck of the affected diagnostics** (`experiments/p1_07_analytic_recheck.py` -> `results/p1_07_analytic_recheck.json`, clean tree). All 3,300 stored per-recipe `analytic_v_k` values recomputed with the fixed code:
+| Fitter | compared | changed (> 1e-6 rel) | changed by > 10% | stored negative |
+|---|---|---|---|---|
+| LogLinear | 825 | 0 (max rel diff 4.6e-12) | 0 | 0 |
+| PowerLawN | 825 | 466 | 17 | 0 |
+| PowerLawC | 825 | 518 | 29 | 1 (-1.68e-4; now +1.23e-4) |
+| ChinchillaND | 825 | 474 | 37 | 0 |
+The old cross-check values for the three nonlinear fitters were materially wrong in a majority of cells (an impossible negative variance in one). `LogLinear` (well-conditioned) was unaffected.
+
+**Refresh, not a 38 h rerun.** The Monte-Carlo pass and every bound value are independent of `analytic_v_k` (they use the bootstrap `v_hat`). `p1_07_bound_coverage.py --reuse-monte-carlo results/p1_07_bound_coverage.json`
+recomputed everything on the fixed code and carried the per-cell Monte-Carlo results over (refused unless `B` and the scheme match; recorded in the payload as `monte_carlo_reused_from` /
+`monte_carlo_source_git_sha` = `c4d740a9`). Verified: across 396 cells `bound_marginal`, `bound_pairwise`, `empirical_error_rate` and `tightness_ratio_pairwise` are identical to the previous file (0 differences);
+only `analytic_v_k` changed and no value is negative. `any_bound_violation: false`. P1-08 reads only those unchanged fields, so it needs no regeneration. A full Monte-Carlo pass is required (and the flag refuses) after any
+change to the fitters, bootstrap code or P1-06 outputs.
+
+**Decided by:** Agent, following the third review.
