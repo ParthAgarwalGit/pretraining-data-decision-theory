@@ -3527,3 +3527,10 @@ only `analytic_v_k` changed and no value is negative. `any_bound_violation: fals
 change to the fitters, bootstrap code or P1-06 outputs.
 
 **Decided by:** Agent, following the third review.
+
+## 2026-09-25 — P3-07 allocation artifact regenerated after the allocation-solver fix (PR #33)
+
+`results/p3_07_allocation_shape.json` regenerated on a clean tree with the SVD-based, fail-closed allocation solve (PR #28's third review). Regime rates moved by <= 0.3% relative (e.g. `well_separated` 2.3786e-16 -> 2.3751e-16;
+`close_top_two` unchanged to 10 digits): the well-conditioned instances are numerically unchanged and the iterative solver differs only in its last bits. F7's caveat (heuristic, challenger-only allocation) stands.
+
+**Decided by:** Agent, following the third review.
