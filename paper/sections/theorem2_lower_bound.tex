@@ -47,23 +47,48 @@ nonnegative allocations with $\sum_{k,s} w(k,s)\,c(s)=1$. Each inner infimum is 
 pointwise infimum of functions linear in $w$, so the program is concave in $w$
 (Lemma~\ref{lem:concave}).
 
-\textbf{Linear-in-$\theta$, Gaussian special case.} If $g$ is linear in $\theta$ and the
-minimizing alternative below is admissible (its $\theta_k + \Delta\theta^\star$ lies in
-$\Theta$ and $h_k$ is unchanged), the inner infimum is available in closed form and
+\textbf{Linear-in-$\theta$, Gaussian case: a closed-form (weaker) bound.} Let
+$\mathrm{Alt}^{h}_k(\nu) \subseteq \mathrm{Alt}_k(\nu)$ be the alternatives that change
+only $\theta_k$ and keep $h_k$ \emph{fixed} (in-family alternatives). If $g$ is linear
+in $\theta$ and the minimizing $\theta$-shift below is admissible (its $\theta_k +
+\Delta\theta^\star$ lies in $\Theta$), the infimum \emph{over $\mathrm{Alt}^h_k$} has the
+closed form
 \[
-  \frac{1}{T^{\mathrm{chal}}(\nu)} \;=\; \sup_{w} \ \min_{k \ne k^\star} \
+  R_{\mathrm{lin}}(w) \;=\; \min_{k \ne k^\star} \
   \frac{\Delta_k^2}{2 \, J(\theta_k, s^\star)^\top I_k(w)^{-1} J(\theta_k, s^\star)},
   \qquad
-  I_k(w) = \sum_{s \in \mathcal{S}} w(k, s) \, \frac{J(\theta_k, s) J(\theta_k, s)^\top}{\sigma^2(s)},
+  I_k(w) = \sum_{s \in \mathcal{S}} w(k, s) \, \frac{J(\theta_k, s) J(\theta_k, s)^\top}{\sigma^2(s)}.
 \]
-which is the program P3-02 solves (with $w$ the pulls-per-compute allocation above; the
-solver's internal compute-fraction variables $p = w\,c$ are converted back by $w = p/c$).
-When the minimizing alternative is \emph{not} admissible the true infimum is larger, so
-this formula would claim a lower bound larger than the truth and must not be used as one;
-for nonlinear $g$ the quadratic form is only a local (small-shift)
-approximation and is not a valid lower bound in general (see
-Remark~\ref{rem:fixed-gap-kl}).
+Because $\mathrm{Alt}^h_k \subseteq \mathrm{Alt}_k$, the infimum over the larger set is no
+larger: $R(w) \le R_{\mathrm{lin}}(w)$ for the full-class rate $R(w) = \min_{k}
+\inf_{\nu' \in \mathrm{Alt}_k} \sum_s w(k,s)\,\mathrm{KL}$. Hence, with
+$1/T^{\mathrm{lin}}(\nu) = \sup_w R_{\mathrm{lin}}(w)$,
+\[
+  \mathbb{E}_\nu[C(\tau)] \;\ge\; \mathrm{kl}(\delta, 1-\delta)\, T^{\mathrm{chal}}(\nu)
+  \;\ge\; \mathrm{kl}(\delta, 1-\delta)\, T^{\mathrm{lin}}(\nu):
+\]
+the displayed program is a \emph{valid} lower-bound program, but \textbf{the equality
+$T^{\mathrm{chal}} = T^{\mathrm{lin}}$ holds only when $h$ is fixed and known} (an
+in-family instance class, where $\mathrm{Alt}_k = \mathrm{Alt}^h_k$). Admissibility of
+the minimizing $\theta$-shift shows it is \emph{one} candidate alternative, not that it
+minimizes over all misspecification functions $h'_k \in \mathcal{H}$. This
+$R_{\mathrm{lin}}$ program is what P3-02 solves (with $w$ the pulls-per-compute
+allocation above; the solver's internal compute-fraction variables $p = w\,c$ are
+converted back by $w = p/c$). When the minimizing shift is \emph{not} admissible, the
+formula overstates the in-family rate and must not be used; for nonlinear $g$ the
+quadratic form is only a local (small-shift) approximation and is not a valid lower
+bound in general (see Remark~\ref{rem:fixed-gap-kl}).
 \end{theorem}
+
+\begin{remark}[Free misspecification can make the rate zero]
+\label{rem:free-h}
+If $\mathcal{H}$ is rich enough that some allowed $h'_k$ is zero on every accessible scale
+(so it changes no observation's distribution) yet flips the winner at $s^\star$, that
+alternative has zero KL under every allocation and $R(w) = 0$: $T^{\mathrm{chal}} =
+\infty$. This is exactly the impossibility regime of Theorem~\ref{thm:impossibility}, and
+it is why $R_{\mathrm{lin}}$, which is strictly positive there, is a weaker bound and not the
+characteristic time of the full class.
+\end{remark}
 
 \begin{remark}[Challenger-only perturbations give a valid but \emph{weaker} bound]
 \label{rem:challenger-only}
@@ -159,8 +184,9 @@ $I_k = \sum_s (w/c(s))\, J J^\top/\sigma^2(s)$; a cost-10 action would otherwise
 a factor-$10$ error.) For nonlinear $g$ the expression is exact but not quadratic in
 $\Delta\theta$, and the flipping displacement is not small (Remark~\ref{rem:fixed-gap-kl}).
 
-\paragraph{Step 4 -- optimizing the confusing alternative (linear-Gaussian case).}
-The alternative must satisfy $J(\theta_k,s^\star)^\top \Delta\theta > \Delta_k$ (strictly,
+\paragraph{Step 4 -- optimizing the confusing alternative (linear-Gaussian, $h$ fixed).}
+Here we restrict to $\mathrm{Alt}^h_k$, the alternatives that change $\theta_k$ only. The
+alternative must satisfy $J(\theta_k,s^\star)^\top \Delta\theta > \Delta_k$ (strictly,
 so that $k$ is the unique best; the infimum below is approached, not attained). Minimizing
 $\Delta\theta^\top I_k(w) \Delta\theta / 2$ subject to $J^\top \Delta\theta = \Delta_k$ by
 the standard quadratic-form identity $\min\{x^\top A x : b^\top x = c\} = c^2 /
@@ -168,14 +194,19 @@ the standard quadratic-form identity $\min\{x^\top A x : b^\top x = c\} = c^2 /
 target Jacobian in the range of $I_k(w)$ otherwise) gives the rate
 $\Delta_k^2 / (2\, J^\top I_k(w)^{-1} J)$, \emph{provided the minimizer
 $\theta_k + \Delta\theta^\star$ lies in $\Theta$}; otherwise the constrained infimum is
-larger and the formula is not a valid lower bound. Taking the worst $k \ne k^\star$ and
-the best $w$ gives the theorem's closed form. $\blacksquare$
+larger and the formula is not a valid lower bound. This is the infimum over
+$\mathrm{Alt}^h_k \subseteq \mathrm{Alt}_k$, so it upper-bounds the full-class rate
+($R \le R_{\mathrm{lin}}$) and yields a valid, weaker bound on compute; it does not
+establish equality with the infimum over all $h'_k \in \mathcal{H}$
+(Remark~\ref{rem:free-h}). Taking the worst $k \ne k^\star$ and the best $w$ gives the
+theorem's closed form for $T^{\mathrm{lin}}$. $\blacksquare$
 
 \begin{lemma}[Concavity of the characteristic-time program]
 \label{lem:concave}
 $w \mapsto \min_{k \ne k^\star} \inf_{\nu' \in \mathrm{Alt}_k(\nu)} \sum_s w(k,s)\,
-\mathrm{KL}(P^\nu_{k,s}, P^{\nu'}_{k,s})$ is concave; in the linear-Gaussian case this is
-$\min_{k \ne k^\star} \Delta_k^2 / (2 J_k^\top I_k(w)^{-1} J_k)$.
+\mathrm{KL}(P^\nu_{k,s}, P^{\nu'}_{k,s})$ is concave; for the fixed-$h$ subclass of the
+linear-Gaussian case this is $\min_{k \ne k^\star} \Delta_k^2 / (2 J_k^\top I_k(w)^{-1}
+J_k) = R_{\mathrm{lin}}(w)$.
 \end{lemma}
 \begin{proof}
 For fixed $k$ and $\nu'$, $\sum_s w(k,s)\,\mathrm{KL}$ is linear in $w$, so the infimum
