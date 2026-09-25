@@ -73,28 +73,82 @@ def _active_jacobian_rows(
     return np.array(rows, dtype=float)
 
 
-def _equilibration(info: np.ndarray) -> np.ndarray:
-    """Jacobi scaling `s_i = sqrt(I_ii)` (1 where a parameter has no
-    information at all). Fisher information for these fits mixes parameters
-    whose Jacobian entries differ by ~10 orders of magnitude (`E` ~ 1,
-    `d/d alpha` ~ 1e-10), so `I` is ill-conditioned by *units* alone;
-    `S^-1 I S^-1` removes that without changing what is identifiable."""
-    diag = np.diag(info)
-    return np.where(diag > 0.0, np.sqrt(np.where(diag > 0.0, diag, 1.0)), 1.0)
+def _weighted_design(
+    model: Extrapolator,
+    scales: list[Scale],
+    sigma2: Callable[[Scale], float],
+    w_arm: np.ndarray,
+) -> np.ndarray:
+    """The weighted design `A` (one row per scale carrying positive weight) with
+    `A^T A = I_k(w) = sum_s w(s) J(s) J(s)^T / sigma2(s)`: row `s` is
+    `sqrt(w(s) / sigma2(s)) * J(s)`. Everything below works from `A` itself (its
+    SVD), never from `I = A^T A`: forming `I` squares the condition number."""
+    rows = []
+    for wi, s in zip(w_arm, scales, strict=True):
+        if wi <= 0.0:
+            continue
+        sig2 = sigma2(s)
+        if sig2 <= 0:
+            raise ValueError(f"sigma2({s!r}) must be positive, got {sig2}")
+        rows.append(np.sqrt(wi / sig2) * np.asarray(model.jacobian(s), dtype=float))
+    if not rows:
+        return np.zeros((0, model.n_params))
+    return np.array(rows, dtype=float)
 
 
-def _info_solve(info: np.ndarray, j_star: np.ndarray) -> np.ndarray:
-    """`I^+ J_target`, computed on the Jacobi-equilibrated matrix
-    (`I = S I_eq S`, so `I^+ = S^-1 I_eq^+ S^-1`)."""
-    scale = _equilibration(info)
-    info_eq = info / np.outer(scale, scale)
-    return (np.linalg.pinv(info_eq, hermitian=True) @ (j_star / scale)) / scale
+#: Relative tolerance on the part of the target Jacobian lying in singular directions of the
+#: weighted design that the rank cutoff discards; above it the target's variance is not
+#: computable from this design and the arm is reported as having NO information.
+_DISCARDED_TARGET_RTOL = 1e-8
 
 
-def _target_denom(info: np.ndarray, j_star: np.ndarray, j_rows: np.ndarray) -> float:
-    """`J_target^T I^-1 J_target`, or 0.0 ("no information", the contract
-    `_arm_rate` documents) when the target is structurally unidentifiable
-    from the design.
+def _solve_weighted(a: np.ndarray, j_star: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """`f = J*^T (A^T A)^+ J*` and `y = (A^T A)^+ J*` for a stack of weighted designs
+    `a` of shape `(..., n_rows, p)` and one target Jacobian `j_star` of shape `(p,)`,
+    returned as `(f, y)` of shapes `(...,)` and `(..., p)`.
+
+    Computed from the SVD of the column-equilibrated design, `f = ||S^-1 V^T j_eq||^2`,
+    so a weak but genuinely identified direction (a tiny sampling weight on a scale
+    that alone resolves one parameter) contributes its true, LARGE variance.
+    Second-round review of PR #28: the earlier version inverted the equilibrated
+    information matrix (`pinv(A^T A)`), whose cutoff discarded such a direction as if
+    it carried zero variance -- e.g. `LogLinear`, candidates `N = e, e^2`, target
+    `N = e^3`, weights `[1, 1e-16]`: rate `.00125` returned against a true `1.25e-19`.
+
+    Fail-closed: if the rank cutoff discards a singular direction in which the target
+    has a non-negligible component (relative > `_DISCARDED_TARGET_RTOL`), the result is
+    `f = 0`, `y = 0` -- the caller's "no information" contract (`rate = 0`), which is
+    the conservative reading -- never a small finite variance from a dropped direction.
+    Works identically for one design (add a leading axis) and for the brute-force
+    path's stack of designs.
+    """
+    a = np.asarray(a, dtype=float)
+    batch_shape = a.shape[:-2]
+    if a.shape[-2] == 0:
+        return np.zeros(batch_shape), np.zeros(batch_shape + (a.shape[-1],))
+    col = np.linalg.norm(a, axis=-2)  # (..., p)
+    col = np.where(col > 0.0, col, 1.0)
+    a_eq = a / col[..., None, :]
+    j_eq = j_star / col  # (..., p)
+    _, sing, vt = np.linalg.svd(a_eq, full_matrices=False)  # sing (..., k), vt (..., k, p)
+    tol = max(a.shape[-2:]) * np.finfo(float).eps * sing[..., :1]
+    keep = sing > tol
+    proj = np.einsum("...kp,...p->...k", vt, j_eq)
+    total2 = np.sum(j_eq**2, axis=-1)
+    discarded2 = np.sum(np.where(keep, 0.0, proj**2), axis=-1)
+    fail = discarded2 > (_DISCARDED_TARGET_RTOL**2) * np.maximum(total2, 1e-300)
+    z = np.where(keep, proj / np.where(keep, sing, 1.0), 0.0)  # S^-1 V^T j_eq
+    f = np.sum(z**2, axis=-1)
+    y_eq = np.einsum("...kp,...k->...p", vt, z / np.where(keep, sing, 1.0))  # V S^-2 V^T j_eq
+    y = y_eq / col
+    f = np.where(fail, 0.0, f)
+    y = np.where(fail[..., None], 0.0, y)
+    return f, y
+
+
+def _target_denom(a: np.ndarray, j_star: np.ndarray, j_rows: np.ndarray) -> float:
+    """`J_target^T I^-1 J_target` (with `I = A^T A`), or 0.0 ("no information", the
+    contract `_arm_rate` documents) when the target is unidentifiable from the design.
 
     PR #28's reviews: `np.linalg.pinv` silently treats any direction
     outside `range(I)` as contributing ZERO variance (its minimum-norm
@@ -105,27 +159,25 @@ def _target_denom(info: np.ndarray, j_star: np.ndarray, j_rows: np.ndarray) -> f
     small, finite, plausible-looking number when the truth is "cannot be
     estimated at all from this design".
 
-    The first fix tested `I @ pinv(I) @ J_target ~= J_target` with a 10%
-    relative tolerance -- wrong in both directions (second-round review):
-    a target whose missing component is only 5% of `||J_target||` (e.g.
-    `J_target = [1, .05]` against a design that only ever sees `[1, 0]`)
-    passed the 10% test and got a finite variance, while a tight tolerance
-    false-triggered on ordinary ill-conditioned designs (roundoff residual
-    up to ~0.5% at condition ~1e14). The two are different questions and
-    are now separated: *structural* identifiability -- is `J_target` in the
-    row space of the *observed-scale Jacobians* (`j_rows`, one per scale
-    with positive weight)? -- is decided on the unweighted, equilibrated
-    Jacobians by `pdt.theory.identifiability.target_in_row_space`, with a
-    numerical-rank tolerance appropriate to that matrix; numerical
-    ill-conditioning of the weighted information is left to the (also
-    equilibrated) pseudo-inverse, where it correctly shows up as a large
-    but finite variance.
+    Three separate questions, three separate checks:
+    1. *Structural identifiability* -- is `J_target` in the row space of the
+       observed-scale Jacobians (`j_rows`, one per scale with positive weight)?
+       Decided on the unweighted, equilibrated Jacobians by
+       `pdt.theory.identifiability.target_in_row_space` (a 5%-missing component is
+       already rejected; a loose 10% residual test was the first, wrong, fix).
+    2. *Numerical resolvability of the weighted design* -- is the target's variance
+       computable, or does the rank cutoff of the WEIGHTED design discard a direction
+       the target uses? `_solve_weighted` fails closed (returns 0 information).
+    3. *Ill-conditioning* -- a weak but resolved direction is a large finite variance,
+       reported as such, because the solve works from `A`'s SVD (conditioning of `A`,
+       not of `A^T A`).
     """
     if not np.any(j_star):
         return 0.0
     if not target_in_row_space(j_rows, j_star):
         return 0.0
-    return float(j_star @ _info_solve(info, j_star))
+    f, _ = _solve_weighted(a[None, ...], j_star)
+    return float(f[0])
 
 
 def _arm_rate(
@@ -139,16 +191,17 @@ def _arm_rate(
     """Delta_k^2 / (2 * J_target^T I_k(w)^-1 J_target); 0 if I_k(w) carries
     no information at all in the direction of J_target (would need
     infinite compute -- a real, not a numerically-degenerate, limit)."""
-    info = _fisher_information(model, scales, sigma2, w_arm)
     j_star = model.jacobian(target_scale)
-    # pinv rather than inv: I_k(w) is only guaranteed PSD, not PD, at an
-    # arbitrary w (e.g. w_arm all zero, or concentrated on scales whose
-    # Jacobians don't span p dimensions) -- exactly the "rank-deficient
-    # design" case Theorem 3 already treats as a real, not a numerical,
-    # phenomenon. `_target_denom` (not a raw `j_star @ pinv @ j_star`)
-    # confirms J_target is actually estimable before trusting pinv's
-    # output -- see its docstring.
-    denom = _target_denom(info, j_star, _active_jacobian_rows(model, scales, w_arm))
+    # I_k(w) is only guaranteed PSD, not PD, at an arbitrary w (e.g. w_arm all zero, or
+    # concentrated on scales whose Jacobians don't span p dimensions) -- the
+    # "rank-deficient design" case Theorem 3 treats as a real phenomenon. Work from the
+    # weighted design's SVD and confirm the target is actually resolvable (fail closed)
+    # before trusting any variance -- see `_target_denom` / `_solve_weighted`.
+    denom = _target_denom(
+        _weighted_design(model, scales, sigma2, w_arm),
+        j_star,
+        _active_jacobian_rows(model, scales, w_arm),
+    )
     if denom <= 1e-300:
         return 0.0
     return (delta_k**2) / (2.0 * denom)
@@ -202,13 +255,14 @@ def _arm_rate_and_grad(
     and `solve_allocation`'s "zero subgradient -> stationary, done" exit
     is the right call in that case.
     """
-    info = _fisher_information(model, scales, sigma2, w_arm)
     j_star = model.jacobian(target_scale)
     n = len(w_arm)
-    f = _target_denom(info, j_star, _active_jacobian_rows(model, scales, w_arm))
+    a = _weighted_design(model, scales, sigma2, w_arm)
+    f = _target_denom(a, j_star, _active_jacobian_rows(model, scales, w_arm))
     if f <= 1e-300:
         return 0.0, np.zeros(n)
-    y = _info_solve(info, j_star)
+    _, y_stack = _solve_weighted(a[None, ...], j_star)
+    y = y_stack[0]
     c = (delta_k**2) / 2.0
     rate = c / f
     grad = np.empty(n)
@@ -472,27 +526,14 @@ def brute_force_allocation(
         j_star = model.jacobian(target_scale)  # (p,)
         w_arm = w_samples[:, a * n_scales : (a + 1) * n_scales]  # (n_samples, n_scales)
 
-        j_outer = np.einsum("si,sj->sij", j_scales, j_scales) / sig2[:, None, None]
-        info_batch = np.einsum("ns,sij->nij", w_arm, j_outer)  # (n_samples, p, p)
-        # Structural identifiability (see `_target_denom`): every Dirichlet
-        # sample has all weights positive, so the design's support is the
-        # full candidate set.
+        # Weighted-design stack A_n (rows sqrt(w_ns / sigma2_s) J_s): every Dirichlet sample has
+        # all weights positive, so the design's support is the full candidate set. The same
+        # SVD-based, fail-closed solve as the scalar path -- never a pinv of A^T A.
         if not target_in_row_space(j_scales, j_star):
             rates_per_arm[a] = 0.0
             continue
-        # Jacobi-equilibrated batched pseudo-inverse, as in `_info_solve`.
-        diag = np.einsum("nii->ni", info_batch)
-        scale_batch = np.where(diag > 0.0, np.sqrt(np.where(diag > 0.0, diag, 1.0)), 1.0)
-        info_eq_batch = info_batch / (scale_batch[:, :, None] * scale_batch[:, None, :])
-        y_batch = (
-            np.einsum(
-                "nij,nj->ni",
-                np.linalg.pinv(info_eq_batch, hermitian=True),
-                j_star[None, :] / scale_batch,
-            )
-            / scale_batch
-        )
-        f_batch = np.einsum("i,ni->n", j_star, y_batch)
+        a_batch = np.sqrt(w_arm / sig2[None, :])[:, :, None] * j_scales[None, :, :]
+        f_batch, _ = _solve_weighted(a_batch, j_star)
         rates_per_arm[a] = np.where(
             f_batch > 1e-300, (deltas[arm] ** 2) / (2.0 * np.maximum(f_batch, 1e-300)), 0.0
         )
