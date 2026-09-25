@@ -21,6 +21,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import sys
 
 for _blas_env_var in (
     "OMP_NUM_THREADS",
@@ -39,6 +40,7 @@ _SPEC = importlib.util.spec_from_file_location(
     "p1_07_bound_coverage", os.path.join(os.path.dirname(__file__), "p1_07_bound_coverage.py")
 )
 p107 = importlib.util.module_from_spec(_SPEC)
+sys.modules["p1_07_bound_coverage"] = p107  # dataclasses resolve annotations via sys.modules
 _SPEC.loader.exec_module(p107)
 
 _STORED_PATH = "results/p1_07_bound_coverage.json"
