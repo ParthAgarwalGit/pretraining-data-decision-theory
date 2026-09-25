@@ -3411,3 +3411,12 @@ only `analytic_v_k` changed and no value is negative. `any_bound_violation: fals
 change to the fitters, bootstrap code or P1-06 outputs.
 
 **Decided by:** Agent, following the third review.
+
+## 2026-09-25 — P3-06 regenerated after the certification gating and allocation-solver changes (PR #32)
+
+Regenerated on a clean tree (`git_dirty: false`) with `certification="assume_unproved_conditions"` passed explicitly (LogLinear is linear, but the tracking is adaptive, so only a first-check stop would be inside the proved
+regime) and the SVD-based allocation solve. **Outcomes identical** to the previous run in every cell: at `eta = 0` and `0.25 x` true bias 1 of 20 runs certified (wrongly; joint rate 0.05, exact 95% interval
+[0.001, 0.249] vs delta .1 -- no detectable violation at n = 20); at `eta >= 0.5 x` true bias no run certified (all hit the round cap); plug-in `eta_hat` ~0.049. The file records `certification_mode` /
+`certification_note`: "certified" here means the stopping rule fired under caller-assumed, unproved conditions.
+
+**Decided by:** Agent, following the third review.
