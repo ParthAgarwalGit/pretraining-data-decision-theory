@@ -298,6 +298,44 @@ def test_certified_and_abstain_are_mutually_exclusive_by_construction():
         assert not (certified and abstained)
 
 
+def test_naive_glr_statistic_diverges_and_stops_on_the_wrong_arm_when_bias_reverses_the_gap():
+    # Third review of PR #26: with a nonzero limit gap D = Delta + bias(D_k) (either sign) and
+    # v(t) -> 0, the naive statistic D^2 / (2 v(t)) DIVERGES and crosses a logarithmic threshold.
+    # A bias-reversed gap (D < 0) therefore yields a confident WRONG selection, not a run-forever.
+    delta = 0.05
+    true_gap = 0.1  # arm a truly better by 0.1
+    bias = -0.3  # a large bias reverses the fitted gap: D = -0.2 < 0
+    limit_gap = true_gap + bias
+    assert limit_gap < 0
+    stopped_at = None
+    for t in range(1, 10_000):
+        v = 0.5 / t  # variance proxy of the difference, shrinking like 1/t
+        statistic = limit_gap**2 / (2 * v)
+        if statistic > np.log(t / delta):
+            stopped_at = t
+            break
+    assert stopped_at is not None and stopped_at < 1000  # it does stop...
+    assert limit_gap < 0  # ...and the fitted leader is the WRONG arm
+
+    # a cancelling gap (D ~ 0) keeps the statistic bounded: undecided
+    for t in (10, 1_000, 100_000):
+        v = 0.5 / t
+        assert (1e-6) ** 2 / (2 * v) < np.log(t / delta)
+
+
+def test_eta_must_bound_the_conditional_bias_not_only_the_projection_bias():
+    # A constrained linear fit: g(theta, s) = theta on [0, 1], true theta = 0 (so the projection
+    # bias sigma_extrap = 0). E[clip(mean, 0, 1)] = sigma / sqrt(2 pi n) > 0: the conditional
+    # estimator bias is strictly positive, so eta = sqrt(sigma2_extrap) = 0 violates Assumption B.
+    rng = np.random.default_rng(2)
+    n_obs, sigma = 4, 1.0
+    ybar = rng.normal(0.0, sigma / np.sqrt(n_obs), size=400_000)
+    conditional_bias = float(np.mean(np.clip(ybar, 0.0, 1.0)))  # true target g(0, s*) = 0
+    projection_bias = 0.0
+    assert conditional_bias == pytest.approx(sigma / np.sqrt(2 * np.pi * n_obs), rel=0.02)
+    assert conditional_bias > projection_bias + 0.1
+
+
 if __name__ == "__main__":
     import sys
 

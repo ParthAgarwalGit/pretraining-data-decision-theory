@@ -279,6 +279,29 @@ def test_challenger_only_bound_is_a_factor_four_weaker_than_the_joint_one_for_co
     assert ws[np.argmax(rate_joint)] == pytest.approx(0.5, abs=1e-3)  # equal allocation
 
 
+def test_free_misspecification_can_flip_the_winner_with_zero_observed_kl():
+    # Third review of PR #24: Alt_k lets both theta and h change. A target-only bump that is
+    # ZERO on every accessible scale flips the winner at s_star while changing no observation's
+    # distribution, so its KL is 0 under every allocation -- the full-class rate is 0, whereas
+    # the fixed-h Fisher quadratic (theta-shifts only) is strictly positive.
+    accessible = np.array([1.0, 2.0, 4.0, 7.0])
+    s_acc, s_star = 7.0, 10.0
+    sigma2 = 0.04
+    delta_gap = 0.1
+    bump_amplitude = 0.3  # more than the gap: flips the winner at s_star
+    h_alt = bump_amplitude * _phi((accessible - s_acc) / (s_star - s_acc))
+    assert np.all(h_alt == 0.0)  # invisible on every accessible scale
+    w = np.array([0.25, 0.25, 0.25, 0.25])
+    kl_bump = float(np.sum(w * (h_alt**2) / (2 * sigma2)))
+    assert kl_bump == 0.0
+    assert delta_gap - bump_amplitude < 0  # the winner flips at s_star
+
+    # the in-family (h fixed) closed form for a constant-in-s model g(theta, s) = theta: J = 1
+    info = float(np.sum(w / sigma2))
+    rate_fixed_h = delta_gap**2 / (2.0 * (1.0 / info))
+    assert rate_fixed_h > 0.0  # strictly positive -> R <= R_lin with R = 0 < R_lin
+
+
 if __name__ == "__main__":
     import sys
 
