@@ -2248,3 +2248,15 @@ visibly a different quantity from Panel A -- confirming the two should never hav
 together. F1/F2/F4/F5 are unchanged in structure, only in the numbers they read.
 
 **Decided by:** Agent, following the review.
+
+## 2026-09-25 — Theorem 2: the closed form is the fixed-`h` (in-family) bound, not the full-class infimum (PR #24, third review)
+
+Reviewer: `Alt_k` lets both `theta_k` and `h_k` change, but the quadratic equality optimizes a `theta` shift with `h` unchanged;
+admissibility of that shift shows it is *one* candidate, not the minimizer over all `h`. A target-only bump that is zero on every
+accessible scale flips the winner with zero observed KL, while the Fisher quadratic is positive. Fix: the closed form is now
+stated as `R_lin`, the infimum over `Alt^h_k` (the `h`-fixed subclass); since `Alt^h_k ⊆ Alt_k`, `R <= R_lin`, hence
+`T^chal >= T^lin` and `E[C] >= kl * T^lin` -- a **valid but weaker** lower-bound program (what P3-02 solves), with equality only when `h` is
+fixed and known. New Remark: with rich `H` the full-class rate is 0 (the impossibility regime of Part B). The Lemma is restated for the
+fixed-`h` subclass. Test: a zero-on-accessible-scales bump has KL exactly 0 and flips the winner, against a strictly positive in-family rate.
+
+**Decided by:** Agent, following the third review.
