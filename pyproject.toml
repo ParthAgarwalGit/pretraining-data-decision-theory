@@ -16,10 +16,12 @@ core = [
     "polars>=1.9",
     "pyarrow>=17.0",
 ]
-# Hugging Face Hub access for DataDecide / Pythia / OLMo artifacts.
+# Hugging Face Hub access for DataDecide artifacts, plus direct HTTP for
+# Pythia's published evals (EleutherAI/pythia on GitHub, not HF Hub).
 hub = [
     "huggingface_hub>=0.35",
     "datasets>=3.0",
+    "requests>=2.31",
 ]
 # scipy.optimize (already in `core`) plus statsmodels for scaling-law fits
 # and the delta-method sandwich covariance used by src/pdt/theory/bound.py.

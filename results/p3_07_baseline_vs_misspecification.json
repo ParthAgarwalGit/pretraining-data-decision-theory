@@ -1,0 +1,105 @@
+{
+  "provenance": {
+    "git_sha": "99a47056062c8e09ac425941442a7012f44dec14",
+    "git_dirty": false,
+    "utc_timestamp": "2026-09-19T08:24:43.791065+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "P3-07-F8",
+      "bias_multipliers": [
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        2.0,
+        3.0
+      ],
+      "n_runs": 30
+    }
+  },
+  "data": {
+    "observed_gap": 0.05,
+    "crossing_point_bias_multiplier": 1.0,
+    "sweep": [
+      {
+        "bias_multiplier": 0.0,
+        "true_bias": 0.0,
+        "true_winner": "leader",
+        "accuracy": {
+          "SingleScale": 0.8,
+          "FixedLadderExtrapolation": 0.7,
+          "UniformAllocation": 0.7,
+          "SuccessiveHalvingOverScales": 0.8666666666666667
+        }
+      },
+      {
+        "bias_multiplier": 0.5,
+        "true_bias": 0.025,
+        "true_winner": "leader",
+        "accuracy": {
+          "SingleScale": 0.8,
+          "FixedLadderExtrapolation": 0.7,
+          "UniformAllocation": 0.7,
+          "SuccessiveHalvingOverScales": 0.8666666666666667
+        }
+      },
+      {
+        "bias_multiplier": 1.0,
+        "true_bias": 0.05,
+        "true_winner": "leader",
+        "accuracy": {
+          "SingleScale": 0.8,
+          "FixedLadderExtrapolation": 0.7,
+          "UniformAllocation": 0.7,
+          "SuccessiveHalvingOverScales": 0.8666666666666667
+        }
+      },
+      {
+        "bias_multiplier": 1.5,
+        "true_bias": 0.07500000000000001,
+        "true_winner": "underdog",
+        "accuracy": {
+          "SingleScale": 0.2,
+          "FixedLadderExtrapolation": 0.3,
+          "UniformAllocation": 0.3,
+          "SuccessiveHalvingOverScales": 0.13333333333333333
+        }
+      },
+      {
+        "bias_multiplier": 2.0,
+        "true_bias": 0.1,
+        "true_winner": "underdog",
+        "accuracy": {
+          "SingleScale": 0.2,
+          "FixedLadderExtrapolation": 0.3,
+          "UniformAllocation": 0.3,
+          "SuccessiveHalvingOverScales": 0.13333333333333333
+        }
+      },
+      {
+        "bias_multiplier": 3.0,
+        "true_bias": 0.15000000000000002,
+        "true_winner": "underdog",
+        "accuracy": {
+          "SingleScale": 0.2,
+          "FixedLadderExtrapolation": 0.3,
+          "UniformAllocation": 0.3,
+          "SuccessiveHalvingOverScales": 0.13333333333333333
+        }
+      }
+    ],
+    "note": "Baselines have no eta/bias-budget input at all -- what's swept here is the TRUE bias magnitude in the generating instance, not an assumed eta (contrast results/p3_06_eta_sensitivity.json, which sweeps ETS's assumed eta at a FIXED true bias). true_winner flips from leader to underdog at bias_multiplier=1.0; a baseline whose accuracy does not correspondingly flip is confidently wrong past that point, exactly the failure mode ETS's eta mechanism exists to avoid."
+  }
+}

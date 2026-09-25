@@ -1,0 +1,267 @@
+% paper/sections/theorem4_algorithm.tex -- P2-05, plan/03-phase2-theory.md.
+%
+% Standalone section fragment, \input{} by paper/main.tex once P6-01 builds
+% the skeleton. Same preamble requirements as the other theoremN files.
+% Additionally requires \newtheorem{conjecture}{Conjecture} (Conjecture~\ref{conj:robust-time}).
+% Depends on setup.tex, theorem1_bound.tex, theorem2_lower_bound.tex,
+% theorem3_identifiability.tex's notation and machinery. This section
+% DEFINES the algorithm P3-03 implements -- P3 should treat this
+% definition as the spec, not re-derive its own.
+
+\section{Theorem 4: correctness of Extrapolation-Track-and-Stop}
+\label{sec:theorem4}
+
+\subsection{The algorithm}
+\label{sec:theorem4-algorithm}
+
+\textbf{Inputs:} $\delta \in (0, 1/2)$, an upper bound $\eta_k$ on each arm's
+\emph{conditional estimator bias} $\big|\mathbb{E}[\hat\mu_k(s^\star;t) \mid \text{design}_t] -
+\mu_k(s^\star)\big|$ at every round $t$ (Assumption~B below). For unconstrained linear least
+squares on a non-adaptive design this conditional mean is $g(\theta_k^{\dagger}, s^\star)$, so
+$\eta_k \ge \sqrt{\sigma^2_{\mathrm{extrap},k}}$ suffices; for nonlinear or constrained fits, or
+adaptive designs, the conditional mean also carries finite-sample estimator bias and
+constraint (clipping) bias, which $\sigma^2_{\mathrm{extrap},k}$ does \emph{not} bound, so
+$\eta_k$ must cover them (an \emph{assumed} bound supplied
+by the user -- see Section~\ref{sec:theorem4-eta} for why it must be an input, not a
+discovered quantity; a point estimate such as P1-06's clipped estimator,
+Remark~\ref{rem:sigma2-extrap-estimator}, is a heuristic and does not by itself make the
+bound valid), the \emph{known} noise-variance function $\sigma^2(\cdot)$ used to compute
+$v_k(t)$, a design shape $\pi$ (the relative weighting across scales that
+Theorem~\ref{thm:lower-bound}'s $T^\star(\nu)$ program optimizes; supplied by P3-02's
+solver, plugged in with the current $\hat\theta_k$'s; note that this program is the
+\emph{challenger-only} $T^{\mathrm{chal}}$ of Theorem~\ref{thm:lower-bound}, which is not
+the tight characteristic time -- see Remark~\ref{rem:challenger-only} -- so the tracking
+target is a heuristic design, plus a reserved share for the current leader).
+
+\textbf{Tracking (round $t$):} pull $(\arg\min_{k,s} N_k(s,t) / \pi(k,s))$ -- the
+most-under-sampled (arm, scale) pair relative to the target allocation $\pi$, the
+standard "C-tracking" rule (Garivier \& Kaufmann, 2016) applied to $\pi$ instead of a
+per-arm allocation. \emph{Cited, standard}: this specific tracking rule and its
+property (empirical allocation converges to $\pi$) are unchanged from the classical
+literature; nothing here is specific to the parametric setting.
+
+\textbf{Stopping and recommendation (round $t$):} let $\hat{k}(t) = \arg\max_k
+\hat\mu_k(s^\star; t)$ (current leading arm), and for each $k \ne \hat{k}(t)$:
+\[
+  \widehat{\Delta}_k(t) = \hat\mu_{\hat{k}(t)}(s^\star;t) - \hat\mu_k(s^\star;t), \qquad
+  c_k(t, \delta) = \sqrt{2\big(v_{\hat{k}(t)}(t) + v_k(t)\big) \log(1/\beta(t,\delta))}
+\]
+for a threshold $\beta(t,\delta)$ chosen so that the confidence event of
+Section~\ref{sec:theorem4-correctness} below holds \emph{simultaneously over rounds and over
+ordered arm pairs}: with $K$ arms,
+$\beta(t,\delta) = \delta / \big(t(t+1)\,K(K-1)\big)$. The $t(t+1)$ factor spends $\delta$
+across time for one fixed comparison; the $K(K-1)$ factor is needed because the
+leader $\hat{k}(t)$ is data-dependent, so every ordered pair $(a,b)$ could be the
+compared pair and all must be covered at once (dividing only by time, as in the standard
+single-comparison construction, controls one fixed comparison, not the algorithm's
+data-selected ones). Define
+\[
+  \textsc{Certified}_k(t) = \big\{ \widehat{\Delta}_k(t) - \eta_{\hat{k}(t)} - \eta_k
+    \;>\; c_k(t,\delta) \big\}, \qquad
+  \textsc{Abstain}_k(t) = \big\{ c_k(t,\delta) \le \epsilon_0 \ \text{ and }\
+    \widehat{\Delta}_k(t) - \eta_{\hat{k}(t)} - \eta_k \;\le\; c_k(t,\delta) \big\}
+\]
+for a small fixed tolerance $\epsilon_0 > 0$ (a practical "close enough" cutoff for
+"the confidence radius has stopped shrinking usefully"; any fixed $\epsilon_0$ works for
+Theorem~\ref{thm:algorithm-correctness}'s asymptotic claims, since the abstention event
+below is driven by $\eta$, not $\epsilon_0$, as $t \to \infty$).
+\begin{itemize}
+  \item \textbf{Stop and output $\hat{k}(t)$} if $\textsc{Certified}_k(t)$ holds for
+    every $k \ne \hat{k}(t)$.
+  \item \textbf{Abstain, output "cannot certify; recommend $s_{\mathrm{rec}}$"} if
+    $\textsc{Abstain}_k(t)$ holds for any $k \ne \hat{k}(t)$, where $s_{\mathrm{rec}}$ is
+    the single-scale (Corollary~\ref{cor:single-scale}) recommendation at the largest
+    scale actually observed.
+  \item Otherwise, continue tracking.
+\end{itemize}
+
+\subsection{Why a bias floor, not a growing threshold}
+\label{sec:theorem4-eta}
+
+\begin{remark}[Why a bias floor: the naive statistic is confidently wrong, or undecided at a tie]
+Classical Track-and-Stop's GLR statistic is (up to constants) $\widehat{\Delta}_k(t)^2 /
+(2(v_{\hat{k}}(t)+v_k(t)))$, compared against a threshold $\sim \log(t/\delta)$ that
+\emph{grows} with $t$. Here $\widehat\Delta_k(t) \to D_k^\dagger = \Delta_k +
+\mathrm{bias}(D_k)$ (Corollary~\ref{cor:pairwise}), not $\Delta_k$, while $v(t) \to 0$.
+\emph{If $D_k^\dagger \ne 0$} -- whatever its sign -- the statistic $\widehat\Delta_k(t)^2/v(t)$
+\emph{diverges} and crosses any threshold growing only logarithmically, so the naive rule
+\emph{does} stop. It stops \emph{confidently on the wrong arm} whenever the bias has
+reversed the gap, $D_k^\dagger = \Delta_k + \mathrm{bias}(D_k) < 0$: a large bias produces a
+confident false selection, not a run-forever. Only a \emph{cancelling} gap,
+$D_k^\dagger \approx 0$ ($\mathrm{bias}(D_k) \approx -\Delta_k$), leaves the statistic bounded
+and the naive rule undecided; that case needs its own analysis. This is why route (b)
+(condition on a known/assumed $\eta$, rather than route (a), inflating the confidence level)
+is used: $\textsc{Certified}_k(t)$ compares a \emph{shrinking} $c_k(t,\delta)$ against a
+\emph{fixed} bias floor $\eta_{\hat{k}}+\eta_k$, so it certifies only when the observed gap
+exceeds what the assumed bias could account for -- it is not fooled by a bias-reversed gap
+(provided $\eta$ is valid) and it recognizes when further compute cannot help.
+\end{remark}
+
+\subsection{Correctness: what is proved and what is assumed}
+\label{sec:theorem4-correctness}
+
+\begin{definition}[Simultaneous confidence event]
+\label{def:sc}
+Let $\mathcal{E}$ be the event that, for \emph{every} round $t \ge 1$ and \emph{every} ordered
+pair $(a,b)$ of arms, the \emph{noise part} of the difference statistic is within its radius:
+\[
+  \Big( \hat\mu_a(s^\star;t) - \hat\mu_b(s^\star;t)\Big)
+  - \mathbb{E}\big[\hat\mu_a(s^\star;t) - \hat\mu_b(s^\star;t) \,\big|\, \text{design}\big]
+  \;\le\; c_{ab}(t,\delta).
+\]
+\end{definition}
+
+\begin{theorem}[$\delta$-correctness, conditional on $\eta$ and on $\mathcal{E}$]
+\label{thm:algorithm-correctness}
+(a) \emph{Deterministic implication.} \textbf{Assumption B:} for every arm $k$ and every
+round $t$, $\big|\mathbb{E}[\hat\mu_k(s^\star;t) \mid \text{design}_t] - \mu_k(s^\star)\big|
+\le \eta_k$ -- $\eta_k$ bounds the \emph{conditional estimator bias} that
+Definition~\ref{def:sc} centres on, not the population projection bias
+$\sqrt{\sigma^2_{\mathrm{extrap},k}}$ alone. (For unconstrained linear least squares and a
+non-adaptive design the two coincide, so $\eta_k \ge \sqrt{\sigma^2_{\mathrm{extrap},k}}$
+suffices there; for nonlinear or constrained fits, or adaptive designs, they differ by the
+finite-sample estimator bias and Assumption~B must be supplied separately.) Under
+Assumption~B and $\mathcal{E}$, whenever the algorithm stops and outputs $\hat{k}$, $\hat{k} =
+k^\star$. Hence $\mathbb{P}[\hat{k} \ne k^\star] \le \mathbb{P}[\mathcal{E}^c]$.
+(b) \emph{$\mathbb{P}[\mathcal{E}^c] \le \delta$ for a fixed, non-adaptive schedule.} If $g$ is linear
+in $\theta$, the noise is independent sub-Gaussian with the \emph{known} variance proxy
+$\sigma^2(s)$ used in $v_k(t)$, and the pulled design at each round does not depend on the
+noise being certified (a pre-committed schedule), then each noise part is exactly
+sub-Gaussian with proxy $v_a(t) + v_b(t)$, a one-sided Chernoff bound gives
+$\mathbb{P}[\text{violation at }(t,a,b)] \le \beta(t,\delta)$, and the union bound over rounds and
+ordered pairs gives $\mathbb{P}[\mathcal{E}^c] \le \sum_{t \ge 1} \sum_{a \ne b}
+\delta / (t(t+1)K(K-1)) = \delta$.
+(c) \emph{Adaptive tracking: not proved.} With the adaptive tracking rule the pulled design at
+round $t$ is a function of earlier noise, so $\hat\mu_a - \hat\mu_b$ is not conditionally
+Gaussian given the design and part~(b)'s per-round Chernoff bound does not apply. A
+valid statement needs a self-normalized / martingale confidence sequence for
+least squares under data-dependent designs and a data-selected leader; \textbf{this is not
+supplied here}. For the adaptive algorithm $\mathbb{P}[\mathcal{E}^c] \le \delta$ is an
+\emph{assumption} (listed as A4 in the implementation, \texttt{src/pdt/bai/ets.py}); for
+nonlinear $g$ a hypothesis of the form (H) of Theorem~\ref{thm:main-bound}(ii) is
+additionally required. The implementation's ``certified'' outcome is
+accordingly a $\delta$-level statement \emph{under} these assumptions, supported by simulation
+but not proved.
+\end{theorem}
+
+\begin{proof}
+(a) Suppose the algorithm stops at $\tau$ with $\hat{k} = \hat{k}(\tau) \ne k^\star$. Then for the
+pair $(a,b) = (\hat{k}, k^\star)$, $\textsc{Certified}$ gives $\widehat\Delta_{k^\star}(\tau) -
+\eta_{\hat{k}} - \eta_{k^\star} > c_{ab}(\tau,\delta)$. The estimator's conditional mean satisfies
+$\mathbb{E}[\hat\mu_a - \hat\mu_b \mid \text{design}] \le \mu_a(s^\star) - \mu_b(s^\star) + \eta_a
++ \eta_b$ (Assumption~B applied to each arm at round $\tau$, conditionally on that round's
+design), and
+$\mu_a(s^\star) - \mu_b(s^\star) < 0$ because $a \ne k^\star$ is worse than $b = k^\star$. So the
+noise part exceeds $c_{ab}(\tau,\delta)$, contradicting $\mathcal{E}$ at $(\tau, a, b)$. (b) is the
+stated Chernoff-plus-union-bound computation; the tail bound is one-sided sub-Gaussian
+($\mathbb{P}[X - \mathbb{E}X \ge c] \le e^{-c^2/(2 v)}$ with $c^2 = 2v\log(1/\beta)$), and
+$\sum_{t\ge1} 1/(t(t+1)) = 1$. (c) is a statement of what is missing. $\blacksquare$
+\end{proof}
+
+\subsection{Sample complexity: no asymptotic-optimality claim}
+\label{sec:theorem4-optimality}
+
+An earlier draft asserted $\mathbb{E}_\nu[C(\tau)]/\log(1/\delta) \to T^\star(\nu)$ (Theorem~\ref{thm:lower-bound}'s
+characteristic time) for tracking with the optimizer $w^\star(\nu)$. \textbf{That claim is
+withdrawn}, for three reasons:
+\begin{enumerate}
+  \item \emph{The stopping margin does not tend to the true gap.} With a fixed bias budget
+    the stopping condition compares $\widehat\Delta_k(t) - \eta_{\hat{k}} - \eta_k$, which tends to
+    $D_k^\dagger - \eta_{k^\star} - \eta_k$ -- not to $\Delta_k$. Even with $h \equiv 0$ (no
+    misspecification, so $D_k^\dagger = \Delta_k$) and any conservative $\eta > 0$, the margin is
+    permanently reduced, and this changes the leading $1/\text{margin}^2$ constant of the
+    complexity. The $\eta$'s do not vanish as $\delta \to 0$. The relevant quantity is the
+    \emph{robust gap} $\Delta_k^{\eta} = D_k^\dagger - \eta_{k^\star} - \eta_k$, and the
+    algorithm stops (eventually) only if $\Delta_k^{\eta} > 0$ for every $k$; otherwise it
+    abstains (Theorem~\ref{thm:abstention}).
+  \item \emph{The stopping rule uses both arms' variances.} $c_k(t,\delta)$ involves
+    $v_{\hat{k}}(t) + v_k(t)$, so the relevant design program is the \emph{joint} (pairwise) one, in
+    which the leader's information enters -- whereas the program the tracking rule uses is
+    the challenger-only $T^{\mathrm{chal}}$, which omits it (Remark~\ref{rem:challenger-only};
+    the reserved leader share in the implementation is a heuristic patch, not a
+    derived allocation).
+  \item \emph{No proof.} The Track-and-Stop asymptotic-optimality argument (Garivier \&
+    Kaufmann, 2016) has not been adapted to this parametric, bias-floored, adaptive setting
+    (tracking convergence and the stopping-time lemmas use per-arm sample-mean concentration;
+    here they would need Theorem~\ref{thm:main-bound}'s nonlinear concentration, unproved,
+    and an adaptive confidence sequence, part~(c) above).
+\end{enumerate}
+
+\begin{conjecture}[Robust characteristic time -- unproved]
+\label{conj:robust-time}
+If $\Delta_k^{\eta} > 0$ for all $k$, then as $\delta \to 0$ the expected compute of the
+algorithm with a tracking target equal to the optimizer of the \emph{joint robust program}
+$1/T^{\eta} = \sup_w \min_{k \ne k^\star}
+(\Delta_k^{\eta})^2 / \big(2 (J_{k^\star}^\top I_{k^\star}(w)^{-1} J_{k^\star}
++ J_k^\top I_k(w)^{-1} J_k)\big)$ satisfies $\mathbb{E}[C(\tau)]/\log(1/\delta) \to T^{\eta}$.
+This is stated as a target for future work, not a result; $T^{\eta}$ is not $T^\star$ of
+Theorem~\ref{thm:lower-bound}, and the matching lower bound for the robust problem is also
+not established.
+\end{conjecture}
+
+\subsection{Graceful abstention in the impossible regime}
+\label{sec:theorem4-abstention}
+
+\begin{theorem}[Abstention triggers with high probability in the impossible regime]
+\label{thm:abstention}
+Suppose the current design shape places nonzero weight on scales
+$s < s^\star$ only (Theorem~\ref{thm:impossibility}'s setting) and the true instance
+is one of a pair $\nu_1, \nu_2$ satisfying that theorem's hypothesis with
+$\eta_k \ge |\mathrm{bias}(D_k)|$ under either instance (i.e. the assumed $\eta$'s
+correctly bound \emph{this specific} construction's perturbation). Then, as $t \to
+\infty$ along the tracking rule, $\mathbb{P}[\textsc{Abstain}_k(t) \text{ eventually
+holds for the confusable } k] \to 1$; the algorithm does not run forever without
+resolution.
+\end{theorem}
+
+\begin{proof}
+Since $\nu_1,\nu_2$ agree on every scale $s<s^\star$ (Theorem~\ref{thm:impossibility}'s
+hypothesis), $\hat\theta_{k}(t)$'s distribution -- and hence
+$\widehat\Delta_k(t)$'s -- is identical whether the true instance is $\nu_1$ or $\nu_2$
+(Theorem~\ref{thm:impossibility}'s proof, same argument). C-tracking under either
+instance drives $v_{\hat{k}}(t) + v_k(t) \to 0$ (Theorem~\ref{thm:lower-bound} Step 2,
+unaffected by which instance is true, since it only depends on the design), so
+$c_k(t,\delta) \to 0$, eventually falling below any fixed $\epsilon_0$.
+By Theorem~\ref{thm:main-bound} Step 2 (delta-method consistency, under its case-(i)
+hypotheses or (ii) with $\rho \to 0$),
+$\widehat\Delta_k(t) \to D_k^\dagger$ in probability (the population pairwise difference under
+the true instance). Theorem~\ref{thm:impossibility}'s construction (Section
+\ref{sec:theorem2-construction}) is built exactly so that
+$|D_k^\dagger| \le \eta_{\hat{k}}+\eta_k$ under (at least) one of $\nu_1,\nu_2$ -- by
+hypothesis here, this holds for the true instance. Hence $\widehat\Delta_k(t) -
+\eta_{\hat{k}}-\eta_k \to D_k^\dagger - \eta_{\hat{k}}-\eta_k \le 0 \le c_k(t,\delta)$
+eventually (since $c_k(t,\delta) \ge 0$ always) with probability tending to $1$, so both
+conjuncts of $\textsc{Abstain}_k(t)$ hold with probability tending to $1$, giving the stated
+limit (convergence in probability; almost-sure convergence is not claimed). Mechanical,
+given the already-proven pieces cited.
+\end{proof}
+
+\begin{remark}[This is the practically valuable part]
+Theorem~\ref{thm:abstention} is what makes the algorithm a genuine \emph{diagnostic}, not
+just a best-arm-identification routine that happens to sometimes be wrong: rather than
+silently running past its useful horizon (or silently returning an answer with a
+falsely-inflated confidence), it detects -- from the same quantities
+(Theorem~\ref{thm:main-bound}'s bias/variance decomposition) already computed for every
+other purpose in this project -- exactly the situation Theorem~\ref{thm:impossibility}
+proves is hopeless at this design, and falls back to the one baseline
+(Corollary~\ref{cor:single-scale}) that needs no extrapolation assumption at all.
+\end{remark}
+
+\subsection{Numerical certificate}
+\label{sec:theorem4-certificate}
+
+\texttt{tests/theory/test\_theorem4.py} implements the \textsc{Certified}/\textsc{Abstain}
+stopping-and-abstention logic exactly as specified above (not the full adaptive
+C-tracking algorithm, which needs P3-02's $T^\star$ solver and is P3-03's job to build
+and P3-04's to simulate end-to-end) against simulated compute-increasing sequences at a
+\emph{fixed} design shape, using the same linear-in-theta simulation machinery as
+Theorem~\ref{thm:main-bound}'s certificate. It certifies part~(b)-type
+behaviour only (a fixed, non-adaptive design with known noise); it is not evidence for
+part~(c), the adaptive case. Checks: (a) in a solvable instance (true
+gap exceeds the assumed $\eta$ budget), the rule stops and selects $k^\star$ correctly
+in $\ge 1-\delta$ of repeated simulated runs; (b) in an instance built via
+Theorem~\ref{thm:impossibility}'s exact construction (Section
+\ref{sec:theorem2-construction}), the rule abstains (rather than stopping incorrectly,
+or never terminating within a generous compute cap) in effectively every run; (c) the
+algorithm never both stops \emph{and} abstains, and never falsely abstains when the
+true gap comfortably exceeds the $\eta$ budget.
