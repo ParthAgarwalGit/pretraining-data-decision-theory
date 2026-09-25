@@ -3132,3 +3132,13 @@ only `analytic_v_k` changed and no value is negative. `any_bound_violation: fals
 change to the fitters, bootstrap code or P1-06 outputs.
 
 **Decided by:** Agent, following the third review.
+
+## 2026-09-25 — P3-04 regenerated after the certification gating and allocation-solver changes (PR #30)
+
+Regenerated on a clean tree (`git_dirty: false`) with `certification="assume_unproved_conditions"` passed explicitly (PowerLawN + adaptive tracking: no proved conditions hold) and the SVD-based allocation solve.
+The file records `certification_mode` / `certification_note`. Seven of eight cells are identical; one differs because `solve_allocation` is iterative and its last-bit changes shifted a few trajectories:
+`delta = .05, eta = none, well-separated` now certifies **13/15** (was 11/15), 0 wrong. Current picture: `eta = none` well-separated cells certified **26 of 30 runs, 0 wrong**, exact 95% interval on the joint rate [0, 0.218] per cell (above both
+deltas, so the pilot still cannot verify delta-correctness); every `eta = large` cell never certified; **claim 2** compute-to-stop 3.14e18 (delta .05) vs 2.91e18 (delta .2) -- still not the `log(1/delta)` scaling, warm-up dominated;
+**claim 3** all reversing cells ended at the round cap (bias-floor abstention 0.0). The earlier statement "11/15" is superseded. Any "certified" here is under caller-assumed, unproved conditions.
+
+**Decided by:** Agent, following the third review.
