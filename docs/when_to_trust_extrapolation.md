@@ -5,30 +5,38 @@ Practitioner-facing guide for using `pdt.bai.ets.extrapolation_track_and_stop`
 
 ## The one thing that matters most: `eta` and `sigma2` are promises you make, not facts the algorithm discovers
 
-A `"certified"` outcome (default `variance_mode="known_sigma2"`) is a bound on a
-**joint** probability, precisely: `P[the algorithm certifies AND the certified
-recipe is wrong] <= delta` -- and it holds **only under stated assumptions**
-(printed in `result.certificate["assumptions"]`):
+**What "certified" means now.** By default (`certification="supported_only"`) the algorithm
+returns `"certified"` -- a bound on the **joint** probability `P[the algorithm certifies AND
+the certified recipe is wrong] <= delta` -- **only where that bound is proved**, and otherwise
+returns `"recommended"` (the stopping rule fired, but no error-probability claim is made;
+`result.certificate["unmet_supported_conditions"]` says why). The proved regime is narrow:
 
-- **A1** `sigma2` is a valid sub-Gaussian variance proxy for your oracle's noise.
-  It is an *input*, used as the known noise level in the stopping rule. The
-  algorithm does not estimate it, so under-stating it makes certification
-  over-confident, exactly as under-stating `eta` does.
-- **A2** `eta[k] >= sqrt(sigma2_extrap_k)` for every recipe `k`: `eta` must be a
-  genuine upper bound on how far each recipe's extrapolated prediction can be
-  from its true target-scale value. The algorithm cannot check this -- the whole
-  reason extrapolation is needed is that the true target-scale value is never
-  observed.
-- **A3** the prediction is linear in the observations: exact for `LogLinear`, a
-  first-order (delta-method) approximation for the nonlinear power-law fits,
-  whose curvature error is *not* covered by `eta` unless you fold it in.
-- **A4** the pulled design at each check is independent of the noise being
-  certified: exactly true only for the non-adaptive warm-up check; once the
-  tracking rule adapts scales to earlier noise it is a heuristic. This is **not
-  proved** (a self-normalized confidence sequence would be needed). In the
-  simulations recorded in `docs/decisions.md` it did not visibly matter (0
-  wrong certifications in 120 adaptive runs), which is supporting evidence,
-  not a guarantee.
+- **A1** `sigma2` is a valid sub-Gaussian variance proxy for your oracle's noise. It is an
+  *input*, used as the known noise level. The algorithm does not estimate it, so
+  under-stating it makes certification over-confident, exactly as under-stating `eta` does.
+- **A2** `eta[k]` bounds each recipe's *conditional estimator bias*
+  `|E[mu_hat_k | design] - mu_k(s*)|`. For unconstrained linear least squares on a
+  non-adaptive design that is the projection bias `sqrt(sigma2_extrap_k)`; for anything else
+  it also contains finite-sample and clipping bias, which you must cover. The algorithm
+  cannot check this -- the whole reason extrapolation is needed is that the true
+  target-scale value is never observed.
+- **linear, unclipped model** -- `LogLinear` with no parameter on its bound (checked at run
+  time). A nonlinear fit (the power laws, including the default `PowerLawN`) or a fit that
+  hits a bound is not an exactly Gaussian linear functional of the noise (a clipped mean
+  `clip(mean, 0, 1)` is neither Gaussian nor centred).
+- **a non-adaptive design** -- only the first check, right after the fixed warm-up. Once
+  tracking adapts scales to earlier noise, no adaptive confidence sequence is implemented,
+  so the guarantee is unproved.
+
+Because of the last two, **with the default settings `"certified"` is rare** -- a
+`LogLinear` model that separates the recipes at the first check -- and a stop after adaptive
+tracking, or with `PowerLawN`, is `"recommended"`. That is deliberate. If you *accept* the
+unproved conditions (**A3** linearization of a nonlinear fit, **A4** adaptive-design
+independence), say so explicitly with `certification="assume_unproved_conditions"`: you then
+get `"certified"` on any round, and `certificate["guarantee"]` starts `assumed_unproved`.
+The simulations in `docs/decisions.md` (0 wrong certifications in 120 adaptive runs; the
+P3-04/05/06 pilots, all run with this explicit assumption) are supporting evidence for that
+regime, **not a guarantee**.
 
 It is **not** "whenever the algorithm certifies, the recipe is right with
 probability `1 - delta`" (that is the *conditional* error rate,
@@ -66,7 +74,9 @@ rule now uses the known `sigma2` for the variance
 bound over rounds *and* over all ordered arm pairs (the leader is data-dependent);
 the same reproduction certifies 0 of 200 runs. The old residual-based variance
 survives only as `variance_mode="hc0_heuristic"`, which returns `"recommended"`
-and never `"certified"`. The remaining unproved step is A4 above.
+and never `"certified"`. A further third-round finding: known noise alone still did not
+justify `"certified"` after adaptive tracking or for a nonlinear fit, which is why the
+default `certification="supported_only"` now downgrades those stops to `"recommended"`.
 
 **When in doubt, over-estimate `eta` and `sigma2`, and prefer more replicates per
 scale over fewer.**

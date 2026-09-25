@@ -58,18 +58,20 @@ print(result.outcome, result.recipe, result.certificate)
 ```
 
 **Read [`docs/when_to_trust_extrapolation.md`](docs/when_to_trust_extrapolation.md)
-before picking `eta` and `sigma2`** — a `"certified"` outcome is a
-delta-level claim (a bound on `P[certifies AND wrong] <= delta`, not
-"certification is never wrong," and not the conditional error rate given
-certification) that holds **only under stated assumptions**, printed in
-`result.certificate["assumptions"]`: `sigma2` is the *known* noise variance,
-`eta` is a valid upper bound on each recipe's extrapolation bias, the
-prediction is linear in the data (exact for `LogLinear`, first-order for the
-nonlinear fits), and the design is independent of the noise being certified
-(exact for the non-adaptive warm-up check, an unproved heuristic once tracking
-adapts). Violating the first two can produce confident, wrong answers far more
-often than `delta`. With `variance_mode="hc0_heuristic"` the algorithm returns
-`"recommended"` instead: no error-probability claim at all.
+before picking `eta` and `sigma2`.** By default (`certification="supported_only"`) the
+algorithm returns `"certified"` — a bound on `P[certifies AND wrong] <= delta`, not
+"certification is never wrong" and not the conditional error rate — **only where the
+argument is proved**: `sigma2` is the *known* noise variance, `eta` a valid bound on each
+recipe's extrapolation bias, the model linear in its parameters with an unclipped fit
+(`LogLinear`), and the check made before any adaptive pull. Whenever the stopping rule fires
+otherwise — after adaptive tracking, or with a nonlinear fit such as the default `PowerLawN`
+(as in the quickstart above) — the outcome is `"recommended"`, with
+`result.certificate["unmet_supported_conditions"]` saying which condition failed, and no
+error-probability claim. If you accept the unproved conditions yourself, pass
+`certification="assume_unproved_conditions"`: you then get `"certified"` on any round,
+flagged `assumed_unproved` in the certificate. Violating the first two conditions can
+produce confident, wrong answers far more often than `delta`. `variance_mode="hc0_heuristic"`
+always returns `"recommended"`.
 
 Or from the command line, against a YAML config
 ([`configs/my_selection.yaml`](configs/my_selection.yaml) is a runnable

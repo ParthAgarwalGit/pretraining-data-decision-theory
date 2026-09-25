@@ -49,10 +49,19 @@ eta: 0.03
 # understating it makes certification over-confident. It is a promise, like eta.
 sigma2: 0.0001
 
-# `known_sigma2` (default): "certified" outcomes under the assumptions above.
+# `known_sigma2` (default): the variance is computed from the sigma2 above.
 # `hc0_heuristic`: variance estimated from fit residuals; returns "recommended"
 # (never "certified") because its error probability is not controlled.
 variance_mode: known_sigma2
+
+# What a satisfied stopping rule may be called.
+# `supported_only` (default): "certified" ONLY where the confidence argument is proved --
+# a linear model (LogLinear) with an unclipped fit, on the first check before any adaptive
+# pull. Everything else (adaptive tracking, nonlinear models such as PowerLawN below) is
+# reported as "recommended" with the reasons listed in the certificate.
+# `assume_unproved_conditions`: YOU accept the unproved conditions (linearization,
+# adaptive-design independence); "certified" on any round, flagged `assumed_unproved`.
+certification: supported_only
 
 model: PowerLawN
 max_rounds: 2000

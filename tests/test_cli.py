@@ -82,7 +82,7 @@ def test_build_oracle_rejects_unknown_type():
 
 def test_run_selection_returns_a_selection_result():
     result = run_selection(_SYNTHETIC_CFG)
-    assert result.outcome in ("certified", "abstained")
+    assert result.outcome in ("certified", "recommended", "abstained")
     assert result.recipe in ("a", "b")
 
 
@@ -91,6 +91,24 @@ def test_run_selection_default_variance_mode_lists_its_assumptions_when_certifie
     assert result.certificate.get("variance_mode", "known_sigma2") == "known_sigma2"
     if result.outcome == "certified":
         assert any(a.startswith("A1") for a in result.certificate["assumptions"])
+
+
+def test_run_selection_default_certification_never_certifies_a_nonlinear_model():
+    # The synthetic config uses PowerLawN (nonlinear) and adaptive tracking: with the default
+    # `supported_only`, a satisfied stopping rule is "recommended", never "certified".
+    result = run_selection(_SYNTHETIC_CFG)
+    assert result.outcome in ("recommended", "abstained")
+    if result.outcome == "recommended":
+        assert result.certificate["unmet_supported_conditions"]
+
+
+def test_run_selection_certification_key_is_passed_through_and_validated():
+    accepted = run_selection(dict(_SYNTHETIC_CFG, certification="assume_unproved_conditions"))
+    assert accepted.outcome in ("certified", "abstained")
+    if accepted.outcome == "certified":
+        assert accepted.certificate["guarantee"].startswith("assumed_unproved")
+    with pytest.raises(ValueError, match="certification"):
+        run_selection(dict(_SYNTHETIC_CFG, certification="bogus"))
 
 
 def test_run_selection_hc0_heuristic_never_reports_certified():
@@ -119,7 +137,7 @@ def test_main_select_prints_json_result(tmp_path, capsys):
 
     out = capsys.readouterr().out
     payload = json.loads(out)
-    assert payload["outcome"] in ("certified", "abstained")
+    assert payload["outcome"] in ("certified", "recommended", "abstained")
     assert payload["recipe"] in ("a", "b")
     assert "certificate" in payload
 

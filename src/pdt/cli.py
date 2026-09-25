@@ -13,13 +13,18 @@ this CLI; any object implementing that three-method protocol works (see
 `pdt.bai.oracle.PullOracle`, and the README quickstart). This CLI covers
 the two backends this project ships, not a general plugin system.
 
-**What the printed `outcome` means.** `"certified"` (default
-`variance_mode: known_sigma2`) is a delta-level claim under the assumptions
-listed in the printed `certificate["assumptions"]` -- in particular the config's
-`sigma2` is taken as the KNOWN noise variance and `eta` as a valid bias bound; it
-is not an unconditional guarantee. `variance_mode: hc0_heuristic` prints
-`"recommended"` instead, with no error-probability claim.
-`"abstained"` makes no correctness claim (see `certificate["reason"]`).
+**What the printed `outcome` means.** `"certified"` is a delta-level claim, and by
+default (`certification: supported_only`, `variance_mode: known_sigma2`) it is printed ONLY
+where the argument is proved: a linear model (`LogLinear`) whose fit is unclipped, on the
+first check, before any adaptive pull, with the config's `sigma2` the KNOWN noise variance
+and `eta` a valid bias bound. Every other time the stopping rule fires (adaptive tracking, a
+nonlinear model such as the default `PowerLawN`) it prints `"recommended"`, with
+`certificate["unmet_supported_conditions"]` saying why and NO error-probability claim.
+`certification: assume_unproved_conditions` is your explicit acceptance of the unproved
+conditions (linearization, adaptive-design independence): `"certified"` on any round, with
+`certificate["guarantee"]` starting `assumed_unproved`. `variance_mode: hc0_heuristic`
+always prints `"recommended"`. `"abstained"` makes no correctness claim
+(see `certificate["reason"]`).
 
 **The `datadecide` backend has a FINITE replicate pool** (`DataDecideOracle`'s
 own real+pseudo seeds -- see its docstring), and `select`'s default
@@ -141,6 +146,7 @@ def run_selection(cfg: dict[str, Any]) -> SelectionResult:
         min_pulls_per_pair=int(cfg.get("min_pulls_per_pair", 1)),
         rng=np.random.default_rng(cfg.get("seed", 0)),
         variance_mode=str(cfg.get("variance_mode", "known_sigma2")),
+        certification=str(cfg.get("certification", "supported_only")),
     )
 
 

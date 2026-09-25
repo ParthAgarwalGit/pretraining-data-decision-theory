@@ -3643,3 +3643,13 @@ change to the fitters, bootstrap code or P1-06 outputs.
 `close_top_two` unchanged to 10 digits): the well-conditioned instances are numerically unchanged and the iterative solver differs only in its last bits. F7's caveat (heuristic, challenger-only allocation) stands.
 
 **Decided by:** Agent, following the third review.
+
+## 2026-09-25 — API/CLI/guide aligned with the certification gating (PR #34, third-round follow-up to PR #29)
+
+PR #29's third review made `"certified"` conditional on a proved regime (linear unclipped model, non-adaptive check) by default. The user-facing surface is updated to say exactly that:
+`README.md` (the quickstart uses the nonlinear default `PowerLawN`, so it now returns `"recommended"` and says why), `docs/when_to_trust_extrapolation.md` (rewritten "what certified means now";
+A2 is stated as a bound on the *conditional estimator bias*; the linear/unclipped and non-adaptive conditions are explicit; the simulations are described as evidence for the caller-assumed regime),
+`configs/my_selection.yaml` (new `certification` key with comments), and `pdt select` (`certification` passthrough, validated, default `supported_only`; docstring). Tests: the default never certifies the nonlinear
+synthetic config; `assume_unproved_conditions` is passed through and flagged `assumed_unproved`; an unknown mode raises.
+
+**Decided by:** Agent, following the third review.
