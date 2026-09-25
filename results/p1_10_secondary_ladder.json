@@ -1,0 +1,638 @@
+{
+  "provenance": {
+    "git_sha": "1a46ac12fdea3a96900d0c41b5622f0a29c2eb88",
+    "git_dirty": false,
+    "utc_timestamp": "2026-09-19T08:23:59.413552+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "P1-10"
+    }
+  },
+  "data": {
+    "target_scale": "1.4b",
+    "metric": "acc",
+    "proxy_sizes": [
+      "70m",
+      "160m",
+      "410m"
+    ],
+    "tasks": [
+      "arc_challenge",
+      "arc_easy",
+      "piqa",
+      "winogrande",
+      "mmlu"
+    ],
+    "recipes": [
+      "standard",
+      "deduped"
+    ],
+    "b_replicates": 200,
+    "by_design": {
+      "le_160m": {
+        "sizes": [
+          "70m",
+          "160m"
+        ],
+        "by_task": {
+          "arc_challenge": {
+            "k_star": "deduped",
+            "true_gap": 0.011945392491467588,
+            "by_fitter": {
+              "ConstantExtrapolator": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.187449501287609,
+                    "v_hat": 5.352887763637656e-06,
+                    "bias_hat": -0.07278940656222033,
+                    "sigma2_extrap_hat": 0.005292918055477748,
+                    "sigma2_extrap_unclipped": 0.005292918055477748,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.20130583629083265,
+                    "v_hat": 4.854288140237166e-05,
+                    "bias_hat": -0.07087846405046427,
+                    "sigma2_extrap_hat": 0.004974971070343573,
+                    "sigma2_extrap_unclipped": 0.004974971070343573,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": 0.01385633500322362,
+                  "v_hat": 5.3407796442698866e-05,
+                  "bias_hat": 0.0019109425117560322,
+                  "sigma2_extrap_hat": 0.0,
+                  "sigma2_extrap_unclipped": -5.002313414167591e-05,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              }
+            }
+          },
+          "arc_easy": {
+            "k_star": "deduped",
+            "true_gap": 0.010521885521885488,
+            "by_fitter": {
+              "ConstantExtrapolator": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.43485010344354513,
+                    "v_hat": 4.591273350194546e-06,
+                    "bias_hat": -0.17163137803793638,
+                    "sigma2_extrap_hat": 0.029452715697484082,
+                    "sigma2_extrap_unclipped": 0.029452715697484082,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.4398279185879095,
+                    "v_hat": 0.00017533471866575356,
+                    "bias_hat": -0.17717544841545751,
+                    "sigma2_extrap_hat": 0.031214928128959367,
+                    "sigma2_extrap_unclipped": 0.031214928128959367,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": 0.004977815144364343,
+                  "v_hat": 0.00017777958282920597,
+                  "bias_hat": -0.0055440703775211445,
+                  "sigma2_extrap_hat": 0.0,
+                  "sigma2_extrap_unclipped": -0.00014793176439244454,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              }
+            }
+          },
+          "piqa": {
+            "k_star": "deduped",
+            "true_gap": 0.011425462459194846,
+            "by_fitter": {
+              "ConstantExtrapolator": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.627045185646639,
+                    "v_hat": 2.3512403985829508e-05,
+                    "bias_hat": -0.08187755646435113,
+                    "sigma2_extrap_hat": 0.006680304286567249,
+                    "sigma2_extrap_unclipped": 0.006680304286567249,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.6175993359199623,
+                    "v_hat": 6.252220387002428e-05,
+                    "bias_hat": -0.1027488686502227,
+                    "sigma2_extrap_hat": 0.010494495194011343,
+                    "sigma2_extrap_unclipped": 0.010494495194011343,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": -0.009445849726676711,
+                  "v_hat": 8.426047176696554e-05,
+                  "bias_hat": -0.020871312185871557,
+                  "sigma2_extrap_hat": 0.0003509298982343102,
+                  "sigma2_extrap_unclipped": 0.0003509298982343102,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              }
+            }
+          },
+          "winogrande": {
+            "k_star": "standard",
+            "true_gap": 0.007103393843725381,
+            "by_fitter": {
+              "ConstantExtrapolator": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.5288891632770674,
+                    "v_hat": 0.00010698255856724549,
+                    "bias_hat": -0.04411794011677639,
+                    "sigma2_extrap_hat": 0.0018388751687873858,
+                    "sigma2_extrap_unclipped": 0.0018388751687873858,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.4947702935595298,
+                    "v_hat": 0.00019920324712872738,
+                    "bias_hat": -0.07113341599058859,
+                    "sigma2_extrap_hat": 0.004859763607125754,
+                    "sigma2_extrap_unclipped": 0.004859763607125754,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": 0.0341188697175375,
+                  "v_hat": 0.0002894403388613321,
+                  "bias_hat": 0.027015475873812117,
+                  "sigma2_extrap_hat": 0.0004389483961328858,
+                  "sigma2_extrap_unclipped": 0.0004389483961328858,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              }
+            }
+          },
+          "mmlu": {
+            "k_star": "standard",
+            "true_gap": 0.0029555910157854637,
+            "by_fitter": {
+              "ConstantExtrapolator": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.24392999182390443,
+                    "v_hat": 2.7404692146413403e-05,
+                    "bias_hat": -0.02480710423559232,
+                    "sigma2_extrap_hat": 0.000587850704948397,
+                    "sigma2_extrap_unclipped": 0.000587850704948397,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.2550058675112704,
+                    "v_hat": 4.636859760121894e-06,
+                    "bias_hat": -0.010775637532440874,
+                    "sigma2_extrap_hat": 0.00011145432017162594,
+                    "sigma2_extrap_unclipped": 0.00011145432017162594,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": -0.01107587568736598,
+                  "v_hat": 3.146760702024424e-05,
+                  "bias_hat": -0.014031466703151444,
+                  "sigma2_extrap_hat": 0.0001652571127863022,
+                  "sigma2_extrap_unclipped": 0.0001652571127863022,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "le_410m": {
+        "sizes": [
+          "70m",
+          "160m",
+          "410m"
+        ],
+        "by_task": {
+          "arc_challenge": {
+            "k_star": "deduped",
+            "true_gap": 0.011945392491467588,
+            "by_fitter": {
+              "ConstantExtrapolator": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.21265575411059753,
+                    "v_hat": 9.52459688686412e-06,
+                    "bias_hat": -0.047583153739231804,
+                    "sigma2_extrap_hat": 0.002254584299900071,
+                    "sigma2_extrap_unclipped": 0.002254584299900071,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.20242440315323595,
+                    "v_hat": 2.6114618515974682e-05,
+                    "bias_hat": -0.06975989718806097,
+                    "sigma2_extrap_hat": 0.004840198064080283,
+                    "sigma2_extrap_unclipped": 0.004840198064080283,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": -0.010231350957361562,
+                  "v_hat": 3.3608127252191946e-05,
+                  "bias_hat": -0.02217674344882915,
+                  "sigma2_extrap_hat": 0.0004580317821067337,
+                  "sigma2_extrap_unclipped": 0.0004580317821067337,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              },
+              "LogLinear": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.23234653446336914,
+                    "v_hat": 2.8850707725799206e-05,
+                    "bias_hat": -0.027892373386460195,
+                    "sigma2_extrap_hat": 0.0007489895318652848,
+                    "sigma2_extrap_unclipped": 0.0007489895318652848,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.23616567547382644,
+                    "v_hat": 9.98982702124948e-05,
+                    "bias_hat": -0.03601862486747048,
+                    "sigma2_extrap_hat": 0.001196943575780006,
+                    "sigma2_extrap_unclipped": 0.001196943575780006,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": 0.003819141010457224,
+                  "v_hat": 0.0001335830037891169,
+                  "bias_hat": -0.008126251481010364,
+                  "sigma2_extrap_hat": 0.0,
+                  "sigma2_extrap_unclipped": -6.821495567543935e-05,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              }
+            }
+          },
+          "arc_easy": {
+            "k_star": "deduped",
+            "true_gap": 0.010521885521885488,
+            "by_fitter": {
+              "ConstantExtrapolator": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.521097969587352,
+                    "v_hat": 1.5746879980552854e-06,
+                    "bias_hat": -0.08538351189412952,
+                    "sigma2_extrap_hat": 0.0072887615419369115,
+                    "sigma2_extrap_unclipped": 0.0072887615419369115,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.5166168274152038,
+                    "v_hat": 1.1434793656101977e-05,
+                    "bias_hat": -0.10038653958816324,
+                    "sigma2_extrap_hat": 0.010065965362861482,
+                    "sigma2_extrap_unclipped": 0.010065965362861482,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": -0.004481142172148207,
+                  "v_hat": 1.3582406725129297e-05,
+                  "bias_hat": -0.015003027694033694,
+                  "sigma2_extrap_hat": 0.00021144052122918703,
+                  "sigma2_extrap_unclipped": 0.00021144052122918703,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              },
+              "LogLinear": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.6214207496187962,
+                    "v_hat": 1.0501970861186307e-05,
+                    "bias_hat": 0.01493926813731472,
+                    "sigma2_extrap_hat": 0.0002126272517630946,
+                    "sigma2_extrap_unclipped": 0.0002126272517630946,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.6064676189274971,
+                    "v_hat": 5.766931966750007e-05,
+                    "bias_hat": -0.010535748075869877,
+                    "sigma2_extrap_hat": 5.3044321252358254e-05,
+                    "sigma2_extrap_unclipped": 5.3044321252358254e-05,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": -0.014953130691299563,
+                  "v_hat": 7.091648705320915e-05,
+                  "bias_hat": -0.02547501621318505,
+                  "sigma2_extrap_hat": 0.0005777053815735659,
+                  "sigma2_extrap_unclipped": 0.0005777053815735659,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              }
+            }
+          },
+          "piqa": {
+            "k_star": "deduped",
+            "true_gap": 0.011425462459194846,
+            "by_fitter": {
+              "ConstantExtrapolator": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.667389049864498,
+                    "v_hat": 2.4380625423892045e-05,
+                    "bias_hat": -0.04153369224649217,
+                    "sigma2_extrap_hat": 0.0017005450630753125,
+                    "sigma2_extrap_unclipped": 0.0017005450630753125,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.6745498182351883,
+                    "v_hat": 1.4737571089765447e-06,
+                    "bias_hat": -0.045798386334996666,
+                    "sigma2_extrap_hat": 0.002096011064995088,
+                    "sigma2_extrap_unclipped": 0.002096011064995088,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": 0.007160768370690379,
+                  "v_hat": 2.641014300050404e-05,
+                  "bias_hat": -0.004264694088504467,
+                  "sigma2_extrap_hat": 0.0,
+                  "sigma2_extrap_unclipped": -8.354578046981612e-06,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              },
+              "LogLinear": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.7176905833625458,
+                    "v_hat": 8.69319463295321e-05,
+                    "bias_hat": 0.008767841251555608,
+                    "sigma2_extrap_hat": 0.0,
+                    "sigma2_extrap_unclipped": -1.0491565848699548e-05,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.7236073800358692,
+                    "v_hat": 5.538786068495001e-05,
+                    "bias_hat": 0.0032591754656842165,
+                    "sigma2_extrap_hat": 0.0,
+                    "sigma2_extrap_unclipped": -4.504257527225683e-05,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": 0.00591679667332336,
+                  "v_hat": 0.0001451014826030763,
+                  "bias_hat": -0.005508665785871486,
+                  "sigma2_extrap_hat": 0.0,
+                  "sigma2_extrap_unclipped": -0.00011548159127566057,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              }
+            }
+          },
+          "winogrande": {
+            "k_star": "standard",
+            "true_gap": 0.007103393843725381,
+            "by_fitter": {
+              "ConstantExtrapolator": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.5369451955097323,
+                    "v_hat": 4.3691621874211386e-05,
+                    "bias_hat": -0.036061907884111455,
+                    "sigma2_extrap_hat": 0.0012565511202585573,
+                    "sigma2_extrap_unclipped": 0.0012565511202585573,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.5330763604421895,
+                    "v_hat": 6.678841208200056e-05,
+                    "bias_hat": -0.03282734910792884,
+                    "sigma2_extrap_hat": 0.0010105124953114256,
+                    "sigma2_extrap_unclipped": 0.0010105124953114256,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": 0.003868835067542719,
+                  "v_hat": 0.00010309145941048203,
+                  "bias_hat": -0.0032345587761826618,
+                  "sigma2_extrap_hat": 0.0,
+                  "sigma2_extrap_unclipped": -9.314454623095417e-05,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              },
+              "LogLinear": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.5430418837731387,
+                    "v_hat": 0.0002281946200557311,
+                    "bias_hat": -0.029965219620705086,
+                    "sigma2_extrap_hat": 0.0006685787937610793,
+                    "sigma2_extrap_unclipped": 0.0006685787937610793,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.5587298371032925,
+                    "v_hat": 0.00022945644908686102,
+                    "bias_hat": -0.00717387244682588,
+                    "sigma2_extrap_hat": 0.0,
+                    "sigma2_extrap_unclipped": -0.0001791392854489678,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": -0.01568795333015426,
+                  "v_hat": 0.00042070941287095245,
+                  "bias_hat": -0.02279134717387964,
+                  "sigma2_extrap_hat": 9.663254606500421e-05,
+                  "sigma2_extrap_unclipped": 9.663254606500421e-05,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              }
+            }
+          },
+          "mmlu": {
+            "k_star": "standard",
+            "true_gap": 0.0029555910157854637,
+            "by_fitter": {
+              "ConstantExtrapolator": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.2554040435451474,
+                    "v_hat": 8.331865522543983e-06,
+                    "bias_hat": -0.013333052514349353,
+                    "sigma2_extrap_hat": 0.0001693967645002409,
+                    "sigma2_extrap_unclipped": 0.0001693967645002409,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.2532234975449485,
+                    "v_hat": 8.169253640289892e-06,
+                    "bias_hat": -0.012558007498762791,
+                    "sigma2_extrap_hat": 0.00014949345243049118,
+                    "sigma2_extrap_unclipped": 0.00014949345243049118,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": 0.0021805460001989557,
+                  "v_hat": 1.55432436440718e-05,
+                  "bias_hat": -0.000775045015586508,
+                  "sigma2_extrap_hat": 0.0,
+                  "sigma2_extrap_unclipped": -1.502026508610667e-05,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              },
+              "LogLinear": {
+                "marginal": {
+                  "standard": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.2547359136532624,
+                    "v_hat": 3.9013450974279236e-05,
+                    "bias_hat": -0.014001182406234325,
+                    "sigma2_extrap_hat": 0.00015682459054349498,
+                    "sigma2_extrap_unclipped": 0.00015682459054349498,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  },
+                  "deduped": {
+                    "n_replicates": 200,
+                    "mean_prediction": 0.2552470320055211,
+                    "v_hat": 3.0091250862025885e-05,
+                    "bias_hat": -0.010534473038190162,
+                    "sigma2_extrap_hat": 8.073341507601944e-05,
+                    "sigma2_extrap_unclipped": 8.073341507601944e-05,
+                    "variance_inflation": 1.0,
+                    "insufficient_replicates": false
+                  }
+                },
+                "pairwise": {
+                  "n_replicates": 200,
+                  "mean_prediction": -0.000511118352258836,
+                  "v_hat": 6.235298801980791e-05,
+                  "bias_hat": -0.0034667093680442996,
+                  "sigma2_extrap_hat": 0.0,
+                  "sigma2_extrap_unclipped": -5.0646679117420844e-05,
+                  "variance_inflation": 1.0,
+                  "insufficient_replicates": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ratio_vs_compute_replication": {
+      "median_ratio_le_160m": 135.1692006567635,
+      "median_ratio_le_410m": 127.5471224678752,
+      "replicates_p1_06_decreasing_direction": true
+    }
+  }
+}
