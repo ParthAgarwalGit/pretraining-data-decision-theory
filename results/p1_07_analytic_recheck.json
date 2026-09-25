@@ -1,8 +1,8 @@
 {
   "provenance": {
-    "git_sha": "f94abde0aa9868e73a05bc1033cca22a033fb642",
+    "git_sha": "9633c75711668ec17f5f2eca382d2d2490588496",
     "git_dirty": false,
-    "utc_timestamp": "2026-09-25T10:53:26.011460+00:00",
+    "utc_timestamp": "2026-09-25T11:12:41.803915+00:00",
     "python_version": "3.12.10",
     "package_versions": {
       "numpy": "2.5.2",
@@ -35,6 +35,36 @@
       "recipe": "DCLM-Baseline (QC FW 3%)",
       "stored": -0.0001677472388026402,
       "fresh": 0.00012289216651344503
+    },
+    "by_fitter": {
+      "PowerLawN": {
+        "n_compared": 825,
+        "n_changed": 466,
+        "n_stored_negative": 0,
+        "n_changed_by_more_than_10pct": 17,
+        "max_relative_difference": 0.9558172622714597
+      },
+      "PowerLawC": {
+        "n_compared": 825,
+        "n_changed": 518,
+        "n_stored_negative": 1,
+        "n_changed_by_more_than_10pct": 29,
+        "max_relative_difference": 1.7326032153532582
+      },
+      "ChinchillaND": {
+        "n_compared": 825,
+        "n_changed": 474,
+        "n_stored_negative": 0,
+        "n_changed_by_more_than_10pct": 37,
+        "max_relative_difference": 0.9590259073466298
+      },
+      "LogLinear": {
+        "n_compared": 825,
+        "n_changed": 0,
+        "n_stored_negative": 0,
+        "n_changed_by_more_than_10pct": 0,
+        "max_relative_difference": 4.600338659149935e-12
+      }
     }
   }
 }
