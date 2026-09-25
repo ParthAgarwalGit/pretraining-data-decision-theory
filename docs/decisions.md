@@ -2160,3 +2160,17 @@ visibly a different quantity from Panel A -- confirming the two should never hav
 together. F1/F2/F4/F5 are unchanged in structure, only in the numbers they read.
 
 **Decided by:** Agent, following the review.
+
+## 2026-09-25 — Theorem 1: the proved linear case is *unconstrained* least squares (PR #23, third review)
+
+Reviewer: `theorem1_bound.tex` said "linear `g` makes the fit a fixed linear function of the noise, hence exactly
+Gaussian / sub-Gaussian", but the setup allows a compact `Theta` and the shipped fitters use box bounds. For `g(theta, s) = theta`,
+`Theta = [0, 1]`, true `theta = 0` and Gaussian observations, constrained least squares is `clip(sample_mean, 0, 1)`:
+half its mass sits at 0 and its mean is strictly positive -- neither Gaussian nor centred at the population projection.
+Theorem 1(i) is now stated for **unconstrained full-rank linear least squares**; a compact/binding constraint moves a fit
+to case (ii) (conditional on (H), with `rho_k` covering the constraint-induced bias). Step 1 and the numerical-certificate scope
+say the same; the certificate (closed-form OLS) is an unconstrained check. `Extrapolator.bounds_inactive` (PR #29's branch)
+gives the run-time test for whether a shipped fit is in case (i). Test: the clipped-mean example (mass at 0 = 0.5, mean =
+`sigma / sqrt(2 pi n)`) vs the exactly centred unconstrained mean.
+
+**Decided by:** Agent, following the third review.
