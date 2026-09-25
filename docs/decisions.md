@@ -855,6 +855,612 @@ the plan's stated direction would hold.
 
 ---
 
+## 2026-09-04 — P1-07 plug-in bound: scheme choice, sandwich estimator scope, and undefined-ratio handling
+
+**Context:** `plan/02-phase1-datadecide.md` P1-07 asks for the marginal
+and pairwise-difference bound forms, an analytic delta-method `v_k(C)` as
+a cross-check against P1-06's bootstrap `v_hat_k`, and a Monte-Carlo
+estimate of the actual selection error compared to both bound forms as a
+tightness ratio.
+
+**Decision 1 -- the Monte-Carlo selection-error simulation uses the
+seed-bootstrap scheme only, not both P1-06 schemes.** P1-06 runs two
+resampling schemes (seed and parametric) as a cross-check against each
+other; P1-07's Monte-Carlo asks a different question (does the actual
+`argmax` selection procedure pick `k*`?), and running it under both
+schemes would double an already-expensive (`B=500` x full grid) computation
+for a question that doesn't need the comparison. Seed bootstrap was
+chosen as canonical because it resamples real observed values with no
+distributional assumption, closest in spirit to what P1-02's ground truth
+and P1-03's reproduction are themselves built from.
+
+**Decision 2 -- the analytic `v_k` is reported as a cross-check, not
+substituted into the bound actually used.** The reported
+`bound_marginal`/`bound_pairwise` values use P1-06's bootstrap
+`v_hat`/`bias_hat` throughout (the same source `sigma2_extrap_hat` comes
+from -- there is no purely-analytic `sigma2_extrap`, only a bootstrap
+one, so mixing an analytic `v_k` into that formula would compare
+quantities estimated two different ways within the same sum). The
+per-recipe `analytic_v_k` values are reported alongside for direct
+comparison against P1-06's `v_hat`, which is the cross-check the plan
+actually asks for ("agreement validates the analytic machinery...
+disagreement is a finding") -- not a request to change which number
+feeds the bound.
+
+**Decision 3 -- the sandwich covariance is the basic (HC0) estimator, no
+small-sample correction.** `sandwich_covariance()` uses raw squared
+residuals as the "meat," not an `n/(n-p)`-scaled variant (HC1) or similar.
+The plan says "the sandwich covariance of the fit" without specifying a
+correction; HC0 is the standard default meaning of "sandwich covariance"
+in the literature, and with `n` (10-12 fitted scales) not much larger
+than `p` (2-7 parameters) for some fitters, a correction would matter
+somewhat -- flagged here as a real scoping choice, not the only
+defensible one, should someone want a tighter analytic-vs-bootstrap
+agreement check later.
+
+**Decision 4 -- an undefined tightness ratio (empirical error rate
+exactly 0) is reported as `null`, not infinity.** When a Monte-Carlo
+simulation finds zero errors across `B=500` replicates, `bound /
+empirical_error` is mathematically undefined (division by zero), and the
+bound is trivially satisfied regardless of its value (any non-negative
+bound holds against zero observed error). Rather than reporting `Infinity`
+(not valid JSON) or an arbitrarily large sentinel, `tightness_ratio_*` is
+`null` in this case, with `empirical_error_rate: 0.0` still visible so a
+reader can see why.
+
+**A property discovered while testing `sandwich_covariance()`/`analytic_v_k()`
+(not a bug):** `PowerLawN`'s delta-method variance *saturates* rather than
+diverging as the target scale moves further past the fitted range --
+because the model's own prediction converges to a constant ceiling `E` as
+`N -> infinity`, its jacobian converges to a fixed vector, and so does the
+propagated variance. `LogLinear`, whose jacobian entry `d(prediction)/d(b)
+= log(N)` grows unboundedly, does not share this property. Worth knowing
+before reading too much into any one fitter's `analytic_v_k` trend versus
+extrapolation distance -- it is model-form-dependent, not a general fact
+about extrapolation uncertainty. See `tests/test_bound.py`'s two paired
+tests for both properties checked directly.
+
+**Decided by:** Agent, while executing task P1-07.
+
+---
+
+## 2026-09-04 — P1-08: the plug-in bound, taken literally as an accuracy predictor, is vacuous -- and what that reveals
+
+**Context:** `plan/02-phase1-datadecide.md` P1-08 calls itself "the paper's
+money question" -- plug P1-05/P1-06's estimates into the bound to get a
+*predicted* decision accuracy, compare against P1-03/04's *observed*
+accuracy, and run a `sigma2_extrap = 0` counterfactual.
+
+**Decision 1 -- "predicted accuracy" is `max(0, 1 - bound_pairwise)`, not
+`1 - bound_pairwise`.** `bound_pairwise` is a sum of `exp(...)` terms, one
+per non-winning recipe (up to 24 per task) -- a union bound, which can
+(and, checked directly before writing any code around it, *does*)
+exceed 1 when many terms are individually large. P1-07 already found
+`bound_pairwise > 1` in **all 396 of 396 cells** (min 1.16, median
+17.08, max 23.36) -- not an edge case, the norm. This traces directly to
+P1-02: 9 of 11 tasks have no statistically resolvable winner at 1B, so
+most of a task's 24 comparisons against `k*` are near-ties, each
+contributing a term close to 1, and 24 such terms trivially sum past 1. A
+probability bound that overshoots 1 means "no informative lower bound on
+accuracy" -- reading it as literally negative (an early run produced
+"predicted accuracy: -1889%" before this fix) is not meaningful; clipping
+at 0 is the standard, correct way to read it.
+
+**Consequence, reported plainly rather than engineered around: predicted
+accuracy (clipped) is 0.0% for every single (fitter, design) cell.** The
+bound, while never *violated* (P1-07: ratio >= 1 everywhere) and while
+demonstrably tighter in its pairwise form than its marginal form, is too
+loose at these gap sizes to make any informative quantitative accuracy
+prediction at all. This is a real finding about the practical usefulness
+of the bound as currently scaled, distinct from (and consistent with, not
+contradicting) P1-07's own "the bound holds, loose by a constant factor"
+result -- "loose by a constant factor" turns out to mean "loose enough to
+be vacuous once summed over ~24 mostly-tied comparisons," which is worth
+stating as plainly as the plan's own P1-06 definition-of-done language
+asks ("stating plainly whether `sigma2_extrap` is large, small, or
+task-dependent") -- extended here to the bound's own usefulness, not
+smoothed into "the theory roughly works."
+
+**Decision 2 -- the `sigma2_extrap = 0` counterfactual is reported against
+TWO baselines, not one.** The plan's literal wording ("recompute the
+predicted extrapolation accuracy... if the prediction then exceeds
+single-scale") is ambiguous about which "single-scale" -- its real
+(bias-included) predicted accuracy, or its own bias-free counterfactual.
+Both are computed and reported:
+- **vs. single-scale's real predicted accuracy (0.0% everywhere, per
+  Decision 1):** 5 of 15 (fitter, design) pairs "flip" to beating it --
+  but this is close to trivial, since *any* positive counterfactual value
+  beats a floor of exactly 0.
+- **vs. single-scale's OWN bias-free counterfactual** (ConstantExtrapolator
+  also carries substantial removable bias -- it "never corrects for scale
+  at all", per its own docstring -- so zeroing bias moves its own
+  predicted accuracy up to 20.8%-37.0%, not 0%): only **1 of 15** pairs
+  still beats it -- `LogLinear` at the `<=530M` design (37.7% vs 20.8%).
+  This is the honest, apples-to-apples version of "if neither method had
+  bias, who wins on variance alone" -- and the answer is: almost nobody,
+  and the one exception is the *deliberately misspecified* model, whose
+  advantage here is having very little bias left to remove in the first
+  place is beside the point -- what's left is its comparatively small
+  variance, which is exactly what the theory says should matter once bias
+  is controlled for.
+
+**How to apply:** when this counterfactual result is quoted (P1-11's
+figures, the paper draft), cite the apples-to-apples comparison (1/15),
+not the raw 5/15 -- the wider number is an artifact of comparing against
+a degenerate baseline, not a real 5-way vindication of the
+extrapolation-bias explanation.
+
+**Decided by:** Agent, while executing task P1-08. The vacuous-bound
+finding was caught by inspecting the raw (unclipped) numbers before
+trusting the first run's console output, which had already produced
+nonsensical negative percentages -- a signal something was wrong with the
+*interpretation*, not (as first suspected) a bug in P1-06/07's actual
+computed values, both of which were re-checked and confirmed correct.
+
+---
+
+## 2026-09-05 — P1-10 secondary ladder: scope forced by Pythia's own data, and an inconclusive replication
+
+**Context:** `plan/02-phase1-datadecide.md` P1-10 asks for the P1-06
+decomposition rerun on Pythia, with an explicit escape clause ("if this
+task balloons... cap it at one ladder and one task family and say so").
+Every scope reduction below was discovered while building this, not
+chosen in advance -- see `experiments/p1_10_secondary_ladder.py`'s module
+docstring for the full list; this entry covers the reasoning and the
+result.
+
+**Decision 1 -- `1.4b`, not `1b`, is the target scale.** `1b` has no
+plain (non-deduped) directory in `EleutherAI/pythia`'s published evals --
+only `pythia-1b-bf16`, `pythia-1b-0.5MtokBS`, and `pythia-1b-deduped`,
+discovered via a real 404, not assumed from the naming pattern that holds
+for every other size. Rather than guess which irregular variant is the
+"real" standard 1B run, `1.4b` (clean `pythia-1.4b` /
+`pythia-1.4b-deduped` directories) is used instead. `src/pdt/data/pythia.py`
+documents this; `SIZES` still lists `"1b"` for completeness but callers
+needing a full ladder should avoid it.
+
+**Decision 2 -- only `ConstantExtrapolator` and `LogLinear` run; the
+other 4 P1-04 fitters cannot.** Only 3 Pythia sizes exist below the
+target (`70m`/`160m`/`410m`). `PowerLawN`/`PowerLawC` need `>=4` scales to
+identify 3 parameters, `ChinchillaND` needs `>=6` for 5, `TwoStepLadder`
+needs `>=8` for 7 -- none can fit with only 3 candidate points. This is a
+hard data-availability constraint, not a scope choice: DataDecide has 14
+sizes with 10-12 below any reasonable target; Pythia's ladder is 8 sizes
+total with only 3 below `1.4b`.
+
+**Decision 3 -- parametric bootstrap only, using checkpoint jitter as the
+sole noise source.** `EleutherAI/pythia`'s published per-checkpoint evals
+have exactly one row per (size, variant, step) -- no second seed to
+resample from, unlike DataDecide's 3 seeds everywhere. Reused P1-05's
+checkpoint-jitter method (variance across the last 4 of a run's own
+published checkpoints) as the noise variance fed into
+`bootstrap.apply_parametric_noise` -- the same shared-per-scale-per-replicate
+draw design P1-06 established, just with `K=2` recipes instead of 25.
+
+**Decision 4 -- `mmlu` is reconstructed as the unweighted mean of 57
+`hendrycksTest-*` subtasks; `boolq`/`csqa`/`hellaswag`/`openbookqa`/
+`socialiqa` (and therefore `olmes_10_macro_avg`) are dropped entirely.**
+Checked directly against one raw eval JSON's own task keys (not assumed):
+only `arc_challenge`, `arc_easy`, `piqa`, `winogrande`, and the 57
+`hendrycksTest-*` MMLU subjects have any counterpart in Pythia's public
+eval set. The `mmlu` reconstruction uses the same unweighted-mean
+convention this project already verified DataDecide's own `macro_avg`
+table uses for `mmlu` (P1-05/P1-06). 5 of DataDecide's 11 headline tasks
+have no Pythia counterpart at all and are silently unavailable, not
+approximated.
+
+**Decision 5 -- `Scale.d` is a placeholder, unused by either fitter that
+actually runs.** Real per-checkpoint token counts for Pythia would need
+combining published batch-size/sequence-length constants per size (which
+differ across some sizes, per the `-0.5MtokBS`/`-1MtokBS` alternate
+directories seen while exploring the repo) -- not computed here, because
+neither `ConstantExtrapolator` nor `LogLinear` reads `scale.d` or
+`scale.compute` anywhere in their fit or predict logic. `Scale(n=n,
+d=20*n)` is a syntactically-required placeholder that never influences
+any reported number -- confirmed by reading both fitters' source before
+relying on this, not assumed safe.
+
+**Result: the P1-06 ratio-vs-compute finding does not clearly replicate,
+in either direction.** `ConstantExtrapolator`'s median `sigma2_extrap/v`
+ratio across the 5 tasks is 131.0 at the smaller design (`le_160m`, 2
+sizes) and 137.6 at the larger one (`le_410m`, 3 sizes) -- essentially
+flat (~5% difference), not the clear monotonic fall P1-06 found in
+DataDecide across 3 designs, but also not a clean rise. With only 2
+usable design points and 1 fitter able to run at both, this is a weak
+test either way -- reported as inconclusive rather than forced into
+"replicates" or "contradicts."
+
+**Decided by:** Agent, while executing task P1-10. Every scope limit here
+was verified against the real published repo structure before being
+treated as a constraint (the `1b` 404, the exact task-key overlap, the
+minimum-scales-per-fitter arithmetic), not assumed from the plan's or
+this project's own DataDecide-side conventions.
+
+---
+
+## 2026-09-05 — P1-11 figures: five rendering bugs found by reading the actual PDFs, not by trusting exception-free code
+
+**Context:** `plan/02-phase1-datadecide.md` P1-11 asks for F1-F5, generated
+by `src/pdt/viz/` with no manual steps, meeting: colourblind-safe
+palette, no red/green pairing, legible at 6cm wide, vector PDF, every
+axis labelled with units, no chart junk. Every figure below ran and
+produced a PDF on the first try -- none of the bugs in this entry would
+have been caught by "does `generate()` raise an exception," only by
+opening the rendered file. That is the one policy this entry is really
+recording: every figure was rendered to a 300-DPI PNG (`bbox_inches="tight"`)
+and read with the Read tool before being accepted, and every fix below
+was re-verified the same way, iterating until the render matched the
+data, not the code's apparent intent.
+
+**Decision 1 -- figure text sizing lives in global `rcParams`, not
+per-instance `Text.set_size()` calls.** `src/pdt/viz/style.py` originally
+set font sizes via calls like `ax.title.set_size(8)` inside `new_figure()`,
+before any title text existed. `ax.set_title(...)`, called later by each
+F-module, creates a *new* `Text` object that does not inherit that
+earlier call, so F1's title rendered at matplotlib's default size and
+clipped at the figure edge. Fixed by moving every size to a module-level
+`plt.rcParams.update({...})` at import time, which applies correctly
+regardless of when the text object is created.
+
+**Decision 2 -- `style.save()` uses `bbox_inches="tight"`, but that alone
+does not rescue every legend.** Added `bbox_inches="tight", pad_inches=0.03`
+to `fig.savefig()` after F2's below-axes legend was cropped at the page
+edge (`ConstantExtrapolator` rendered as `Constant...` cut off; confirmed
+against a high-DPI PNG, not just the PDF's text layer, to rule out a
+viewer-side artifact before treating it as a real bug). This is now the
+default for every figure. It is necessary but was not, by itself,
+sufficient for F2's specific layout -- see Decision 3.
+
+**Decision 3 -- F2's legend is built with `fig.legend()` at explicit
+figure-fraction coordinates, not `ax.legend(bbox_to_anchor=...)` in
+axes-fraction coordinates.** Three compounding problems, found and fixed
+in sequence by re-rendering after each:
+  - A 3-column legend (`ncol=3`) put `ConstantExtrapolator` and the other
+    long fitter names past the figure's right edge even with
+    `bbox_inches="tight"` -- because that legend was attached via
+    `ax.add_artist()` rather than being the axes' own tracked legend, and
+    was under-measured by the tight-bbox pass. Switched to `ncol=2`,
+    which fits inside the 6cm width without depending on tight-bbox to
+    rescue an overflowing column.
+  - The default log-scale tick locator added minor ticks (`2x, 3x, 4x,
+    6x`) at every decade; with all 3 real compute values inside one
+    decade, the x-axis became an illegible smear of overlapping labels.
+    Fixed with an explicit `FixedLocator` at the 3 real values and minor
+    ticks off.
+  - `matplotlib.ticker.LogFormatterMathtext`, given those 3 non-decade
+    values, rendered malformed fractional exponents (`10^19.33`) and
+    silently dropped the middle tick's label. Replaced with a hand-built
+    `a \times 10^{b}` formatter -- justified here specifically because
+    there are only ever 3 fixed values, so a general log-tick formatter
+    is solving a harder problem than actually exists.
+  - The legend was then moved below the axes via `ax.legend(bbox_to_anchor=...,
+    loc="upper center")` in axes-fraction coordinates, which put the
+    legend's `"Fitter"` title directly on top of the xlabel -- the
+    axes-fraction offset didn't account for the xlabel's own position
+    below the axes, which is itself computed after the fact by
+    matplotlib. `fig.legend(bbox_to_anchor=...)` in figure-fraction
+    coordinates removes that coupling (xlabel and both legends are all
+    positioned as absolute fractions of the same fixed canvas), and the
+    redundant `"Fitter"` title was dropped rather than fought with --
+    the legend's entries (fitter names) are already self-explanatory.
+
+**Decision 4 -- F3 shows full fitter names, not a 4-character
+truncation, and moved its legend below the axis.** `x_labels.append(f"{fitter[:4]}...")`
+made `PowerLawC` and `PowerLawN` both render as `"Powe"` -- indistinguishable,
+not just ugly, since the figure has 6 columns for each and a reader
+cannot tell which is which. Rotated 90 degrees at a small font size, the
+full names cost vertical space, not horizontal, so truncation was
+solving a problem that didn't exist; the figure width was also increased
+to 12cm (matching F4's existing precedent for a dense, many-category
+panel) to give each of the 18 (fitter, design) columns more room.
+Separately, the in-plot legend (`loc="center left"`) sat at the same
+height as the real "observed accuracy" data cluster it was labelling, an
+overlap confirmed by reading the render, not assumed from the `loc`
+string. There is no y-band in this figure that is empty across the full
+x-range (the plug-in-bound series sits at ~0 for every single column), so
+the legend was moved below the axis instead of relocated in-plot.
+
+**Decision 5 -- F5's legend corner was chosen from the actual data
+range, not matplotlib's default placement.** `loc="upper left"` put the
+legend on top of a dense scatter cluster (every point has `bound_marginal`
+or `bound_pairwise >= 1.16`, and the cluster of near-1 empirical-error-rate
+points sits exactly in the upper-left quadrant of this log-log square).
+Checked the underlying `results/p1_07_bound_coverage.json` values
+directly (`max(empirical_error_rate) == 1.0`, `min(bound) == 1.16`) before
+picking `loc="lower right"`, which is providably empty rather than
+visually guessed to be empty.
+
+**F1 and F4 needed no changes.** F1's in-plot legend sits in the plot's
+own empty region (accuracy never drops much below 0.5, so the
+lower-right stays clear); F4's two-panel `loc="best"` legends were
+checked the same way as everything else here and did not overlap either
+panel's curve.
+
+**Decided by:** Agent, while executing task P1-11. Every fix in this
+entry was verified by rendering a 300-DPI PNG and reading it (zooming
+into the specific region in question where a whole-figure read wasn't
+conclusive enough), then repeating after each change until the render
+matched expectations -- the same "read the actual output, don't trust
+the code" discipline this project has applied to every prior task's
+results files, applied here to a visual artifact instead of a number.
+
+---
+
+## 2026-09-05 — P1-12: Phase 1 memo, and pushing to the HF dataset repo without letting it clobber the dataset card
+
+**Context:** `plan/02-phase1-datadecide.md` P1-12 asks for two things: the
+Phase 1 memo (`docs/findings/phase1_memo.md`, see that file for the
+findings synthesis and the framing recommendation), and a push of the
+Phase 1 derived tables to the HF dataset repo from P0-08
+(`Parth4105/pdt-datadecide-analysis`). The memo needed no permission and
+was written and PR'd first (PR #21); the HF push is an external,
+publicly-consequential action (the repo is private, but a Hub push is
+still a real, hard-to-undo side effect on a third-party service), so it
+was held for explicit PI confirmation before running, per this project's
+standing practice all session of never touching HF without asking --
+confirmed via `AskUserQuestion`, then executed the same session.
+
+**Decision -- `push_results()` was called on a filtered copy of
+`results/`, not `results/` itself.** `src/pdt/hub.py`'s `push_results(local_dir,
+repo_id, revision_msg)` uploads *every* file under `local_dir` to the
+repo root. `results/` contains its own `README.md` (a 4-line "machine-written
+JSON only" note for the *code* repo) alongside the 11 result JSON files
+-- pushing `results/` directly would have silently overwritten the HF
+repo's actual dataset card (a much longer, hand-written description of
+what the repo is and what's in it) with that unrelated 4-line note.
+Caught by reading `push_results()`'s implementation (it wraps
+`huggingface_hub.upload_folder(folder_path=local_dir, ...)` with no
+`path_in_repo` or ignore-pattern support) before calling it, not
+discovered after the fact. Fixed by staging a copy of just the 11 JSON
+files in a scratch directory and pushing that, leaving `results/README.md`
+untouched both locally and on the Hub. The dataset card itself was then
+updated separately (`huggingface_hub.upload_file`, not routed through
+`push_results()`, since a dataset card isn't a provenance-stamped result
+and validating it as one would only fail) with a table documenting every
+one of the 11 files' purpose and top-level `data` schema, built by
+actually loading each file and reading its real top-level keys rather
+than describing them from memory.
+
+**Push result:** 11/11 files passed `provenance.validate()` (all
+`git_dirty: false`, traceable to commit `c33f53b60a1a863ef48ad7d047ad603555f17725`).
+Commits: `7f3bd6e0fcb3e88e270c2e1b368ac3a7956ab8ee` (the 11 result files)
+and `71f659e1a21f980c86f4bf940d7baf33d719985e` (the updated card).
+
+**Decided by:** Agent, while executing task P1-12, after the PI answered
+"Yes, push results/ now" to an explicit `AskUserQuestion` prompt
+describing exactly what would be pushed (the 11 already-provenance-validated
+result files plus an updated dataset card) before any Hub-side action was
+taken.
+
+## 2026-09-19 — Setup: the bootstrap "debiasing" of sigma2_extrap was mis-described (PR #22)
+
+Second-source review of `paper/sections/setup.tex` (Remark `rem:sigma2-extrap-estimator`): the
+text said `- v_hat/B - sigma2_target` debiases `bias_hat^2`. It removes only Monte Carlo noise of
+the bootstrap mean (which vanishes as `B -> infinity`) and the ground-truth noise, but not the
+sampling variance of the *original* fit, which the bootstrap mean converges to and which
+survives every `B` (unbiased sample mean, exact target: `E[bias_hat^2] -> sigma^2/n`, not 0).
+The remark now separates the three noise sources, gives the `n/(n-1)`-corrected estimator now
+implemented in P1-06 (#16), and labels the clipped `sigma2_extrap_hat` a heuristic and the
+unclipped value the approximately-unbiased squared-bias estimate (exact for a sample mean,
+first-order for smooth fits). `docs/notation.md` updated to match.
+
+**Decided by:** Agent, following the review.
+## 2026-09-19 — Phase-1 memo and p1_06 findings: remove theory-validation inference from a vacuous bound (PR #21)
+
+Review findings, both accepted: (1) all 396 bounds are >= 1, so every empirical error probability
+passes, and "never violated" cannot be read as confirmation (the additive form is in fact invalid --
+PR #17, acknowledged in PR #23); (2) six <=530M combinations have no matched-compute comparison and
+must be reported as unassessed, not as losses. `docs/findings/phase1_memo.md`,
+`docs/findings/p1_06.md` and `STATUS.md` rewritten: **0 wins among 12 evaluable comparisons plus 6
+unassessed**; the `sigma2_extrap = 0` counterfactual is called inconclusive (vacuous bound, unmatched
+single-scale endpoint baseline); the "18/18 (now 17/18)" wording removed. The memo is marked provisional
+for P1-06/07/08 numbers until those results are regenerated on the repaired fitters and the
+bootstrap-calibration/identifiability fixes. The HF publication (P1-12) was performed earlier with
+PI confirmation; it is **not** re-run here -- re-publishing the regenerated derived tables needs a new PI
+decision.
+
+**Decided by:** Agent, following the review.
+## 2026-09-19 — F3: separate the two decision events (PR #20)
+
+F3 plotted the plug-in bound (a lower bound on P(select the single best arm)) and the observed
+fraction of correctly ordered recipe *pairs* on one "Decision accuracy" axis as predicted vs observed --
+different events, not comparable. F3 is now two panels: **A** best-arm selection (plug-in lower
+bound, the `sigma2_extrap = 0` counterfactual, and P1-07's Monte-Carlo P(argmax = k*), all the same
+event); **B** all-pairs ordering accuracy (observed only, labeled a different event; there is no
+bound for it). `generate()` raises if `results/p1_08_ceiling_prediction.json` lacks
+`observed_best_arm_accuracy` (i.e. predates PR #18's same-event fix) rather than plotting stale data;
+unassessed (`None`) cells are omitted, not drawn as zero. `paper/figures/f3_predicted_vs_observed.pdf`
+must be regenerated once P1-08 has been regenerated on the fixed upstream chain; until then the
+committed PDF is the old, mislabeled one and should not be cited.
+
+**Decided by:** Agent, following the review.
+## 2026-09-16 — P1-10 repeated P1-06's correlation+1 and bootstrap-ID-alignment defects; fixed the same way
+
+**Context:** PR #19's reviewer found that this module's parametric
+bootstrap reused a single shared per-scale `z` across BOTH recipes
+(`standard`/`deduped`) -- exactly the defect PR #16's review caught in
+`p1_06_decomposition.py`, and exactly what Decision 3 above describes as
+having deliberately mirrored ("the same shared-per-scale-per-replicate
+draw design P1-06 established"). That design has since been shown to
+force an unjustified exact +1 correlation between the two recipes'
+bootstrap noise, collapsing the pairwise-difference bootstrap variance to
+zero whenever they have equal noise even though the real observations are
+independent -- see the P1-06 entry above (2026-09-14/16) for the full
+mechanism. While fixing this, the same positional-zip bootstrap-ID-
+misalignment PR #16's review separately caught in `p1_06_decomposition.py`
+was also present here (`replicate_predictions[k_star][i] -
+replicate_predictions[k_other][i]` after each recipe independently
+dropped its own failed replicates) -- not flagged by PR #19's review this
+time, but the identical defect, fixed proactively rather than waiting for
+a future review pass to catch it separately.
+
+**Fix:** independent per-recipe noise draws (seeded via `_seed_for(design,
+task, recipe, "noise", b)`, extending the existing pattern with the
+recipe name) instead of one shared `z` per scale; a new
+`_pairwise_difference_series` helper (mirroring `p1_06_decomposition.py`'s
+own) that tracks replicate id alongside each prediction and intersects by
+id rather than zipping by position. Regression tests added
+(`tests/test_p1_10_secondary_ladder.py`) for the ID-alignment fix,
+matching P1-06's own regression tests for the same defect.
+
+**Not yet done:** `results/p1_10_secondary_ladder.json` needs
+regenerating once this branch merges past its upstream dependencies
+(P1-04's fitter fixes, P1-06's own three fixes) and their own
+regenerations.
+
+**Decided by:** Agent, addressing PR #19's review.
+## 2026-09-16 — P1-08's "gap" diagnostic mixed two decision events; the single-scale baseline was compute-mismatched
+
+**Context:** PR #18's reviewer found two real issues in
+`experiments/p1_08_ceiling_prediction.py`, both about comparing two
+quantities that are not actually the same thing.
+
+**Issue 1 (P1): `gap_predicted_minus_observed` compared a best-arm-selection
+bound against an all-pairs accuracy statistic.** `predicted_accuracy` is
+`max(0, 1 - bound_pairwise)`, and `bound_pairwise` is a union bound over
+the ~24 comparisons against the task's single true best recipe `k*` -- it
+lower-bounds P(this fitter's own argmax recipe == k*), one specific
+decision event. `observed_accuracy` (from P1-03/04) is
+`macro_avg_accuracy_including_ties`, the fraction of ALL 300 recipe
+*pairs* correctly ordered -- a different statistic that mostly says
+nothing about whether k* specifically was identified. Their difference
+cannot diagnose anything about the bound's tightness or the 80% ceiling,
+since a mismatch between them could be entirely an artifact of which event
+each one measures, unrelated to the theory's quality.
+
+**Fix:** added `_observed_best_arm_accuracy_per_task`, sourcing the SAME
+decision event's empirical rate directly from P1-07's own Monte-Carlo
+estimate (`empirical_error_rate` = 1 - P(argmax recipe == k*), computed by
+literally resampling the fitting procedure the bound describes). The new
+`observed_best_arm_accuracy` / `gap_predicted_minus_observed_best_arm`
+fields are the valid ceiling diagnostic going forward. The original
+(event-mismatched) `observed_accuracy` / `gap_predicted_minus_observed`
+fields are kept, but now documented as NOT the ceiling diagnostic --
+`observed_accuracy` is still legitimately used for the separate,
+internally-consistent "does extrapolation's all-pairs accuracy beat
+single-scale's all-pairs accuracy" central claim, where both sides use the
+same statistic.
+
+**Issue 2 (P2): the "beats single-scale" central claim compared extrapolation
+against `ConstantExtrapolator` at the SAME endpoint size, not the same
+compute.** `ConstantExtrapolator` at a design's endpoint (e.g. 150M) only
+pays for one model at that one size; the extrapolation fitter being
+compared against it consumed the compute of the ENTIRE fitting ladder up
+to that endpoint (every smaller size too). Comparing accuracy at matched
+*size* rather than matched *compute* is exactly the mismatch P1-04's own
+headline finding ("0/18 beat single-scale at matched compute") was
+designed to avoid -- P1-08 was silently redoing (and miscomputing) that
+same comparison instead of reusing it.
+
+**Fix:** added `_matched_compute_single_scale`, which reads P1-04's own
+already-correct `matched_single_scale_accuracy_including_ties` /
+`matched_compute_out_of_range` fields (the log-compute-interpolated
+single-scale baseline P1-04's headline already uses, identical across
+every fitter at a given design since they share the same ladder/compute).
+`extrapolation_beats_single_scale_observed` in `central_claims` now uses
+this matched-compute baseline instead of `ConstantExtrapolator`'s
+same-endpoint accuracy; `ConstantExtrapolator`'s own accuracy is still
+reported, renamed to `single_scale_observed_same_endpoint` to make clear
+it is informational, not the comparison baseline. `matched_compute_out_of_range`
+is now surfaced per central claim so a `<=530M`-design claim (out of
+P1-03's interpolatable range) reads as "no valid comparison" rather than
+silently falling back to something compute-mismatched.
+
+**Not yet done:** `results/p1_08_ceiling_prediction.json` needs
+regenerating once this branch merges past `phase1/bias-variance` and
+`phase1/bound-check`'s own upstream fixes and regenerations.
+
+**Decided by:** Agent, addressing PR #18's review. Full suite: 203 passed.
+
+## 2026-09-19 — P1-08: label budgets, and unassessed is not "lost" (PR #18)
+
+The observed "extrapolation beats single-scale" comparison uses P1-04's matched-compute
+baseline and is now `None` (was `False`) when a design's compute is out of range, with
+`summary.n_observed_evaluable_at_matched_compute` / `n_observed_unassessed_out_of_range` /
+`n_observed_extrapolation_beats_matched_single_scale` reported alongside. The predicted and
+counterfactual comparisons cannot be matched-compute (P1-07 evaluated single-scale only at the
+three endpoint models), so every central claim carries `predicted_comparison_budget: "unmatched: ..."`
+and the summary says so; consumers (F3, the Phase-1 memo) must not present them as matched.
+`results/p1_08_ceiling_prediction.json` is regenerated last in the Phase-1 chain, after P1-04/06/07
+have been regenerated on the fixed fitters.
+
+**Decided by:** Agent, following the review.
+## 2026-09-16 — P1-07's additive bound was an invalid "upper bound" for large fixed bias; estimator-specific uncertainty guard added
+
+**Context:** PR #17's reviewer found two real issues in
+`src/pdt/theory/bound.py`.
+
+**Issue 1 (P1): the additive form `exp(-Delta_k^2 / (2*(bias^2+v)))`
+folds a fixed, signed misspecification (bias) into a variance-like
+denominator term, which is the wrong treatment and produces an invalid
+bound.** Counterexample, reproduced exactly as given: challenger gap=5,
+bias=+10, variance=.01 -- the bias alone dwarfs and reverses the apparent
+5-point gap, so the true decision error is near-certain (~1), yet the old
+formula evaluated to ~0.8825, an "upper bound" *smaller* than the true
+error rate it is supposed to bound -- a violated bound, not just a loose
+one. The bug: averaging a large *fixed* bias into the denominator
+alongside genuinely random variance treats it as if it were symmetric
+noise that merely widens the distribution, when a bias that exceeds the
+gap in the wrong direction should make the term vacuous (-> 1, "no
+guarantee"), not moderately shrink it.
+
+**Fix:** `_bound_term` now treats bias as a worst-case, sign-unknown
+shift that first cancels the apparent gap (`effective_gap = max(0,
+|delta_k| - bias_magnitude)`), and only the *surviving* gap gets the
+variance-driven exponential-tail treatment. At `bias_magnitude=0` this is
+identical to the original formula, so the zero-bias case (and every
+downstream reported bound value that happens to have negligible bias) is
+unaffected. Re-running the exact counterexample now gives `1.0` (fully
+vacuous, correctly signaling "no guarantee" instead of the invalid 0.8825).
+`marginal_bound_term` uses `sqrt(sigma2_extrap_hat)` as the bias
+magnitude (already a squared-magnitude, sign-unknown estimate);
+`pairwise_bound_term` uses `abs(bias_hat)` (a signed point estimate,
+whose sign is itself uncertain at the scale that matters, so its
+magnitude is the defensible worst case). Documented plainly in the module
+docstring that this is **an empirical diagnostic, not a proven
+statistical bound** -- PR #23's review of the paper's own Theorem 1 proof
+(`paper/sections/theorem1_bound.tex`) independently found the nonlinear
+case isn't rigorously established either (smoothness/bounded-Jacobian
+alone don't give exact sub-Gaussian tails), so every value from this
+module should be read as "compare against P1-07's Monte-Carlo empirical
+error estimate," not "certified guarantee."
+
+**Issue 2 (P2): `sandwich_covariance`/`analytic_v_k` silently reported a
+number for every fitter, including two whose actual fitting procedure the
+joint-least-squares sandwich formula does not describe.**
+`ConstantExtrapolator` only fits to the largest-scale observations
+(ignoring the rest), and `sandwich_covariance` called with the *full*
+scales list would wrongly charge it "residuals" at scales it never used.
+`TwoStepLadder` fits in two separate sequential stages with different
+objectives, not one joint simultaneous optimization -- the single
+shared-jacobian/residual M-estimator structure doesn't represent a
+two-stage procedure at all. Both previously produced a plausible-looking
+`analytic_v_k` number that `results/p1_07_bound_coverage.json` reported
+"alongside P1-06's bootstrap `v_hat_k` as a cross-check," implying the two
+measure the same thing when for these two fitters they provably don't.
+
+**Fix:** `analytic_v_k` now raises `UnsupportedEstimatorError` for any
+fitter in the new `UNSUPPORTED_SANDWICH_ESTIMATORS` constant
+(`{"ConstantExtrapolator", "TwoStepLadder"}`) rather than fabricating a
+number. `experiments/p1_07_bound_coverage.py`'s `_compute_analytic_v_k`
+catches it alongside the existing `FitFailure`/`LinAlgError` handling and
+records `unsupported_estimator: true` in the per-recipe result (`false`
+for a genuine fit failure), so a reader of the results file can tell "not
+analytically supported by design" apart from "the fit itself failed."
+Both fitters are simply absent from `analytic_v_k` going forward, rather
+than silently present with a number that doesn't mean what the results
+file's own docstring claims it means.
+
+**Not yet done:** `results/p1_07_bound_coverage.json` needs regenerating
+with both fixes (plus every inherited upstream fix -- P1-04's fitter
+bugs, P1-06's bootstrap correlation/squared-bias/ID-alignment bugs) once
+this branch is merged forward past `phase1/bias-variance`'s own P1-06
+regeneration.
+
+**Decided by:** Agent, addressing PR #17's review. Full suite: 204 passed.
+
+---
+
 ## 2026-09-14 — Two real bugs found by external review, fixed, results regenerated
 
 **Context:** PR #12's reviewer found two real correctness bugs in `src/pdt/scaling/`,
@@ -1100,6 +1706,117 @@ their own branches merge this fix forward.
 
 ---
 
+## 2026-09-16 — Merging the P1-04 fitter fix forward broke a P1-07 test that was passing for the wrong reason
+
+**Context:** merging `phase1/bias-variance` (which itself carries the
+upstream `phase1/scaling-fitters` fix) into `phase1/bound-check` broke
+`tests/test_bound.py::test_analytic_v_k_saturates_for_power_law_n_far_extrapolation`,
+which asserts `PowerLawN`'s delta-method `v_k` saturates (stops growing)
+between `N=1e11` and `N=1e14`.
+
+**Root cause: the test shared this file's module-level mutable `_RNG`
+across every test, so its outcome depended on how many random draws
+earlier tests in the file happened to consume -- and the log-uniform-init
+fix changes exactly that (one extra `rng.uniform()` call per restart per
+exponent dimension).** Diagnosed by reproducing the exact fit this test
+now gets: `PowerLawN` converged to `alpha=0.404` sitting at its own
+parameter's *box boundary* (`a=-10.0`, the lower bound) -- a genuinely
+different, boundary-constrained local optimum on this test's narrow (8
+points, `1e6` to `1e8`) noisy synthetic curve, one of several comparably-
+low-cost optima this specific data supports (checked directly: 20
+independent seeds on the same synthetic curve land in >=3 qualitatively
+different regimes, including two boundary-hugging ones). But the deeper
+issue survives even for a *well-identified*, non-boundary fit with
+`alpha` close to the curve's true `0.3`: `N^-alpha * ln(N)` (the shape of
+the alpha-jacobian entry) decays to 0 as `N -> infinity` for any
+`alpha > 0`, but only logarithmically slowly for `alpha` this small --
+checked directly, a clean `alpha~0.3` fit's `v_k` is still 40-135%
+different between `N=1e11` and `N=1e14`, not remotely saturated; genuine
+saturation to float64 precision for this curve doesn't arrive until
+roughly `N=1e30`-`1e40`. The original test only ever passed because
+whatever fit the old (buggy, uniform-alpha) `_RNG` sequence happened to
+produce at that point in file execution order behaved as if already
+saturated by `1e11` -- plausibly because the old bug's own failure mode
+(restarts landing in the near-flat, large-alpha region) produces
+*faster*-decaying, not truer, fits.
+
+**Fix:** the test now uses a dedicated local `np.random.default_rng(1)`
+(not the shared file-level `_RNG`), wider/more-informative synthetic data
+(14 points over `1e6`-`1e10`, lower noise, reliably identifying `alpha`
+close to `0.3` across independent seeds -- checked directly), and
+genuinely far-apart comparison scales (`1e30` vs `1e40`) that produce real
+saturation regardless of which valid `alpha` the multi-start fit lands on,
+rather than relying on a specific fit's incidental behavior at scales
+nowhere near true saturation. Not a change to `bound.py`'s own logic --
+the delta-method machinery itself was never wrong here, only this test's
+premise about how close `N=1e11`-`1e14` gets to genuine saturation.
+
+**How to apply:** the rest of this file's tests still share the same
+file-level `_RNG` and remain fine today, but any future change to how
+many random draws a fitter's `fit()` consumes internally could silently
+shift which local optimum any of them lands in. Prefer a dedicated local
+`rng` for a new test whose assertion depends on *which* local optimum a
+multi-modal fit converges to (as this one does), not just whether it
+converges.
+
+**Decided by:** Agent, while merging `phase1/bias-variance` forward into
+`phase1/bound-check`. Full suite: 220 passed, confirmed stable across
+repeated runs and running the file in isolation.
+
+---
+
+## 2026-09-18 — P1-07 results regenerated with all fixes: no bound violations, full 198-combo Monte-Carlo run clean
+
+**Context:** follow-up to this branch's own two review-fix commits
+(the invalid additive-bound formula, the estimator-rank-deficiency
+guard) and to every upstream fix merged forward (P1-04's fitter bugs,
+P1-06's three bootstrap-decomposition fixes, the group_by determinism
+fix, the P1-09 calibration fix). `results/p1_07_bound_coverage.json`
+regenerated via `PDT_OVERWRITE=1 uv run python experiments/p1_07_bound_coverage.py`
+on a clean tree: the analytic delta-method pass (6 fitters x 3 designs x
+11 tasks x 25 recipes, minus `ConstantExtrapolator`/`TwoStepLadder` now
+correctly excluded per this branch's own P2 fix) plus the full
+Monte-Carlo pass (198 work units, B=500 each) -- roughly 34 hours
+wall-clock this run (vs. the original run's much shorter time), almost
+entirely for the same reason P1-06's regeneration got slower: the
+fitter-initialization fix means restarts now do genuine optimization
+work instead of instantly "converging" in the flat high-alpha region.
+
+**`any_bound_violation: false`, `violations: []` -- the pairwise bound
+held (ratio >= 1) in every one of the 198 (fitter, design, task)
+cells, with all of this branch's own and every upstream fix applied
+together.** This is the same qualitative finding the original
+(pre-fix) run reported, now resting on a corrected additive-bound
+formula, corrected fitter initialization, corrected bootstrap
+decomposition, and a correctly-excluded set of estimators for the
+analytic cross-check -- the bound-holds conclusion was not an artifact
+of any of the bugs fixed across this whole review pass.
+
+**Decided by:** Agent. Regeneration completed cleanly (`git_dirty: false`,
+`git_sha` matches this branch's merge/fix commits).
+`results/p1_08_ceiling_prediction.json` and every other downstream
+results file computed from P1-07's output still need regenerating once
+their own branches merge this fix forward.
+
+## 2026-09-19 — P1-07 second-round review: `analytic_v_k` requires the target to be identified (PR #17)
+
+**Problem.** `sandwich_covariance` inverts `J^T J` with `np.linalg.pinv`,
+which treats a parameter direction that no observed scale moves as
+carrying *zero* variance. A `LogLinear` fit observed at one N (varying
+only D) therefore reported a small finite `analytic_v_k` for any target N,
+when the true delta-method variance is unbounded.
+
+**Change.** New `pdt.theory.identifiability.target_in_row_space` tests
+whether the target Jacobian lies in the row space of the fitting-scale
+Jacobians (column-equilibrated SVD, `max(shape) * eps` rank cutoff,
+relative residual `<= 1e-8`). `analytic_v_k` raises
+`UnidentifiedTargetError` (an `UnsupportedEstimatorError`) when it does
+not; `p1_07` records these as `unidentified_target: true` instead of a
+number. The check is on the *unweighted* design support (structural), so
+a badly conditioned but identified design still returns a large finite
+variance rather than being rejected. Regression tests cover targets whose
+missing component is 5% / 0.25% / 0.005% of `||J_target||`, an
+identified design, and an ill-conditioned identified design.
 ## 2026-09-19 — Second-round review of P1-06's squared-bias correction: calibrate v_hat for the n=3 bootstrap
 
 **Context:** PR #16's re-review accepted the direction of the previous fix
@@ -1220,6 +1937,15 @@ unchanged, now resting on fits that recover the true optimum on a 100/100-seed s
 
 **Decided by:** Agent, following the second-round review.
 
+## 2026-09-19 — P1-10 regenerated after the independence/fitter fixes (PR #19)
+
+`results/p1_10_secondary_ladder.json` was regenerated (clean tree, `git_dirty: false`) with independent per-recipe
+parametric draws and the repaired fitters. The ConstantExtrapolator median `sigma2_extrap / v` ratio moved from
+131.0 (`le_160m`) / 137.6 (`le_410m`) -- rising, "not replicated" -- to 135.2 / 127.5, i.e. falling with the larger design as in
+P1-06 (`replicates_p1_06_decreasing_direction` false -> true). The change is a consequence of removing the
+forced +1 cross-recipe correlation. The gap is ~6% with two usable design points and two fitters, so
+this is **weak evidence consistent with P1-06's direction, not a replication**; the "P1-10 is underpowered" caveat stands.
+Downstream text quoting the old 131.0 vs 137.6 (memo, PR #21) is updated separately.
 ## 2026-09-20 — P1-06 regenerated on the repaired fitters with the calibrated squared-bias estimator (PR #16)
 
 `results/p1_06_decomposition.json` regenerated on a clean tree (`git_dirty: false`, base `f728bc5`): 396 (fitter, design, task) work units,
@@ -1248,3 +1974,98 @@ Readings (all from this table and the file, not from theory):
 - Highest per-task bias at 150M: `hellaswag` (~0.055 for PowerLawN and ChinchillaND); the lowest tasks are near zero/negative (`boolq`).
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-09-22 — P1-07 regenerated on the regenerated P1-06 and the fixed fitters/identifiability (PR #17)
+
+`results/p1_07_bound_coverage.json` regenerated on a clean tree (`git_dirty: false`, base `c4d740a`): 198 (fitter, design, task)
+combinations x 2 bootstrap schemes = 396 cells, B = 500 Monte-Carlo replicates each, ~38.7 h wall
+(mostly the Monte-Carlo pass; some individual combos took far longer than others -- e.g. one jumped from
+5107s to 40524s elapsed between combos 60 and 70 -- plausibly this machine going idle/asleep partway
+through, not a per-combo cost change). `any_bound_violation: false`, `violations: []` -- the pairwise bound
+held (tightness ratio >= 1) in every one of the 396 cells, now computed with the corrected `_bound_term`
+(gap-reduction form, PR #17/#23) and with `analytic_v_k` raising `UnidentifiedTargetError` where the target
+is unidentified from the fitting scales (0 of 3,300 per-recipe analytic checks hit that path on real
+DataDecide designs, i.e. every real design here does identify its own extrapolation target).
+
+**Correction to prior wording:** this run's own `bound_pairwise` (seed_bootstrap scheme) is **not** `>= 1`
+in literally every cell -- 2 of 198 are below 1 (informative): `ConstantExtrapolator` at `<=530M` on
+`arc_easy` (0.665) and `hellaswag` (0.971), both the least-extrapolating baseline at its closest-to-target
+design. `tightness_ratio_pairwise` (bound / empirical MC error) is `>= 1` everywhere regardless (min 1.16,
+median 11.15, max 508 for seed_bootstrap; min 3.02, median 22.1, max 1370 for parametric_bootstrap) --
+that is the quantity "never violated" actually refers to, and it is unaffected by whether the raw bound
+itself happens to dip under 1 for two near-degenerate cells. Downstream text (P1-08, the Phase-1 memo)
+should say "vacuous (`bound_pairwise >= 1`) in all but 2 of 396 cells, both the non-extrapolating baseline
+at its closest design" rather than "all 396", and should quote `tightness_ratio`, not `bound_pairwise`,
+for the "never violated" claim.
+
+**Decided by:** Agent, following the second-round review.
+
+## 2026-09-22 — P1-08 regenerated on the regenerated P1-04/06/07 (PR #18)
+
+`results/p1_08_ceiling_prediction.json` regenerated on a clean tree (`git_dirty: false`, base `9544054`), reading the
+regenerated `p1_04_extrapolation.json`, `p1_06_decomposition.json`, and `p1_07_bound_coverage.json`. This is the first
+run of this file with PR #18's own fix (same-decision-event comparison, matched-compute observed baseline, unmatched-budget
+labeling for the predicted/counterfactual comparisons) actually applied to non-stale upstream inputs.
+
+- **Observed, matched-compute (the valid headline number):** `n_observed_evaluable_at_matched_compute: 10`,
+  `n_observed_extrapolation_beats_matched_single_scale: 0`, `n_observed_unassessed_out_of_range: 5` (of 15 central claims
+  = 5 extrapolation fitters x 3 designs) -- **0 of 10 evaluable comparisons favor extrapolation**, consistent with
+  P1-04's own headline (0/12 evaluable there; the two counts differ only because P1-08's central claims exclude
+  `ConstantExtrapolator`, which is the baseline being compared against, not an extrapolation method).
+- **`observed_best_arm_accuracy`** (P1-07's Monte-Carlo P(select the true best recipe), the event the bound actually
+  lower-bounds) is dramatically lower than the all-pairs `observed_accuracy` for every fitter/design -- e.g. PowerLawN
+  @150M: 24.9% best-arm vs 76.1% all-pairs; @530M: 32.8% vs 84.8%. This is the numeric confirmation of P1-08's own module
+  docstring: all-pairs ordering accuracy is a much easier, different statistic from best-arm selection, and the earlier
+  (pre-#18) version of this file conflated them.
+- **Predicted/counterfactual comparisons (UNMATCHED budget, labeled as such in every `central_claims` row and the summary):**
+  12/15 pairs flip vs single-scale's real predicted accuracy (was 5/15 on stale pre-fix inputs), 4/15 flip vs single-scale's
+  own bias-free counterfactual (was 1/15). Both counts moved because the underlying bound is now the corrected gap-reduction
+  form (PR #17/#23) computed on the regenerated P1-06/07, not because the comparison became matched-compute -- it remains
+  labeled `unmatched: extrapolation ladder compute vs single-scale endpoint-only compute` and should not be read as a
+  matched-compute finding.
+- `predicted_accuracy` is 0.0% (clipped) in every cell as before -- the bound remains vacuous for the predicted/counterfactual
+  comparisons (see PR #17's decisions entry: only 2 of 396 P1-07 cells have an informative raw bound, and neither is an
+  extrapolation fitter's predicted-accuracy cell here).
+
+**Decided by:** Agent, following the review.
+
+## 2026-09-22 — F1-F5 regenerated from the fully regenerated P1-04/06/07/08 chain (PR #20)
+
+`python -m pdt.viz.build_all` regenerated all five Phase-1 figures from the now-consistent
+`results/p1_0{3,4,6,7,8}_*.json` (all regenerated this pass on clean trees, see PRs #12/#16/#17/#18's
+decisions entries). F3 (two-panel fix, PR #20's review) now renders with real
+`observed_best_arm_accuracy` data: Panel A shows best-arm selection is far below 50% for every
+(fitter, design) and the plug-in bound is ~0 throughout (2 informative cells out of 396 in the
+underlying P1-07 data are not extrapolation-fitter cells and don't show up here); Panel B shows the
+much higher (76-85%, except TwoStepLadder ~60-68%) all-pairs ordering accuracy on the same x-axis,
+visibly a different quantity from Panel A -- confirming the two should never have been plotted
+together. F1/F2/F4/F5 are unchanged in structure, only in the numbers they read.
+
+**Decided by:** Agent, following the review.
+## 2026-09-25 — P1-07 third review: covariance conditioning fix, recheck, and artifact refresh (PR #17)
+
+**Finding (reviewer).** `sandwich_covariance` formed `pinv(J^T J)`; squaring the condition number let the cutoff drop a weak *identified* direction. With `LogLinear`, `x = [1, 1+1e-8, 1+2e-8]`,
+`y = [.51, .48, .51]`, target `exp(2)`: `J` has rank 2 (`cond ~ 2.4e8`, `cond(J^T J) ~ 6e16`) and `analytic_v_k` returned `1.5e-4`, while the same HC0 sandwich through the SVD of `J` gives `4.994e11`.
+The row-space guard of the previous round does not catch it (the target *is* in the row space).
+
+**Fix.** `sandwich_covariance` is now `J^+ diag(r^2) J^+^T` on the column-equilibrated design; `analytic_v_k` computes `sum_i g_i^2 r_i^2` with `g = pinv(J)^T j_target` from the design's SVD
+(`identifiability.prediction_influence_weights`) and **fails closed** (`UnidentifiedTargetError`) if the target uses a direction below the numerical rank cutoff. The reviewer's case now gives `4.994e11`
+(relative difference `2.7e-8` from the direct SVD sandwich). Regression tests: the reviewer's ill-conditioned full-rank design, equality with the textbook formula on a well-conditioned one,
+fail-closed when a direction is below cutoff, and the weights themselves.
+
+**Recheck of the affected diagnostics** (`experiments/p1_07_analytic_recheck.py` -> `results/p1_07_analytic_recheck.json`, clean tree). All 3,300 stored per-recipe `analytic_v_k` values recomputed with the fixed code:
+| Fitter | compared | changed (> 1e-6 rel) | changed by > 10% | stored negative |
+|---|---|---|---|---|
+| LogLinear | 825 | 0 (max rel diff 4.6e-12) | 0 | 0 |
+| PowerLawN | 825 | 466 | 17 | 0 |
+| PowerLawC | 825 | 518 | 29 | 1 (-1.68e-4; now +1.23e-4) |
+| ChinchillaND | 825 | 474 | 37 | 0 |
+The old cross-check values for the three nonlinear fitters were materially wrong in a majority of cells (an impossible negative variance in one). `LogLinear` (well-conditioned) was unaffected.
+
+**Refresh, not a 38 h rerun.** The Monte-Carlo pass and every bound value are independent of `analytic_v_k` (they use the bootstrap `v_hat`). `p1_07_bound_coverage.py --reuse-monte-carlo results/p1_07_bound_coverage.json`
+recomputed everything on the fixed code and carried the per-cell Monte-Carlo results over (refused unless `B` and the scheme match; recorded in the payload as `monte_carlo_reused_from` /
+`monte_carlo_source_git_sha` = `c4d740a9`). Verified: across 396 cells `bound_marginal`, `bound_pairwise`, `empirical_error_rate` and `tightness_ratio_pairwise` are identical to the previous file (0 differences);
+only `analytic_v_k` changed and no value is negative. `any_bound_violation: false`. P1-08 reads only those unchanged fields, so it needs no regeneration. A full Monte-Carlo pass is required (and the flag refuses) after any
+change to the fitters, bootstrap code or P1-06 outputs.
+
+**Decided by:** Agent, following the third review.
