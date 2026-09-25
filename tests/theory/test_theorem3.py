@@ -233,6 +233,32 @@ def test_unweighted_ls_variance_exceeds_weighted_under_heteroscedastic_noise():
     assert v_ols > 1.001 * v_wls  # strictly larger here (heteroscedastic)
 
 
+def test_projection_bias_is_not_a_floor_for_an_estimator_that_knows_the_misspecification():
+    # Third review of PR #25: sigma2_extrap is the squared bias of the chosen parametric
+    # projection, not a lower bound over all estimators. Truth: mu(s) = theta*s + h(s) with a
+    # known bump h; the projection (fit theta on the raw data) is biased at s_star, whereas an
+    # estimator that subtracts the known h and fits theta has zero bias there.
+    rng = np.random.default_rng(5)
+    s_fit = np.array([1.0, 2.0, 3.0, 4.0])
+    s_star = 8.0
+    theta_true = 0.5
+    h = lambda s: 0.2 * np.clip((s - 3.0) / 2.0, 0.0, None)  # noqa: E731 -- known misspecification
+    n_draws = 20_000
+    sigma = 0.02
+    proj_pred, informed_pred = [], []
+    for _ in range(n_draws):
+        y = theta_true * s_fit + h(s_fit) + rng.normal(0, sigma, size=s_fit.size)
+        proj = float(s_fit @ y / (s_fit @ s_fit))  # least squares through the origin
+        informed = float(s_fit @ (y - h(s_fit)) / (s_fit @ s_fit))
+        proj_pred.append(proj * s_star)
+        informed_pred.append(informed * s_star + h(s_star))
+    truth = theta_true * s_star + h(s_star)
+    bias_sq_projection = (np.mean(proj_pred) - truth) ** 2
+    bias_sq_informed = (np.mean(informed_pred) - truth) ** 2
+    assert bias_sq_projection > 0.1  # sigma2_extrap of the projection estimator, ~0.15
+    assert bias_sq_informed < 1e-3  # an estimator using h has no such floor
+
+
 if __name__ == "__main__":
     import sys
 

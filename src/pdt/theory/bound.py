@@ -58,7 +58,7 @@ import math
 import numpy as np
 
 from pdt.scaling.base import Extrapolator, Scale
-from pdt.theory.identifiability import target_in_row_space
+from pdt.theory.identifiability import prediction_influence_weights
 
 #: Fitters whose actual estimation procedure `sandwich_covariance` cannot
 #: describe -- see `analytic_v_k`'s docstring.
@@ -213,18 +213,25 @@ def sandwich_covariance(
     residual variance is constant across scales, matching what "sandwich"
     means as opposed to the simpler `sigma^2 (J^T J)^-1` OLS covariance.
 
-    Uses the Moore-Penrose pseudo-inverse rather than a direct inverse,
-    so a near-singular `J^T J` (an under-identified or nearly-degenerate
-    fit) degrades gracefully instead of raising.
+    Computed as `J^+ diag(r^2) J^+^T` with `J^+ = pinv(J)` from the SVD of the
+    (column-equilibrated) DESIGN -- algebraically identical to the formula above
+    for a full-rank `J` (`(J^T J)^-1 J^T = J^+`), but it never forms `J^T J`.
+    Second-round review of PR #17: `pinv(J^T J)` squares the condition number, so a
+    full-rank design with `cond(J) ~ 2e8` had its weak identified direction
+    silently discarded (variance 1.5e-4 reported, 5e11 true). A direction that is
+    genuinely below the rank cutoff of `J` itself is still dropped here (it is
+    unobserved); callers that need a target variance must use `analytic_v_k`, which
+    fails closed when the target depends on such a direction.
     """
     predictions = np.array([model.predict(s) for s in scales])
     residuals = predictions - np.asarray(values, dtype=float)
-    jacobian_rows = np.array([model.jacobian(s) for s in scales])
+    jacobian_rows = np.asarray([model.jacobian(s) for s in scales], dtype=float)
 
-    jtj = jacobian_rows.T @ jacobian_rows
-    jtj_inv = np.linalg.pinv(jtj)
-    meat = jacobian_rows.T @ np.diag(residuals**2) @ jacobian_rows
-    return jtj_inv @ meat @ jtj_inv
+    col = np.linalg.norm(jacobian_rows, axis=0)
+    col = np.where(col > 0.0, col, 1.0)
+    pinv_eq = np.linalg.pinv(jacobian_rows / col)  # (p, n): J_eq^+
+    sigma_eq = (pinv_eq * residuals**2) @ pinv_eq.T
+    return sigma_eq / np.outer(col, col)
 
 
 def analytic_v_k(
@@ -274,12 +281,14 @@ def analytic_v_k(
         )
     j_target = np.asarray(model.jacobian(target_scale), dtype=float)
     jacobian_rows = np.array([model.jacobian(s) for s in scales], dtype=float)
-    if not target_in_row_space(jacobian_rows, j_target):
+    weights = prediction_influence_weights(jacobian_rows, j_target)
+    if weights is None:
         raise UnidentifiedTargetError(
             f"{fitter_name}: the target scale {target_scale} is not identified by the "
-            "fitting scales (its parameter Jacobian is outside their row space), so the "
-            "delta-method variance is unbounded -- refusing to report the pseudo-inverse's "
-            "finite (and wrong) value."
+            "fitting scales (its parameter Jacobian is outside their row space, or depends "
+            "on a direction below the design's numerical rank cutoff), so the delta-method "
+            "variance is unbounded -- refusing to report a finite (and wrong) value."
         )
-    sigma_theta = sandwich_covariance(model, scales, values)
-    return float(j_target @ sigma_theta @ j_target)
+    residuals = np.array([model.predict(s) for s in scales]) - np.asarray(values, dtype=float)
+    # v = j^T Sigma_theta j with Sigma_theta = J^+ diag(r^2) J^+^T, i.e. sum_i g_i^2 r_i^2.
+    return float(np.sum(weights**2 * residuals**2))
