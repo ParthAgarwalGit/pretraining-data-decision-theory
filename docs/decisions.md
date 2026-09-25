@@ -664,6 +664,197 @@ spirit as this project's other threshold/variant sensitivity checks
 
 ---
 
+## 2026-09-03 — P1-06 bias/variance decomposition: compute scope, shared-draw design, and a BLAS crash
+
+**Context:** `plan/02-phase1-datadecide.md` P1-06 is "the core result" -- for
+every (extrapolator, design, recipe, task), bootstrap-resample (B>=200,
+two schemes) and decompose the resulting spread into estimation variance
+and squared bias. Read literally across the full grid this project has
+used since P1-04 (6 fitters x 3 designs x 25 recipes x 11 tasks), this is
+~2 million individual scaling-law fits.
+
+**Decision 1 -- run the full grid (no fitter/design cuts), parallelized
+across processes, not scaled down.** A back-of-envelope estimate from
+P1-04's own per-fit timing (~40-80ms with 8 restarts) put a serial run at
+16-40+ hours -- too long to just run, but this machine has 20 CPU cores
+and each (fitter, design, task, scheme) combination's ~5,000 fits are
+embarrassingly parallel. Rather than cut fitters or designs (which would
+have weakened the actual scientific comparison P1-08 needs -- predicted
+vs. observed accuracy for *every* method), the fix was
+`concurrent.futures.ProcessPoolExecutor` over the 396 (fitter, design,
+task, scheme) work units, each running its own B=200 x 25 recipes
+sequentially inside one worker. Empirically verified via two smoke tests
+against real data (not synthetic) before committing to the full run: a
+single real fit (TwoStepLadder, the fitter expected to be slowest) took
+~41.5ms, giving a full-grid estimate of ~75-90 minutes wall-clock with
+20-way parallelism -- long enough to run as a background job, short enough
+not to need reducing B below the plan's own "B >= 200" floor or dropping
+any fitter/design from the grid.
+
+**Decision 2 (a real bug, caught before it could waste an hour) -- BLAS
+must be pinned to 1 thread per worker process.** The first real
+process-pool run crashed immediately: `OpenBLAS error: Memory allocation
+still failed after 10 retries, giving up`, then `BrokenProcessPool`. Root
+cause: numpy/scipy link against a multi-threaded BLAS that, left to its
+own defaults, spawns its own thread pool *inside every worker process* --
+20 worker processes x up to 20 BLAS threads each is up to 400 threads
+competing for memory on a 20-core machine, and every one of this script's
+fits works on <=12 data points, far too small for BLAS multi-threading to
+help even if it didn't crash. Fixed by setting
+`OMP_NUM_THREADS`/`OPENBLAS_NUM_THREADS`/`MKL_NUM_THREADS`/`NUMEXPR_NUM_THREADS`
+to `"1"` via `os.environ.setdefault(...)` *before* numpy/scipy are
+imported anywhere in the module -- required specifically before the
+import, not just before `main()` runs, because Windows' spawn-based
+multiprocessing re-executes the whole module top-to-bottom in every
+worker process, including its imports. Re-verified against real data
+after the fix: 0 failed fits across two smoke tests (11,000 and 220,000
+individual fits respectively).
+
+**Decision 3 -- seed-bootstrap and parametric-bootstrap both draw ONE
+shared random pattern per (scale, replicate), applied identically to every
+recipe, rather than independent draws per recipe.** The plan requires the
+pairwise statistic `D_k = mu_hat_k*(s*) - mu_hat_k(s*)` to be "computed
+from the same bootstrap replicate (so the correlation between the two
+arms' fits is preserved)" and calls this "a real and important effect."
+If every recipe drew independent randomness, there would be no shared
+condition for a correlation to survive in the first place -- two recipes
+evaluated at the same scale on the same benchmark instances share real
+correlated noise (a hard eval instance is hard for every recipe; a
+checkpoint-timing coincidence at a given step affects whichever recipes
+happen to be evaluated near it). Implemented as: one rng per (design,
+task, scheme, replicate) -- deliberately *not* keyed on fitter or recipe
+-- draws one resample-index pattern (seed bootstrap) or one standard-normal
+`z` (parametric bootstrap) per proxy scale; every recipe's own observed
+values are then perturbed by that same shared pattern/z (recipe-specific
+magnitude for parametric, since each recipe keeps its own noise variance;
+recipe-specific *values* selected by the same slot pattern for seed
+bootstrap). See `src/pdt/analysis/bootstrap.py`'s module docstring for the
+full reasoning. Each fit's own multi-start-restart randomness is still
+independently seeded per (fitter, design, task, scheme, recipe, replicate)
+-- that's a numerical-optimization detail, not a scientific correlation
+source, and doesn't need to be shared.
+
+**Decision 4 -- `sigma2_target` for the pairwise decomposition is
+`sigma2_target(k*, t) + sigma2_target(k, t)`, not re-derived.** The plan
+gives the marginal formula (`sigma2_extrap_hat_k = max(0, bias_hat_k^2 -
+v_hat_k/B - sigma2_target(k,t))`) but doesn't spell out the pairwise
+analogue. Following the same "these are two independent training runs"
+reasoning `decision_accuracy.pairwise_decision_accuracy`'s pooled-variance
+calculation already uses, the noise in the *difference* of two
+independent estimates is the sum of their individual noises. Reuses
+`bootstrap.bias_variance_decomposition` unchanged for both the marginal
+and pairwise cases -- it doesn't care whether its input series is a raw
+`mu_hat^(b)` series or a difference series `D_k^(b)`, only that `mu_true`
+and `sigma2_target` are the matching quantities for whichever series was
+passed.
+
+**Decision 5 -- a per-(fitter, design, task, scheme, recipe) cell needs
+>=20 successful bootstrap replicates (10% of B=200) or it's flagged
+`insufficient_replicates` rather than reporting a decomposition computed
+from too few points.** Individual bootstrap-replicate fit failures are
+expected to be rare but not impossible (a resampled/perturbed trajectory
+can occasionally be harder to fit than the original), and per this
+project's standing rule (P1-04's `FitFailure` handling; the plan's own
+"log every failed fit, never drop silently" for P1-04) a failure is
+evidence, not noise to average away. In the actual run: 0 fits failed
+across both smoke tests; the real full run's failure count is recorded in
+`results/p1_06_decomposition.json`'s `n_fits_total_failed`.
+
+**Decided by:** Agent, while executing task P1-06. Verified via two
+end-to-end smoke tests against real (not synthetic) cached data before
+launching the full run: a reduced-scope run through the actual `main()`
+entry point (2 fitters, 1 design, all 11 tasks, B=10, 44 work units,
+220,000 individual fits, 0 failures) confirmed the full pipeline --
+multiprocessing, JSON serialization of numpy float64 results via the
+existing `provenance` encoder, aggregation -- end to end before spending
+the ~75-90 minutes on the real B=200 full-grid run.
+
+**Decision 6 (found after the first full run completed) -- results file
+must round to 8 significant figures and drop two redundant fields per
+recipe entry.** The first full run wrote a 7.4MB
+`results/p1_06_decomposition.json` -- over this project's 5MB
+pre-commit limit (`check-added-large-files --maxkb=5000`). Root cause:
+~19,400 per-recipe decomposition entries (9,900 marginal + 9,504
+pairwise across 396 combos), each serializing 3 float64 values at full
+~17-digit precision (pure noise for a bootstrap estimate off B=200
+replicates -- roughly 2 meaningful digits at best) plus two fields
+(`mean_prediction`, `n_replicates`) that are either derivable
+(`mean_prediction = mu_true + bias_hat`) or constant in the overwhelmingly
+common case (`n_replicates == 200` whenever not flagged
+`insufficient_replicates`) and read by no downstream consumer. Fixed by
+rounding every reported float to 8 significant figures
+(`_round_sigfigs`) and dropping both redundant fields, verified against
+the *actual already-computed* first run's data (not a synthetic guess)
+before spending another ~2.5 hours re-running: projected 2.79MB, comfortable
+headroom under the limit. Did not hand-edit the existing 7.4MB file into a
+smaller one and commit that -- results here must be exactly what running
+`experiments/p1_06_decomposition.py` produces, so the fix went into the
+script and the whole ~2.5-hour computation was re-run from scratch rather
+than post-processed.
+
+---
+
+## 2026-09-04 — P1-06 finding: the sigma2_extrap/v ratio falls with compute, not rises
+
+**Context:** `plan/02-phase1-datadecide.md` P1-06 states an explicit
+"signature prediction": *"the ratio `sigma2_extrap_hat / v_hat` grows with
+compute [in `S_fit`], because `v` shrinks and `sigma2_extrap` does not."*
+This is presented as the theory's own falsifiable expectation, not a
+tentative guess.
+
+**Finding: the opposite happens, for every one of the 6 fitters, at every
+step from `<=150M` to `<=300M` to `<=530M`.** From
+`results/p1_06_decomposition.json`'s `ratio_vs_compute` (median across all
+275 (task, recipe) cells, `seed_bootstrap` scheme):
+
+| Fitter | ratio @150M | ratio @300M | ratio @530M |
+|---|---|---|---|
+| ConstantExtrapolator | 1612.6 | 574.0 | 195.1 |
+| PowerLawN | 9.57 | 7.21 | 5.20 |
+| PowerLawC | 20.79 | 16.10 | 11.98 |
+| ChinchillaND | 8.81 | 5.20 | 3.42 |
+| TwoStepLadder | 16.37 | 11.32 | 10.70 |
+| LogLinear | 310.5 | 272.7 | 230.2 |
+
+Every single row falls monotonically. Looking at `median_sigma2_extrap_hat`
+and `median_v_hat` separately (not just their ratio) shows why: both
+*do* shrink as the design grows, but `sigma2_extrap_hat` shrinks
+faster than `v_hat` -- e.g. PowerLawN's `v_hat` is roughly flat
+(2.72e-3 -> 3.48e-3 -> 3.47e-3, if anything drifting up slightly) while
+its `sigma2_extrap_hat` falls by more than 30% (2.10e-2 -> 1.79e-2 ->
+1.45e-2). The plan's prediction assumed `v` would be the one doing the
+shrinking; empirically here it's `sigma2_extrap` that responds most to a
+larger design.
+
+**Why this is plausible, not just noise:** a design with a larger largest
+size (530M vs 150M) is extrapolating a shorter *relative* distance to the
+1B target, which should plausibly reduce bias more than it reduces the
+bootstrap-estimated variance of an already-well-identified fit (`v_hat`'s
+flatness suggests these fits are not variance-starved even at the
+smallest design -- 10 scales is already comfortably above every fitter's
+minimum data requirement, so adding more scales mostly sharpens *where*
+the curve is anchored, i.e. bias, more than it sharpens the *spread*
+across bootstrap replicates).
+
+**How to apply:** do not average over this or reframe it as "roughly
+matches the theory." State it plainly in `docs/findings/p1_06.md` (the
+plan's own required deliverable, which must say "plainly whether
+`sigma2_extrap` is large, small, or task-dependent") as a real
+discrepancy between the stated theoretical expectation and this
+empirical ladder, and flag it forward into P1-08 (does the bound predict
+the 80% ceiling) and, per the plan's own P1-07 instructions, into P2 as a
+theory-refinement candidate if P1-07's actual bound-tightness check also
+shows something inconsistent with the marginal-form theory as currently
+stated. This is exactly the kind of result the plan's own review gates
+(plan/09-review-gates.md) exist to surface to the PI rather than paper
+over -- reported here, not adjusted to fit the prediction.
+
+**Decided by:** Agent, while executing task P1-06, reading the actual
+`ratio_vs_compute` table before writing STATUS.md rather than assuming
+the plan's stated direction would hold.
+
+---
+
 ## 2026-09-14 — Two real bugs found by external review, fixed, results regenerated
 
 **Context:** PR #12's reviewer found two real correctness bugs in `src/pdt/scaling/`,
@@ -846,6 +1037,130 @@ headline" (2026-09-03 entry) is unchanged.
 **Decided by:** Agent, addressing PR #15's review. Full suite: 172 passed.
 `results/p1_09_rank_reversals.json` regenerated on a clean tree
 (`git_dirty: false`).
+
+---
+
+## 2026-09-16 — P1-06 results regenerated with all upstream fixes: the sigma2_extrap/v ratio still falls with compute, more starkly for some fitters
+
+**Context:** follow-up to this branch's own PR #16 review-fix commit
+(correlation+1, squared-bias estimator, bootstrap-ID-alignment) and to
+every upstream fix merged forward into this branch (`phase1/scaling-fitters`'s
+fitter-initialization/replicate-averaging bugs, `phase1/groupby-determinism-audit`'s
+summation-order fix, `phase1/rank-reversals`'s calibration fix -- none of
+the latter two touch `p1_06_decomposition.py`'s own computation, but the
+fitter fix does, directly). `results/p1_06_decomposition.json` regenerated
+via `PDT_OVERWRITE=1 uv run python experiments/p1_06_decomposition.py` on
+a clean tree: the full grid (6 fitters x 3 designs x 11 tasks x 2 schemes
+= 396 work units, B=200 replicates x 25 recipes each), 1,980,000
+individual bootstrap fits, **0 failures**. Took ~19.4 hours wall-clock this
+run (vs. the ~75-90 minutes the original 2026-09-03 run took) -- almost
+entirely because the fitter-initialization fix means restarts now do
+genuine optimization work instead of instantly "converging" in the flat
+high-alpha region for a large fraction of fits; this is a real, expected
+cost of the correctness fix, not a regression to chase down.
+
+**The core P1-06 finding (`sigma2_extrap_hat / v_hat` falls with compute,
+contradicting the plan's stated theoretical expectation that it should
+rise) survives, for every one of the 6 fitters, with some fitters' ratios
+shifting substantially in magnitude.** Median ratio by fitter and design
+(`seed_bootstrap` scheme, before -> after both this branch's own fix and
+every upstream fix):
+
+| Fitter | @150M before -> after | @300M before -> after | @530M before -> after |
+|---|---|---|---|
+| ConstantExtrapolator | 1612.6 -> 1611.6 | 574.0 -> 573.0 | 195.1 -> 194.1 |
+| PowerLawN | 9.57 -> 31.68 | 7.21 -> 22.57 | 5.20 -> 14.36 |
+| PowerLawC | 20.79 -> 14.27 | 16.10 -> 8.34 | 11.98 -> 5.07 |
+| ChinchillaND | 8.81 -> 368.69 | 5.20 -> 307.22 | 3.42 -> 275.05 |
+| TwoStepLadder | 16.37 -> 0.87 | 11.32 -> 0.21 | 10.70 -> 0.01 |
+| LogLinear | 310.5 -> 309.5 | 272.7 -> 271.7 | 230.2 -> 229.2 |
+
+`ConstantExtrapolator` and `LogLinear` (no exponent parameter, untouched
+by the P1-04 fitter fix) are essentially unchanged, as expected -- the
+small residual shift is from this PR's own squared-bias-formula
+correction (always non-increasing, since it subtracts an additional
+`v_hat` term) and the group_by determinism fix's last-bit noise, not the
+fitter fix. `PowerLawN`, `PowerLawC`, `ChinchillaND`, and `TwoStepLadder`
+(all fit an exponent parameter) moved substantially -- most strikingly
+`ChinchillaND` (8.81 -> 368.69 at 150M) and `TwoStepLadder` (16.37 -> 0.87,
+now falling all the way to **0.01** at 530M). Every single fitter still
+falls monotonically across the three designs, exactly as the original
+finding reported -- the magnitude shifted (for the affected fitters,
+substantially), but the qualitative conclusion (the theory's own stated
+signature prediction is contradicted by this data, across the board) is
+unchanged and, if anything, now stated with cleaner numbers since they no
+longer reflect the numerical-initialization artifact P1-04's bugs
+introduced.
+
+**Decided by:** Agent. Regeneration completed cleanly (`git_dirty: false`,
+`git_sha` matches this branch's merge commit). `results/p1_07_bound_coverage.json`,
+`results/p1_08_ceiling_prediction.json`, and every other downstream
+results file computed from P1-06's output still need regenerating once
+their own branches merge this fix forward.
+
+---
+
+## 2026-09-19 — Second-round review of P1-06's squared-bias correction: calibrate v_hat for the n=3 bootstrap
+
+**Context:** PR #16's re-review accepted the direction of the previous fix
+(subtract the original estimator's own sampling variance) but showed it is
+mis-calibrated for the *actual* resampling scheme. n-out-of-n bootstrap
+variance of a sample mean is the plug-in variance `s_plug^2/n`, a factor
+`(n-1)/n` below the unbiased `sigma^2/n`. With n=3 real seeds, `E[v_hat] = 2/9`
+against a true `Var(original mean) = 1/3`, so after subtracting `v_hat` the
+unclipped correction still has expectation `1/9` when the true squared bias is
+zero. Reproduced independently on 20,000 three-observation datasets with the
+shipped function (B=200): mean `v_hat` 0.2225, mean unclipped correction
++0.106, and the *clipped* reported value averaged 0.218 -- the earlier
+alternating-values regression test could not detect this because it never
+repeated across independent datasets.
+
+**Fix:** `bias_variance_decomposition(..., variance_inflation=...)` now
+subtracts `variance_inflation * v_hat`; the seed bootstrap passes
+`bootstrap.seed_bootstrap_variance_inflation(n_seeds) = n/(n-1)` (3/2 for three
+seeds), for both the marginal and the pairwise (paired-seed difference)
+decomposition, since a difference of two seed-means resampled with the same index
+pattern is itself an n-out-of-n bootstrap of the n paired differences. The
+parametric bootstrap uses 1.0: its `v_hat` is a model-based variance, not the
+plug-in variance of an n-observation resample. `p1_06_decomposition._variance_inflation`
+computes n from the data and raises if seed counts differ across cells.
+
+**What is and isn't justified.** Exact for a sample mean. For the smooth fits used
+here it is the first-order (delta-method) statement of the same fact, and is an
+approximation at n=3 and for boundary-pinned or otherwise non-smooth fits -- an
+approximation, not a proof, and documented as such in the function docstrings.
+
+**Clipped vs unbiased, now distinguished.** Results carry
+`sigma2_extrap_unclipped` (the approximately unbiased squared-bias estimate,
+negative about half the time when the true bias is small) alongside
+`sigma2_extrap_hat = max(0, .)`, a nonnegative *heuristic* biased upward for
+small true bias (E[max(0,X)] > E[X]; checked directly: mean clipped value > 0.05
+with zero true bias). Any average over cells that is meant to estimate a mean
+squared bias -- including the `ratio_vs_compute` medians -- should be read with
+that in mind, and consumers wanting an estimate rather than a floor should use
+the unclipped field.
+
+**Validation across independent datasets (not one hand-built series):**
+`tests/test_bootstrap.py` simulates 3,000 independent three-observation datasets:
+without the calibration the mean unclipped estimate is > 0.08 and > 8 standard
+errors above 0; with n/(n-1) it is within 4 standard errors of 0 (and within
+0.03). The first, reproducing the reviewer's number, is asserted as a regression
+guard so the defect cannot silently return.
+
+**Mechanical:** the added field would push the pretty-printed
+`results/p1_06_decomposition.json` (already 4.9 MB) past the repository's 5 MB
+`check-added-large-files` limit, so `provenance.write_result` gained
+`indent=None` (compact single-line output; default unchanged) and this one
+script uses it.
+
+**Also corrected:** `bootstrap.py`'s module docstring still said both schemes
+share one draw across recipes, which stopped being true for the parametric scheme
+in the previous fix.
+
+**Not yet done in this entry:** `results/p1_06_decomposition.json` regeneration
+(requires the new fitters merged in first) and `docs/findings/p1_06.md`.
+
+**Decided by:** Agent, addressing the PR #16 re-review.
 ## 2026-09-19 — Second-round review of the fitter fix: random starts are not enough; "0/18" was mis-stated
 
 **Context:** PR #12's re-review (and the identical blocker restated on #13-#19,
@@ -902,5 +1217,34 @@ ties) rose for every PowerLawN/PowerLawC design (e.g. PowerLawN 150M 0.738 -> 0.
 TwoStepLadder changed by at most 0.024 (150M +0.008, 300M -0.024, 530M +0.002). The qualitative
 conclusion (extrapolation does not beat single-scale at matched compute on this data) is
 unchanged, now resting on fits that recover the true optimum on a 100/100-seed sweep.
+
+**Decided by:** Agent, following the second-round review.
+
+## 2026-09-20 — P1-06 regenerated on the repaired fitters with the calibrated squared-bias estimator (PR #16)
+
+`results/p1_06_decomposition.json` regenerated on a clean tree (`git_dirty: false`, base `f728bc5`): 396 (fitter, design, task) work units,
+B = 200 replicates x 2 schemes, **0 of 1,980,000 individual bootstrap fits failed**, ~24.9 h wall (the machine slept for part of it). It uses the variable-projection power-law starts (PR #12), the
+`n/(n-1)` seed-bootstrap variance inflation and the unclipped estimator (`sigma2_extrap_unclipped`, stored alongside the clipped heuristic), and compact output (3.4 MB).
+
+Median per-cell `sigma2_extrap_hat / v_hat` (`seed_bootstrap`), previous committed run -> this run, @150M / @300M / @530M:
+
+| Fitter | @150M | @300M | @530M |
+|---|---|---|---|
+| ConstantExtrapolator | 1611.56 -> 1611.06 | 573.00 -> 572.50 | 194.07 -> 193.57 |
+| PowerLawN | 31.68 -> 359.74 | 22.57 -> 305.71 | 14.36 -> 274.08 |
+| PowerLawC | 14.27 -> 356.72 | 8.34 -> 308.23 | 5.07 -> 265.69 |
+| ChinchillaND | 368.69 -> 376.51 | 307.22 -> 306.72 | 275.05 -> 274.06 |
+| TwoStepLadder | 0.87 -> 0.15 | 0.21 -> 0.00 | 0.01 -> 0.00 |
+| LogLinear | 309.50 -> 309.00 | 271.67 -> 271.17 | 229.17 -> 228.67 |
+
+Readings (all from this table and the file, not from theory):
+- The ratio still **falls as the design grows toward the target for every fitter** (P1-06's original, plan-contradicting finding survives).
+- **PowerLawN and PowerLawC moved from 5-32 to 266-360**, i.e. they now behave like ChinchillaND and LogLinear. The old small values are consistent with their
+  power-law fits having been stuck in flat-exponent regions before the initialization repair (the reviewers' seed-1/30/54 counterexamples); the new values are
+  what a working fit gives. That attribution is an inference from the coincident P1-04 fix, not separately proved.
+- **Bias dominates estimation variance by ~200-1600x for every fitter except TwoStepLadder**, whose variance is large (median `v_hat` ~6e-3) and whose bias is not distinguishable from zero.
+- **13.6% of cells (672/4950) have a negative unclipped bias-squared estimate** -- the bias is undetectable against the estimation variance there; the clipped `sigma2_extrap_hat` reports 0 for those, which is why any average of the clipped field overstates the mean squared bias.
+- The `n/(n-1)` correction is negligible for Constant/LogLinear/ChinchillaND-type cells (their `v_hat` is tiny) and matters only where `v_hat` is large (TwoStepLadder).
+- Highest per-task bias at 150M: `hellaswag` (~0.055 for PowerLawN and ChinchillaND); the lowest tasks are near zero/negative (`boolq`).
 
 **Decided by:** Agent, following the second-round review.
