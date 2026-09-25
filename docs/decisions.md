@@ -2391,3 +2391,15 @@ visibly a different quantity from Panel A -- confirming the two should never hav
 together. F1/F2/F4/F5 are unchanged in structure, only in the numbers they read.
 
 **Decided by:** Agent, following the review.
+
+## 2026-09-25 — Theorem 4: `eta` bounds the conditional estimator bias; the naive-rule remark corrected (PR #26, third review)
+
+1. **P1 -- wrong bias.** The simultaneous event is centred at `E[prediction gap | design]`, but `eta` was tied to the population projection bias
+   `sqrt(sigma2_extrap)`; for nonlinear/constrained fits or adaptive designs the conditional mean differs (finite-sample and clipping bias).
+   Part (a) now takes **Assumption B**: `|E[mu_hat_k(s*; t) | design_t] - mu_k(s*)| <= eta_k` at every round; it coincides with `eta >= sqrt(sigma2_extrap)` only for
+   unconstrained linear least squares on a non-adaptive design. The Inputs paragraph and proof use it. Test: the clipped-mean fit has projection bias 0 but conditional bias `sigma/sqrt(2 pi n) > 0`.
+2. **P2 -- naive Track-and-Stop.** With a nonzero limit gap `D = Delta + bias` (either sign) and `v(t) -> 0`, `D^2 / v` diverges, so the naive rule *does* stop -- confidently
+   on the wrong arm when the bias reverses the gap (`D < 0`); only a cancelling gap (`D ~ 0`) leaves it undecided. The remark previously claimed it "runs forever". The bias floor
+   is justified by this instead. Test: numeric divergence with `D = -0.2` (stops at t = 209) vs a bounded statistic at `D ~ 0`.
+
+**Decided by:** Agent, following the third review.
