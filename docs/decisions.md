@@ -2172,5 +2172,30 @@ to case (ii) (conditional on (H), with `rho_k` covering the constraint-induced b
 say the same; the certificate (closed-form OLS) is an unconstrained check. `Extrapolator.bounds_inactive` (PR #29's branch)
 gives the run-time test for whether a shipped fit is in case (i). Test: the clipped-mean example (mass at 0 = 0.5, mean =
 `sigma / sqrt(2 pi n)`) vs the exactly centred unconstrained mean.
+## 2026-09-25 — P1-07 third review: covariance conditioning fix, recheck, and artifact refresh (PR #17)
+
+**Finding (reviewer).** `sandwich_covariance` formed `pinv(J^T J)`; squaring the condition number let the cutoff drop a weak *identified* direction. With `LogLinear`, `x = [1, 1+1e-8, 1+2e-8]`,
+`y = [.51, .48, .51]`, target `exp(2)`: `J` has rank 2 (`cond ~ 2.4e8`, `cond(J^T J) ~ 6e16`) and `analytic_v_k` returned `1.5e-4`, while the same HC0 sandwich through the SVD of `J` gives `4.994e11`.
+The row-space guard of the previous round does not catch it (the target *is* in the row space).
+
+**Fix.** `sandwich_covariance` is now `J^+ diag(r^2) J^+^T` on the column-equilibrated design; `analytic_v_k` computes `sum_i g_i^2 r_i^2` with `g = pinv(J)^T j_target` from the design's SVD
+(`identifiability.prediction_influence_weights`) and **fails closed** (`UnidentifiedTargetError`) if the target uses a direction below the numerical rank cutoff. The reviewer's case now gives `4.994e11`
+(relative difference `2.7e-8` from the direct SVD sandwich). Regression tests: the reviewer's ill-conditioned full-rank design, equality with the textbook formula on a well-conditioned one,
+fail-closed when a direction is below cutoff, and the weights themselves.
+
+**Recheck of the affected diagnostics** (`experiments/p1_07_analytic_recheck.py` -> `results/p1_07_analytic_recheck.json`, clean tree). All 3,300 stored per-recipe `analytic_v_k` values recomputed with the fixed code:
+| Fitter | compared | changed (> 1e-6 rel) | changed by > 10% | stored negative |
+|---|---|---|---|---|
+| LogLinear | 825 | 0 (max rel diff 4.6e-12) | 0 | 0 |
+| PowerLawN | 825 | 466 | 17 | 0 |
+| PowerLawC | 825 | 518 | 29 | 1 (-1.68e-4; now +1.23e-4) |
+| ChinchillaND | 825 | 474 | 37 | 0 |
+The old cross-check values for the three nonlinear fitters were materially wrong in a majority of cells (an impossible negative variance in one). `LogLinear` (well-conditioned) was unaffected.
+
+**Refresh, not a 38 h rerun.** The Monte-Carlo pass and every bound value are independent of `analytic_v_k` (they use the bootstrap `v_hat`). `p1_07_bound_coverage.py --reuse-monte-carlo results/p1_07_bound_coverage.json`
+recomputed everything on the fixed code and carried the per-cell Monte-Carlo results over (refused unless `B` and the scheme match; recorded in the payload as `monte_carlo_reused_from` /
+`monte_carlo_source_git_sha` = `c4d740a9`). Verified: across 396 cells `bound_marginal`, `bound_pairwise`, `empirical_error_rate` and `tightness_ratio_pairwise` are identical to the previous file (0 differences);
+only `analytic_v_k` changed and no value is negative. `any_bound_violation: false`. P1-08 reads only those unchanged fields, so it needs no regeneration. A full Monte-Carlo pass is required (and the flag refuses) after any
+change to the fitters, bootstrap code or P1-06 outputs.
 
 **Decided by:** Agent, following the third review.
