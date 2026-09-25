@@ -2313,3 +2313,14 @@ visibly a different quantity from Panel A -- confirming the two should never hav
 together. F1/F2/F4/F5 are unchanged in structure, only in the numbers they read.
 
 **Decided by:** Agent, following the review.
+
+## 2026-09-25 — Theorem 3: `sigma2_extrap` is the projection estimator's bias, not a universal minimax floor (PR #25, third review)
+
+Reviewer: the "two risks" paragraph added `sigma2_extrap` to a minimax lower bound for the misspecified target. That quantity is the squared bias
+of the chosen parametric projection; an estimator that knows `h` or uses a larger identifiable family can remove it, and the in-family information
+proof does not supply an additive misspecification term. Fix: the in-family display is the (only) minimax statement; the
+misspecified-target statement is restricted to the **projection (least-squares) estimator** (risk = `sigma2_extrap` + a term of order `v_k(C)`); a
+minimax floor for `mu_k(s*)` would need indistinguishable alternatives in `H` (Theorem 2 Part B's construction) and is not claimed.
+Test: a projection estimator has squared bias ~0.15 at `s*` while an estimator using the known bump has ~0.
+
+**Decided by:** Agent, following the third review.
