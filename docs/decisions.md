@@ -3641,6 +3641,24 @@ change to the fitters, bootstrap code or P1-06 outputs.
 
 `results/p3_07_allocation_shape.json` regenerated on a clean tree with the SVD-based, fail-closed allocation solve (PR #28's third review). Regime rates moved by <= 0.3% relative (e.g. `well_separated` 2.3786e-16 -> 2.3751e-16;
 `close_top_two` unchanged to 10 digits): the well-conditioned instances are numerically unchanged and the iterative solver differs only in its last bits. F7's caveat (heuristic, challenger-only allocation) stands.
+## 2026-09-25 — P3-06 regenerated after the certification gating and allocation-solver changes (PR #32)
+
+Regenerated on a clean tree (`git_dirty: false`) with `certification="assume_unproved_conditions"` passed explicitly (LogLinear is linear, but the tracking is adaptive, so only a first-check stop would be inside the proved
+regime) and the SVD-based allocation solve. **Outcomes identical** to the previous run in every cell: at `eta = 0` and `0.25 x` true bias 1 of 20 runs certified (wrongly; joint rate 0.05, exact 95% interval
+[0.001, 0.249] vs delta .1 -- no detectable violation at n = 20); at `eta >= 0.5 x` true bias no run certified (all hit the round cap); plug-in `eta_hat` ~0.049. The file records `certification_mode` /
+`certification_note`: "certified" here means the stopping rule fired under caller-assumed, unproved conditions.
+## 2026-09-25 — P3-05 regenerated after the certification gating and allocation-solver changes (PR #31)
+
+`results/p3_05_replay.json` regenerated on a clean tree (`git_dirty: false`) with `certification="assume_unproved_conditions"` passed explicitly (real data, adaptive tracking, nonlinear `PowerLawN`, `sigma2 = 1e-4` only
+approximating the real seed noise -- none of the proved conditions hold, so any "certified" outcome could only be caller-assumed) and the SVD-based allocation solve (PR #28). Outcomes are **identical** to the
+previous run: ETS certified on none of the 4 tasks (2 pool-exhausted, 2 round-cap; genuine bias-floor abstention rate 0.0); baseline accuracies unchanged. The file now records `certification_mode` / `certification_note`.
+## 2026-09-25 — P3-04 regenerated after the certification gating and allocation-solver changes (PR #30)
+
+Regenerated on a clean tree (`git_dirty: false`) with `certification="assume_unproved_conditions"` passed explicitly (PowerLawN + adaptive tracking: no proved conditions hold) and the SVD-based allocation solve.
+The file records `certification_mode` / `certification_note`. Seven of eight cells are identical; one differs because `solve_allocation` is iterative and its last-bit changes shifted a few trajectories:
+`delta = .05, eta = none, well-separated` now certifies **13/15** (was 11/15), 0 wrong. Current picture: `eta = none` well-separated cells certified **26 of 30 runs, 0 wrong**, exact 95% interval on the joint rate [0, 0.218] per cell (above both
+deltas, so the pilot still cannot verify delta-correctness); every `eta = large` cell never certified; **claim 2** compute-to-stop 3.14e18 (delta .05) vs 2.91e18 (delta .2) -- still not the `log(1/delta)` scaling, warm-up dominated;
+**claim 3** all reversing cells ended at the round cap (bias-floor abstention 0.0). The earlier statement "11/15" is superseded. Any "certified" here is under caller-assumed, unproved conditions.
 
 **Decided by:** Agent, following the third review.
 

@@ -1,8 +1,8 @@
 {
   "provenance": {
-    "git_sha": "6a560d91552f61a4257f7639eb1d51df6530659e",
+    "git_sha": "a6b483d079df2d6cd8e86926b2bad1d681a2a8ff",
     "git_dirty": false,
-    "utc_timestamp": "2026-09-19T10:58:17.896491+00:00",
+    "utc_timestamp": "2026-09-25T16:28:35.232726+00:00",
     "python_version": "3.12.10",
     "package_versions": {
       "numpy": "2.5.2",
@@ -37,6 +37,8 @@
     "true_bias": 0.1,
     "true_bias_source": "representative point in P1-06's real measured range (bias magnitude ~0.048-0.17, results/p1_06_decomposition.json) -- see module docstring",
     "delta": 0.1,
+    "certification_mode": "assume_unproved_conditions",
+    "certification_note": "'certified' = the stopping rule fired under caller-assumed, UNPROVED conditions (adaptive design, A4); only a first-check stop is inside the proved regime",
     "sweep": [
       {
         "eta_assumed": {

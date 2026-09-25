@@ -1,8 +1,8 @@
 {
   "provenance": {
-    "git_sha": "dc576a4048139b83ffb3658138c51c6be3f8c91d",
+    "git_sha": "4d087e6418876e8fce747d803d90bb97dece2c93",
     "git_dirty": false,
-    "utc_timestamp": "2026-09-19T09:06:41.823896+00:00",
+    "utc_timestamp": "2026-09-25T11:50:50.604783+00:00",
     "python_version": "3.12.10",
     "package_versions": {
       "numpy": "2.5.2",
@@ -31,6 +31,8 @@
     }
   },
   "data": {
+    "certification_mode": "assume_unproved_conditions",
+    "certification_note": "any 'certified' ETS outcome is under caller-assumed, UNPROVED conditions (adaptive design, nonlinear PowerLawN fit, sigma2 = 1e-4 only approximating the real seed noise)",
     "scope_note": "4-task pilot (2 reversal-heavy + 2 stable, by P1-09's own kendall_tau), not all 11 DataDecide tasks; ETS is a single real-data run per task, not bootstrapped (baselines are) -- see this file's own module docstring and docs/decisions.md for why.",
     "delta": 0.1,
     "eta_assumed": 0.02,
@@ -86,7 +88,7 @@
           "correct": null,
           "compute_spent": null,
           "n_pulls": null,
-          "wall_seconds": 578.8624150753021,
+          "wall_seconds": 187.34340357780457,
           "certificate_reason": null,
           "hit_round_cap": false,
           "pool_exhausted": true,
@@ -141,9 +143,9 @@
           "outcome": "abstained",
           "recipe": "Falcon+CC (QC Orig 10%)",
           "correct": true,
-          "compute_spent": 1.2564653776306176e+22,
+          "compute_spent": 1.2564810866098176e+22,
           "n_pulls": 410,
-          "wall_seconds": 330.92488646507263,
+          "wall_seconds": 91.21282291412354,
           "certificate_reason": "max_rounds exhausted without certifying or abstaining",
           "hit_round_cap": true,
           "pool_exhausted": false,
@@ -200,7 +202,7 @@
           "correct": null,
           "compute_spent": null,
           "n_pulls": null,
-          "wall_seconds": 158.66215872764587,
+          "wall_seconds": 44.28056025505066,
           "certificate_reason": null,
           "hit_round_cap": false,
           "pool_exhausted": true,
@@ -255,9 +257,9 @@
           "outcome": "abstained",
           "recipe": "DCLM-Baseline (QC 7%, FW3)",
           "correct": true,
-          "compute_spent": 1.2564724496990208e+22,
+          "compute_spent": 1.2564731192672256e+22,
           "n_pulls": 410,
-          "wall_seconds": 585.5995891094208,
+          "wall_seconds": 198.848646402359,
           "certificate_reason": "max_rounds exhausted without certifying or abstaining",
           "hit_round_cap": true,
           "pool_exhausted": false,
@@ -315,7 +317,7 @@
           "outcome": "abstained",
           "hit_round_cap": true,
           "correct": true,
-          "compute": 1.2564653776306176e+22
+          "compute": 1.2564810866098176e+22
         }
       },
       {
@@ -367,7 +369,7 @@
           "outcome": "abstained",
           "hit_round_cap": true,
           "correct": true,
-          "compute": 1.2564724496990208e+22
+          "compute": 1.2564731192672256e+22
         }
       }
     ],
