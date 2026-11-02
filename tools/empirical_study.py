@@ -295,7 +295,9 @@ def stage5():
     p=csv('extrapolation_predictions.csv',predictions); e=csv('extrapolation_metrics.csv',evaluations)
     csv('extrapolation_failures.csv',pd.DataFrame(failures,columns=['task','cutoff','recipe','method','reason']))
     csv('extrapolation_summary.csv',e[e.task!=AGG].groupby('method')[['rmse','mae','spearman','top1','top5_hit','regret']].mean().reset_index())
-    csv('extrapolation_diagnostics.csv',p.groupby('method')[['alpha_boundary','outside_score_range']].agg(['sum','mean']).reset_index())
+    csv('extrapolation_diagnostics.csv',p.groupby('method').agg(n_predictions=('prediction','size'),
+        alpha_boundary_count=('alpha_boundary','sum'),alpha_boundary_fraction=('alpha_boundary','mean'),
+        outside_score_range_count=('outside_score_range','sum'),outside_score_range_fraction=('outside_score_range','mean')).reset_index())
     fig,axes=plt.subplots(1,2,figsize=(10,4))
     for method,g in e[e.task!=AGG].groupby('method'):
         v=g.groupby('cutoff')[['rmse','regret']].mean()
@@ -392,7 +394,75 @@ Ranking sensitivity uses targets 530M, 750M and 1B, lexical versus uniform-over-
 ''')
     print(c.groupby('alpha')[['reversing','stable','within_noise']].sum().to_string());print('Historical discrepancies:',len(discrepancies))
 
-STAGES={1:stage1,2:stage2,3:stage3,4:stage4,5:stage5,6:stage6}
+def stage7():
+    scale=pd.read_csv(OUT/'scale_summary.csv').set_index('params_num')
+    task=pd.read_csv(OUT/'task_heterogeneity.csv').set_index('task')
+    seed=pd.read_csv(OUT/'seed_subsampling_summary.csv').set_index('n_seeds')
+    ext=pd.read_csv(OUT/'extrapolation_summary.csv').set_index('method')
+    diag=pd.read_csv(OUT/'extrapolation_diagnostics.csv').set_index('method')
+    sensitivity=pd.read_csv(OUT/'rank_reversal_sensitivity.csv').groupby('alpha')[['reversing','stable','within_noise','total']].sum()
+    pred=pd.read_csv(OUT/'cross_scale_predictability.csv')
+    details=pd.read_csv(OUT/'extrapolation_metrics.csv')
+    near=details[(details.task!=AGG)&(details.cutoff==750_000_000)].groupby('method')[['rmse','top1','regret']].mean()
+    findings=[
+      {'id':'F1','type':'descriptive','finding':'Ranking improves overall with source scale but not monotonically; winner selection remains imperfect.',
+       'numbers':scale.loc[[4_000_000,530_000_000,750_000_000]].reset_index().to_dict('records'),
+       'source':'scale_summary.csv','figure':'spearman_by_scale.png','subset':'10 individual tasks; 25 recipes; 1B target',
+       'method':'Three-seed means, Spearman, lexical tie rule and target regret',
+       'limitation':'Dependent tasks and sizes; noisy held-out reference; size and token budget covary'},
+      {'id':'F2','type':'descriptive','finding':'Predictability depends strongly on evaluation task.',
+       'numbers':task.loc[['arc_easy','boolq','winogrande',AGG]].reset_index().to_dict('records'),
+       'source':'task_heterogeneity.csv','figure':'task_ranking_heatmap.png','subset':'13 source sizes per task',
+       'method':'Equal average across source sizes, aggregate separate',
+       'limitation':'No causal explanation from these task differences; aggregate is not independent'},
+      {'id':'F3','type':'descriptive','finding':'No extrapolation method dominates every metric and cutoff.',
+       'numbers':ext.reset_index().to_dict('records'),'near_target_numbers':near.reset_index().to_dict('records'),
+       'source':'extrapolation_metrics.csv; extrapolation_summary.csv','figure':'extrapolation_error_comparison.png',
+       'subset':'10 tasks x 10 cutoffs, 25 recipes per comparison',
+       'method':'Fixed source-only fitting with unmodified predictions',
+       'limitation':'Boundary-sensitive power-law fits; linear out-of-range predictions; no independent tuning/test panel'},
+      {'id':'F4','type':'descriptive','finding':'Seed subsets frequently change the selected winner.',
+       'numbers':seed.reset_index().to_dict('records'),'source':'seed_subsampling_summary.csv',
+       'figure':'seed_subsampling_predictability.png','subset':'10 tasks x 14 sizes; all 7 nonempty subsets per cell',
+       'method':'Agreement with three-seed reference',
+       'limitation':'Reference and subsets overlap; one-seed variance undefined; cannot infer required seed count'},
+      {'id':'F5','type':'assumption-dependent inference','finding':'Historical reversal census reproduces exactly, but resolved counts depend on threshold.',
+       'numbers':sensitivity.reset_index().to_dict('records'),'source':'rank_reversal_sensitivity.csv; rank_reversal_reproduction.json',
+       'subset':'3300 pair trajectories including the aggregate',
+       'method':'Independent Welch calculation with per-pair Bonferroni across 14 scales',
+       'limitation':'Not 3300 independent samples; no global multiplicity correction; unresolved is not equivalence'}]
+    save_json('final_findings_summary.json',{'primary':findings[:3],'secondary':findings[3:],
+      'diagnostics':diag.reset_index().to_dict('records'),
+      'unsupported_claims':['Universal prediction reliability','General certification guarantee','Measured GPU savings',
+                            'More than three independent seeds','Causal attribution of instability to noise','Novelty relative to all prior literature'],
+      'contradictions':['530M has better mean ranking correlation than 750M, but lower top-1 success.',
+                        'Largest-observed baseline has highest overall top-1 rate, despite worse numeric prediction error.',
+                        'Linear extrapolation performs poorly over distant cutoffs but best on several metrics at 750M.']})
+    s=scale
+    text=f'''# Stage 7 Integrated findings
+
+## Three primary findings
+1. Across the ten individual tasks, mean Spearman correlation rises from {s.loc[4_000_000,'spearman']:.3f} at 4M to {s.loc[530_000_000,'spearman']:.3f} at 530M, then falls to {s.loc[750_000_000,'spearman']:.3f} at 750M. At those sizes, winner selection succeeds on {int(round(s.loc[4_000_000,'top1']*10))}/10, {int(round(s.loc[530_000_000,'top1']*10))}/10 and {int(round(s.loc[750_000_000,'top1']*10))}/10 tasks. Average regret is {100*s.loc[4_000_000,'regret']:.2f}, {100*s.loc[530_000_000,'regret']:.2f} and {100*s.loc[750_000_000,'regret']:.2f} accuracy percentage points. Evidence: scale_summary.csv and cross_scale_predictability.csv.
+2. Mean ranking correlation across source sizes is {task.loc['arc_easy','mean_spearman']:.3f} for ARC-Easy, {task.loc['boolq','mean_spearman']:.3f} for BoolQ and {task.loc['winogrande','mean_spearman']:.3f} for Winogrande. The aggregate winner is never exactly selected at a smaller size (0/13), which does not imply all selections are materially worse. Evidence: task_heterogeneity.csv and task_ranking_heatmap.png.
+3. Across 100 individual task/cutoff settings, the largest-observed baseline has top-1 success {100*ext.loc['largest_observed','top1']:.0f}%, versus {100*ext.loc['linear','top1']:.0f}% linear and {100*ext.loc['log_linear','top1']:.0f}% for both log-linear and power-law. Power-law has the lowest average RMSE ({ext.loc['power_law','rmse']:.3f}) and average regret ({100*ext.loc['power_law','regret']:.2f} percentage points), but not the strongest ranking correlation or winner rate. At the 750M cutoff, linear has lower RMSE and regret than power-law. Evidence: extrapolation_metrics.csv. These are descriptive comparisons, not proof of superiority.
+
+## Secondary findings
+Single- and two-seed subsets match the full-seed winner {100*seed.loc[1,'top1']:.1f}% and {100*seed.loc[2,'top1']:.1f}% of the time. The nested reference makes this optimistic relative to an independent run. Absolute Welch statistics below 1 versus at least 4 are associated with different cross-scale agreement, but do not identify the causal source of instability. Evidence: seed_subsampling_summary.csv and signal_to_noise_summary.csv.
+
+All 3300 historical calibrated pair classifications reproduce without discrepancy. At alpha=0.05 there are 32 reversing, 1424 stable and 1844 within-noise trajectories. Across alpha 0.01 to 0.10, reversals range from {sensitivity.loc[.01,'reversing']:.0f} to {sensitivity.loc[.1,'reversing']:.0f}. The count is sensitive, although resolved reversals remain a small fraction of this panel. This is not evidence that the true reversal rate is low.
+
+## Important limitations and contrary evidence
+{int(diag.loc['power_law','alpha_boundary_count'])}/{int(diag.loc['power_law','n_predictions'])} power-law fits reach an exponent bound. {int(diag.loc['linear','outside_score_range_count'])} linear predictions fall outside [0,1]. These diagnostics are retained, not hidden; power-law parameters should not be interpreted as established scaling exponents. The fitting range and model assumptions materially affect results. Repeated sizes, shared recipes and correlated tasks are not independent replications. Target averages remain noisy. No new model training, measured compute savings or general algorithm guarantee is established.
+
+## Narrative
+Small-scale experiments contain useful but task-dependent ranking information. Better average ranking does not ensure correct winner selection. Seed uncertainty, target measurement noise and extrapolation choices all limit confidence. A defensible conclusion is to evaluate rankings, regret and method diagnostics together, with abstention or additional evidence where decisions are uncertain.
+
+The original DataDecide observations belong to the released dataset authors. This study's contribution is the additional offline analysis and validation of that dataset. Existing numerical debugging evidence is separate from these empirical observations. The report is a course self-study, not a claim of new large-scale training or a new general theorem.
+'''
+    note('integrated_findings.md',text)
+    print(text)
+
+STAGES={1:stage1,2:stage2,3:stage3,4:stage4,5:stage5,6:stage6,7:stage7}
 
 def main():
     global OUT,FIG

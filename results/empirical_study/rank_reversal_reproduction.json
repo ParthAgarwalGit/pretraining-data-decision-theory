@@ -1,0 +1,15 @@
+{
+  "pairs_compared": 3300,
+  "classification_discrepancies": 0,
+  "fresh_counts": {
+    "within_noise": 1844,
+    "stable": 1424,
+    "reversing": 32
+  },
+  "historical_counts": {
+    "within_noise": 1844,
+    "stable": 1424,
+    "reversing": 32
+  },
+  "correction": "two-sided Welch t; alpha/14 per pair trajectory; no global pair/task correction"
+}

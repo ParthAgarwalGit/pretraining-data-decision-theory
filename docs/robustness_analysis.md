@@ -1,0 +1,5 @@
+# Stage 6 Robustness
+
+The fresh census independently calculates Welch statistics from the seed scores and compares individual classifications against the historical calibrated branch. Thresholds 0.01, 0.025, 0.05 and 0.10 are all reported, with 0.05 retained as primary. Correction is across 14 scales per recipe pair. Stable means no conflicting resolved signs, possibly with only one resolved size; within-noise means no resolved size, not equivalence. Aggregate and individual task counts are separable in the saved CSV.
+
+Ranking sensitivity uses targets 530M, 750M and 1B, lexical versus uniform-over-tied-winners selection, leave-one-recipe-out candidate sets, and leave-one-individual-task-out summaries. The full panel has no missing observations, so stricter complete-case filtering is identical and is not presented as new evidence. The primary power-law bounds are preserved; two predetermined alternatives at three source cutoffs are saved separately. All are descriptive sensitivity analyses on the same dependent observations. No hypothesis was selected solely because it produced a favorable result.

@@ -1,0 +1,51 @@
+{
+  "census_by_alpha_all_entries": [
+    {
+      "alpha": 0.01,
+      "reversing": 7,
+      "stable": 932,
+      "within_noise": 2361
+    },
+    {
+      "alpha": 0.025,
+      "reversing": 18,
+      "stable": 1178,
+      "within_noise": 2104
+    },
+    {
+      "alpha": 0.05,
+      "reversing": 32,
+      "stable": 1424,
+      "within_noise": 1844
+    },
+    {
+      "alpha": 0.1,
+      "reversing": 72,
+      "stable": 1718,
+      "within_noise": 1510
+    }
+  ],
+  "historical_discrepancies": 0,
+  "variants": [
+    {
+      "finding": "Larger source sizes generally improve ranking",
+      "status": "evaluate target, recipe and task sensitivity",
+      "evidence": "robustness_targets_ties.csv; robustness_recipe_exclusion.csv; robustness_leave_one_task_out.csv"
+    },
+    {
+      "finding": "Reversal prevalence",
+      "status": "threshold-sensitive; report all counts",
+      "evidence": "rank_reversal_sensitivity.csv"
+    },
+    {
+      "finding": "Power-law advantage",
+      "status": "assumption- and metric-dependent",
+      "evidence": "extrapolation_metrics.csv; robustness_power_bounds.csv"
+    },
+    {
+      "finding": "General seed requirement",
+      "status": "inconclusive with three seeds",
+      "evidence": "seed_subsampling.csv"
+    }
+  ]
+}
