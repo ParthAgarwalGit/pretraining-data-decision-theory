@@ -1,0 +1,503 @@
+[
+  {
+    "path": "results/p0_06_inventory.json",
+    "bytes": 6562,
+    "sha256": "45acbc9ed55d4e5e95ff0c632fca037c5ba34dfafbca3791963d937b34a17e0e",
+    "provenance": {
+      "git_sha": "83c1f712fe9a749b895ccb678bc5790c6ea51d42",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-01T18:39:50.359591+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P0-06"
+      }
+    }
+  },
+  {
+    "path": "results/p1_01_frame.json",
+    "bytes": 1300,
+    "sha256": "3d03725fbb8aa31b83a0649c6b15e261ec79f150eefd80405411598421b03183",
+    "provenance": {
+      "git_sha": "9aa6de2c39e449dff935c41d805ab963da6af424",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-02T07:59:22.365423+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-01"
+      }
+    }
+  },
+  {
+    "path": "results/p1_02_target.json",
+    "bytes": 1576112,
+    "sha256": "890c8f2df5334e65a95ebd35277b3ef076628e986f3db15acb4aa260dbb74aff",
+    "provenance": {
+      "git_sha": "727efe68ac8e37009798e2fe560817b6aab1adf9",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-03T03:58:00.411788+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-02"
+      }
+    }
+  },
+  {
+    "path": "results/p1_03_single_scale.json",
+    "bytes": 230890,
+    "sha256": "954bbce5ce16aada3508cab7c5c81dcc364a492b6946f94a68872f4885be5f0c",
+    "provenance": {
+      "git_sha": "3b212bee8a0e97fb8e0f5155fb0caf78c8ee8722",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-03T04:06:58.106496+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-03"
+      }
+    }
+  },
+  {
+    "path": "results/p1_04_extrapolation.json",
+    "bytes": 151947,
+    "sha256": "f0baf113db983823da86295218bc954b87a7d1e8cc541a68e61f3e3352fa3ba8",
+    "provenance": {
+      "git_sha": "b0d1deb633fe2dd70006205d0b5ebcc3ac44872e",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-19T04:15:07.543234+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-04"
+      }
+    }
+  },
+  {
+    "path": "results/p1_05_noise.json",
+    "bytes": 2644576,
+    "sha256": "c830eba0847090d5572846baa316904801e58a04a058d60cdf54a1eedd46e587",
+    "provenance": {
+      "git_sha": "4dd310c1a9e3b0ea94037b5ee331611cd1121137",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-02T20:26:05.786785+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-05"
+      }
+    }
+  },
+  {
+    "path": "results/p1_06_decomposition.json",
+    "bytes": 3351933,
+    "sha256": "173776c0bdee93868232b04beb615d2960cbf10e0427e2ea51b9126602d769ed",
+    "provenance": {
+      "git_sha": "f728bc578b9474510751f95fe097915f767a8d48",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-20T06:00:24.587427+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-06"
+      }
+    }
+  },
+  {
+    "path": "results/p1_07_analytic_recheck.json",
+    "bytes": 2039,
+    "sha256": "5721a73db2c97ddd53d344ee5141c13f252e7f8e6e863417188ff00470e29e2a",
+    "provenance": {
+      "git_sha": "9633c75711668ec17f5f2eca382d2d2490588496",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-25T11:12:41.803915+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-07-analytic-recheck"
+      }
+    }
+  },
+  {
+    "path": "results/p1_07_bound_coverage.json",
+    "bytes": 619395,
+    "sha256": "1fc7b71bad93a15aee889790aaf005b7ea15016f1d599d1d42f2aa1180e887c0",
+    "provenance": {
+      "git_sha": "026fe6da0f0816716bd74053d9b64856f6b8a992",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-25T11:31:13.001509+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-07",
+        "reuse_monte_carlo": "results/p1_07_bound_coverage.json"
+      }
+    }
+  },
+  {
+    "path": "results/p1_08_ceiling_prediction.json",
+    "bytes": 59419,
+    "sha256": "e3b97194db55a2e5588b2688fa24ee97ff52c760dcd44fb2cedc85518667feea",
+    "provenance": {
+      "git_sha": "9544054175747d19ed95d929dcd2d4c758288bc7",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-22T07:43:16.721408+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-08"
+      }
+    }
+  },
+  {
+    "path": "results/p1_09_rank_reversals.json",
+    "bytes": 2580070,
+    "sha256": "9b7dcbe3aab4ddf064da90caaf74827bd0f9a127c0992bfba7b69c8e0b2f7a50",
+    "provenance": {
+      "git_sha": "bc0e72d732246be1fe12c11feae22c7c614b4db2",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-15T15:50:41.155573+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-09"
+      }
+    }
+  },
+  {
+    "path": "results/p1_10_secondary_ladder.json",
+    "bytes": 26806,
+    "sha256": "fac279910f578c80a826a7f3b17b0e0f4f6a0ac2107eb584e533c84973704c87",
+    "provenance": {
+      "git_sha": "1a46ac12fdea3a96900d0c41b5622f0a29c2eb88",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-19T08:23:59.413552+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P1-10"
+      }
+    }
+  },
+  {
+    "path": "results/p3_04_simulation.json",
+    "bytes": 11421,
+    "sha256": "9ac8762dc396528e4f5d783f566ea39981a0343da77a51f7c272b186d5f5c4dc",
+    "provenance": {
+      "git_sha": "008ea8ce464c5cc106c1189b66ffa26c96667572",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-25T16:55:54.250681+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P3-04",
+        "ks": [
+          3
+        ],
+        "deltas": [
+          0.05,
+          0.2
+        ],
+        "eta_levels": [
+          "none",
+          "large"
+        ],
+        "gap_structures": [
+          "well_separated",
+          "reversing"
+        ],
+        "n_runs": 15,
+        "max_rounds": 100,
+        "solver_n_iter": 25,
+        "min_pulls_per_pair": 8
+      }
+    }
+  },
+  {
+    "path": "results/p3_05_replay.json",
+    "bytes": 12095,
+    "sha256": "bd7b8d64956abb60aada81165b80a0b39c6f8cb8d07f223715992bfea916cf3e",
+    "provenance": {
+      "git_sha": "4d087e6418876e8fce747d803d90bb97dece2c93",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-25T11:50:50.604783+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P3-05",
+        "tasks": [
+          "winogrande",
+          "boolq",
+          "arc_easy",
+          "mmlu"
+        ],
+        "delta": 0.1,
+        "n_bootstrap": 20,
+        "max_rounds": 60,
+        "solver_n_iter": 20
+      }
+    }
+  },
+  {
+    "path": "results/p3_06_eta_sensitivity.json",
+    "bytes": 6604,
+    "sha256": "bf8db463ffccf1f427db4843e18a32c77916b0d85a7da8eab9da1383d00bc590",
+    "provenance": {
+      "git_sha": "a6b483d079df2d6cd8e86926b2bad1d681a2a8ff",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-25T16:28:35.232726+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P3-06",
+        "multipliers": [
+          0.0,
+          0.25,
+          0.5,
+          1.0,
+          2.0,
+          3.0
+        ],
+        "n_runs": 20,
+        "max_rounds": 300,
+        "solver_n_iter": 30,
+        "min_pulls_per_pair": 8,
+        "plugin_n_replicates": 8
+      }
+    }
+  },
+  {
+    "path": "results/p3_07_allocation_shape.json",
+    "bytes": 7289,
+    "sha256": "c07cedeea1243510964d8134dba17558757512d1c422773782d26db8aaeeb803",
+    "provenance": {
+      "git_sha": "5a627b6f4c38fb71f5e40e61c02f6109d7a90698",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-25T11:37:02.472604+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P3-07-F7",
+        "n_restarts": 6,
+        "n_iter": 2000
+      }
+    }
+  },
+  {
+    "path": "results/p3_07_baseline_vs_misspecification.json",
+    "bytes": 3268,
+    "sha256": "4837380ba81d69ddb52160acd8f0d42cae1fdeca7c555eea470a1c5ee32c4ca9",
+    "provenance": {
+      "git_sha": "99a47056062c8e09ac425941442a7012f44dec14",
+      "git_dirty": false,
+      "utc_timestamp": "2026-09-19T08:24:43.791065+00:00",
+      "python_version": "3.12.10",
+      "package_versions": {
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "pandas": "3.0.5",
+        "polars": "1.44.1",
+        "pyarrow": "25.0.1",
+        "huggingface_hub": "1.29.0",
+        "datasets": "5.0.1",
+        "statsmodels": "0.15.0",
+        "matplotlib": "3.11.1"
+      },
+      "seed": null,
+      "config": {
+        "task": "P3-07-F8",
+        "bias_multipliers": [
+          0.0,
+          0.5,
+          1.0,
+          1.5,
+          2.0,
+          3.0
+        ],
+        "n_runs": 30
+      }
+    }
+  },
+  {
+    "path": "results/README.md",
+    "bytes": 322,
+    "sha256": "d227a8d3c8e706da9ed670709176ba747c23e301048a3cb08a8d9491f3d19b14"
+  }
+]
