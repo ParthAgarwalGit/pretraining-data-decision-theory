@@ -1,0 +1,5 @@
+# Stage 2 Cross-scale predictability
+
+The largest size (1B) is held out as the reference. Means of three runs are compared for the same 25 recipes at every smaller size, separately for each task. Spearman uses average ranks and Kendall uses tau-b, both tie-adjusted. Exact predicted top ties are broken by lexical recipe ID, without target access. Any recipe tied for the maximum target mean counts as correct. Top-five hit means at least one target maximizer is in the selected five, not top-five set overlap. Regret is the target maximum minus the selected recipe's target mean; normalized regret divides by the target range, undefined at zero range.
+
+Top-1 is a binary outcome for a single task and size, not an estimated probability of success. Task-averaged values later describe this fixed set of tasks. Target means are noisy reference measurements, not known true expected performances. No p-values based on independent recipes or tasks are claimed. The 1B self-comparison is excluded from predictive results.

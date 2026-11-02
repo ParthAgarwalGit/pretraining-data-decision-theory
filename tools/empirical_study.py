@@ -28,7 +28,7 @@ def save_json(name, value):
 
 def csv(name, rows):
     d = rows if isinstance(rows,pd.DataFrame) else pd.DataFrame(rows)
-    d.to_csv(OUT/name,index=False,float_format='%.12g')
+    d.to_csv(OUT/name,index=False,float_format='%.17g')
     return d
 
 def note(name, text):
@@ -36,7 +36,7 @@ def note(name, text):
 
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 
-def data(): return pd.read_csv(OUT/'analysis_observations.csv')
+def data(): return pd.read_csv(OUT/'analysis_observations.csv',float_precision='round_trip')
 
 def means(d): return d.groupby(KEY,sort=True).score.mean().unstack('recipe')
 
@@ -181,7 +181,70 @@ Task summaries average equally over the 13 source sizes. These are descriptive s
 ''')
     print(summary.to_string(index=False))
 
-STAGES={1:stage1,2:stage2,3:stage3}
+def welch(mu_a,mu_b,var_a,var_b,na=3,nb=3):
+    a,b=var_a/na,var_b/nb
+    se=np.sqrt(a+b)
+    if na<2 or nb<2 or se==0: return np.nan,np.nan,np.nan
+    t=(mu_a-mu_b)/se; df=(a+b)**2/(a*a/(na-1)+b*b/(nb-1))
+    return t,df,float(2*stats.t.sf(abs(t),df))
+
+def stage4():
+    d=data(); rows=[]; subs=[]; pairs=[]
+    for (task,n),g in d.groupby(['task','params_num'],sort=True):
+        a=g.pivot(index='recipe',columns='seed',values='score').sort_index()
+        mu=a.mean(axis=1); sd=a.std(axis=1,ddof=1); var=sd**2
+        target=d[(d.task==task)&(d.params_num==d.params_num.max())].groupby('recipe').score.mean().reindex(a.index)
+        for recipe in a.index:
+            se=sd[recipe]/np.sqrt(3); half=stats.t.ppf(.975,2)*se
+            rows.append({'task':task,'params_num':n,'recipe':recipe,'mean':mu[recipe],'sd':sd[recipe],
+              'se':se,'ci_low':mu[recipe]-half,'ci_high':mu[recipe]+half,
+              'cv':sd[recipe]/mu[recipe] if mu[recipe]!=0 else np.nan})
+        for ra,rb in itertools.combinations(a.index,2):
+            t,df,p=welch(mu[ra],mu[rb],var[ra],var[rb])
+            pairs.append({'task':task,'params_num':n,'recipe_a':ra,'recipe_b':rb,'mean_difference':mu[ra]-mu[rb],
+              'se_difference':np.sqrt((var[ra]+var[rb])/3),'welch_t':t,'welch_df':df,'p_value':p,
+              'resolved_unadjusted_05':bool(p<.05),'resolved_bonferroni_14':bool(p<.05/14),
+              'target_order_agrees':float(np.sign(mu[ra]-mu[rb])==np.sign(target[ra]-target[rb]))})
+        for k in [1,2,3]:
+            for subset in itertools.combinations(a.columns,k):
+                ss=a.loc[:,list(subset)]; pred=ss.mean(axis=1)
+                resolved=[]; agreements=[]
+                for ra,rb in itertools.combinations(a.index,2):
+                    agreements.append(float(np.sign(pred[ra]-pred[rb])==np.sign(mu[ra]-mu[rb])))
+                    if k>=2:
+                        t,df,p=welch(pred[ra],pred[rb],ss.loc[ra].var(ddof=1),ss.loc[rb].var(ddof=1),k,k)
+                        resolved.append(float(p<.05/14))
+                subs.append({'task':task,'params_num':n,'n_seeds':k,'subset':'|'.join(subset),
+                    **metrics(pred,mu,a.index),'pairwise_order_agreement':np.mean(agreements),
+                    'resolved_fraction':np.mean(resolved) if resolved else np.nan,
+                    'target_regret':metrics(pred,target,a.index)['regret']})
+    u=csv('seed_uncertainty.csv',rows); s=csv('seed_subsampling.csv',subs)
+    p=csv('pairwise_effect_sizes.csv',pairs)
+    csv('seed_subsampling_summary.csv',s[s.task!=AGG].groupby('n_seeds')[['spearman','top1','pairwise_order_agreement','resolved_fraction','regret','target_regret']].mean().reset_index())
+    # Stratify by an explicitly descriptive t-statistic, not a causal noise decomposition.
+    q=p[(p.task!=AGG)&(p.params_num<d.params_num.max())].copy()
+    q['signal_bin']=pd.cut(q.welch_t.abs(),[-np.inf,1,2,4,np.inf],labels=['<1','1-2','2-4','>=4'])
+    sig=q.groupby('signal_bin',observed=True).agg(n=('target_order_agrees','size'),agreement=('target_order_agrees','mean')).reset_index()
+    csv('signal_to_noise_summary.csv',sig)
+    lineplot(u.groupby(['task','params_num']).sd.mean().reset_index(),'params_num','sd','seed_variation_by_scale.png',ylabel='Mean across recipes of seed SD')
+    fig,ax=plt.subplots(figsize=(6,4)); v=s[s.task!=AGG].groupby('n_seeds')[['spearman','top1']].mean()
+    ax.plot(v.index,v.spearman,'o-',label='Ranking correlation'); ax.plot(v.index,v.top1,'s-',label='Winner agreement')
+    ax.set_xticks([1,2,3]); ax.set_xlabel('Seeds in subset'); ax.set_ylabel('Agreement with full-seed reference'); ax.legend(); ax.grid(alpha=.2)
+    fig.tight_layout();fig.savefig(FIG/'seed_subsampling_predictability.png',dpi=180);plt.close(fig)
+    fig,ax=plt.subplots(figsize=(6,4));ax.bar(sig.signal_bin.astype(str),sig.agreement)
+    ax.set_xlabel('Absolute Welch t statistic at source scale');ax.set_ylabel('Pair ordering agreement with 1B');ax.set_ylim(0,1)
+    fig.tight_layout();fig.savefig(FIG/'effect_size_vs_ranking_agreement.png',dpi=180);plt.close(fig)
+    note('seed_uncertainty.md','''# Stage 4 Seed uncertainty
+
+All one-, two- and three-seed subsets within each size are enumerated. Each subset label is applied across recipes as a descriptive diagnostic, not assumed to pair independent runs or scales. Three-seed agreement with the three-seed reference is mechanically perfect. Nested subsets share observations with the reference; their agreement is optimistic relative to an independent replication.
+
+Individual score intervals use t(2) times the standard error, with independent approximately normal run scores assumed. They are pointwise, unadjusted, unclipped and based on only three runs; no reliable population coverage claim is made. The CV is descriptive on a positive accuracy scale and can be misleading near zero. One-seed uncertainty and resolution are undefined, recorded as null rather than zero. Two-sided Welch comparisons use each recipe's own variance and replicate count. Zero pooled variance is unresolved rather than treated as infinite confidence. The Bonferroni denominator 14 controls comparisons across sizes for a single pair under the assumptions; it does not control all pairwise tests together.
+
+Signal-to-noise bins use the absolute Welch statistic (a standardized mean difference by its SE, not Cohen's d). Associations with target ordering are descriptive and dependent. They cannot separate noise from systematic scale effects causally. The target is a three-seed reference, not truth. Seed labels are not paired across scales. No bootstrap replications are presented as extra training runs.
+''')
+    print(pd.read_csv(OUT/'seed_subsampling_summary.csv').to_string(index=False))
+
+STAGES={1:stage1,2:stage2,3:stage3,4:stage4}
 
 def main():
     global OUT,FIG
