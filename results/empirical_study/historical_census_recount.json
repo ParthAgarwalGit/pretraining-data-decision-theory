@@ -1,0 +1,209 @@
+{
+  "source_sha256": "9b7dcbe3aab4ddf064da90caaf74827bd0f9a127c0992bfba7b69c8e0b2f7a50",
+  "provenance": {
+    "git_sha": "bc0e72d732246be1fe12c11feae22c7c614b4db2",
+    "git_dirty": false,
+    "utc_timestamp": "2026-09-15T15:50:41.155573+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "P1-09"
+    }
+  },
+  "recount": [
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/arc_challenge",
+      "counts": {
+        "reversing": 163,
+        "stable": 136,
+        "within_noise": 1
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/arc_easy",
+      "counts": {
+        "stable": 257,
+        "reversing": 43
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/boolq",
+      "counts": {
+        "reversing": 284,
+        "stable": 16
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/csqa",
+      "counts": {
+        "reversing": 170,
+        "stable": 130
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/hellaswag",
+      "counts": {
+        "reversing": 259,
+        "stable": 41
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/mmlu",
+      "counts": {
+        "stable": 175,
+        "reversing": 125
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/olmes_10_macro_avg",
+      "counts": {
+        "reversing": 237,
+        "stable": 63
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/openbookqa",
+      "counts": {
+        "stable": 151,
+        "reversing": 149
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/piqa",
+      "counts": {
+        "stable": 171,
+        "reversing": 129
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/socialiqa",
+      "counts": {
+        "reversing": 211,
+        "stable": 89
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/uncorrected_1_0/by_task/winogrande",
+      "counts": {
+        "reversing": 267,
+        "stable": 33
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/arc_challenge",
+      "counts": {
+        "stable": 175,
+        "within_noise": 124,
+        "reversing": 1
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/arc_easy",
+      "counts": {
+        "stable": 248,
+        "within_noise": 52
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/boolq",
+      "counts": {
+        "within_noise": 266,
+        "stable": 33,
+        "reversing": 1
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/csqa",
+      "counts": {
+        "within_noise": 201,
+        "stable": 99
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/hellaswag",
+      "counts": {
+        "stable": 218,
+        "within_noise": 67,
+        "reversing": 15
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/mmlu",
+      "counts": {
+        "stable": 242,
+        "within_noise": 57,
+        "reversing": 1
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/olmes_10_macro_avg",
+      "counts": {
+        "stable": 171,
+        "within_noise": 116,
+        "reversing": 13
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/openbookqa",
+      "counts": {
+        "within_noise": 227,
+        "stable": 73
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/piqa",
+      "counts": {
+        "within_noise": 197,
+        "stable": 103
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/socialiqa",
+      "counts": {
+        "within_noise": 268,
+        "stable": 31,
+        "reversing": 1
+      },
+      "n": 300
+    },
+    {
+      "path": "/data/thresholds/bonferroni/by_task/winogrande",
+      "counts": {
+        "within_noise": 269,
+        "stable": 31
+      },
+      "n": 300
+    }
+  ]
+}

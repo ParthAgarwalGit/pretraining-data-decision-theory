@@ -1,0 +1,3851 @@
+task,params_num,recipe,n_seeds,n_scores
+arc_challenge,4000000,C4,3,3
+arc_challenge,4000000,DCLM-Baseline,3,3
+arc_challenge,4000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,4000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,4000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,4000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,4000000,Dolma1.6++,3,3
+arc_challenge,4000000,Dolma1.7,3,3
+arc_challenge,4000000,Dolma1.7 (no Flan),3,3
+arc_challenge,4000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,4000000,Dolma1.7 (no code),3,3
+arc_challenge,4000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,4000000,Falcon,3,3
+arc_challenge,4000000,Falcon+CC,3,3
+arc_challenge,4000000,Falcon+CC (QC 10%),3,3
+arc_challenge,4000000,Falcon+CC (QC 20%),3,3
+arc_challenge,4000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,4000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,4000000,FineWeb-Edu,3,3
+arc_challenge,4000000,FineWeb-Pro,3,3
+arc_challenge,6000000,C4,3,3
+arc_challenge,6000000,DCLM-Baseline,3,3
+arc_challenge,6000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,6000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,6000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,6000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,6000000,Dolma1.6++,3,3
+arc_challenge,6000000,Dolma1.7,3,3
+arc_challenge,6000000,Dolma1.7 (no Flan),3,3
+arc_challenge,6000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,6000000,Dolma1.7 (no code),3,3
+arc_challenge,6000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,6000000,Falcon,3,3
+arc_challenge,6000000,Falcon+CC,3,3
+arc_challenge,6000000,Falcon+CC (QC 10%),3,3
+arc_challenge,6000000,Falcon+CC (QC 20%),3,3
+arc_challenge,6000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,6000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,6000000,FineWeb-Edu,3,3
+arc_challenge,6000000,FineWeb-Pro,3,3
+arc_challenge,8000000,C4,3,3
+arc_challenge,8000000,DCLM-Baseline,3,3
+arc_challenge,8000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,8000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,8000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,8000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,8000000,Dolma1.6++,3,3
+arc_challenge,8000000,Dolma1.7,3,3
+arc_challenge,8000000,Dolma1.7 (no Flan),3,3
+arc_challenge,8000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,8000000,Dolma1.7 (no code),3,3
+arc_challenge,8000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,8000000,Falcon,3,3
+arc_challenge,8000000,Falcon+CC,3,3
+arc_challenge,8000000,Falcon+CC (QC 10%),3,3
+arc_challenge,8000000,Falcon+CC (QC 20%),3,3
+arc_challenge,8000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,8000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,8000000,FineWeb-Edu,3,3
+arc_challenge,8000000,FineWeb-Pro,3,3
+arc_challenge,10000000,C4,3,3
+arc_challenge,10000000,DCLM-Baseline,3,3
+arc_challenge,10000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,10000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,10000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,10000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,10000000,Dolma1.6++,3,3
+arc_challenge,10000000,Dolma1.7,3,3
+arc_challenge,10000000,Dolma1.7 (no Flan),3,3
+arc_challenge,10000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,10000000,Dolma1.7 (no code),3,3
+arc_challenge,10000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,10000000,Falcon,3,3
+arc_challenge,10000000,Falcon+CC,3,3
+arc_challenge,10000000,Falcon+CC (QC 10%),3,3
+arc_challenge,10000000,Falcon+CC (QC 20%),3,3
+arc_challenge,10000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,10000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,10000000,FineWeb-Edu,3,3
+arc_challenge,10000000,FineWeb-Pro,3,3
+arc_challenge,14000000,C4,3,3
+arc_challenge,14000000,DCLM-Baseline,3,3
+arc_challenge,14000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,14000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,14000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,14000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,14000000,Dolma1.6++,3,3
+arc_challenge,14000000,Dolma1.7,3,3
+arc_challenge,14000000,Dolma1.7 (no Flan),3,3
+arc_challenge,14000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,14000000,Dolma1.7 (no code),3,3
+arc_challenge,14000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,14000000,Falcon,3,3
+arc_challenge,14000000,Falcon+CC,3,3
+arc_challenge,14000000,Falcon+CC (QC 10%),3,3
+arc_challenge,14000000,Falcon+CC (QC 20%),3,3
+arc_challenge,14000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,14000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,14000000,FineWeb-Edu,3,3
+arc_challenge,14000000,FineWeb-Pro,3,3
+arc_challenge,16000000,C4,3,3
+arc_challenge,16000000,DCLM-Baseline,3,3
+arc_challenge,16000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,16000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,16000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,16000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,16000000,Dolma1.6++,3,3
+arc_challenge,16000000,Dolma1.7,3,3
+arc_challenge,16000000,Dolma1.7 (no Flan),3,3
+arc_challenge,16000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,16000000,Dolma1.7 (no code),3,3
+arc_challenge,16000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,16000000,Falcon,3,3
+arc_challenge,16000000,Falcon+CC,3,3
+arc_challenge,16000000,Falcon+CC (QC 10%),3,3
+arc_challenge,16000000,Falcon+CC (QC 20%),3,3
+arc_challenge,16000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,16000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,16000000,FineWeb-Edu,3,3
+arc_challenge,16000000,FineWeb-Pro,3,3
+arc_challenge,20000000,C4,3,3
+arc_challenge,20000000,DCLM-Baseline,3,3
+arc_challenge,20000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,20000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,20000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,20000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,20000000,Dolma1.6++,3,3
+arc_challenge,20000000,Dolma1.7,3,3
+arc_challenge,20000000,Dolma1.7 (no Flan),3,3
+arc_challenge,20000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,20000000,Dolma1.7 (no code),3,3
+arc_challenge,20000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,20000000,Falcon,3,3
+arc_challenge,20000000,Falcon+CC,3,3
+arc_challenge,20000000,Falcon+CC (QC 10%),3,3
+arc_challenge,20000000,Falcon+CC (QC 20%),3,3
+arc_challenge,20000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,20000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,20000000,FineWeb-Edu,3,3
+arc_challenge,20000000,FineWeb-Pro,3,3
+arc_challenge,60000000,C4,3,3
+arc_challenge,60000000,DCLM-Baseline,3,3
+arc_challenge,60000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,60000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,60000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,60000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,60000000,Dolma1.6++,3,3
+arc_challenge,60000000,Dolma1.7,3,3
+arc_challenge,60000000,Dolma1.7 (no Flan),3,3
+arc_challenge,60000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,60000000,Dolma1.7 (no code),3,3
+arc_challenge,60000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,60000000,Falcon,3,3
+arc_challenge,60000000,Falcon+CC,3,3
+arc_challenge,60000000,Falcon+CC (QC 10%),3,3
+arc_challenge,60000000,Falcon+CC (QC 20%),3,3
+arc_challenge,60000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,60000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,60000000,FineWeb-Edu,3,3
+arc_challenge,60000000,FineWeb-Pro,3,3
+arc_challenge,90000000,C4,3,3
+arc_challenge,90000000,DCLM-Baseline,3,3
+arc_challenge,90000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,90000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,90000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,90000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,90000000,Dolma1.6++,3,3
+arc_challenge,90000000,Dolma1.7,3,3
+arc_challenge,90000000,Dolma1.7 (no Flan),3,3
+arc_challenge,90000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,90000000,Dolma1.7 (no code),3,3
+arc_challenge,90000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,90000000,Falcon,3,3
+arc_challenge,90000000,Falcon+CC,3,3
+arc_challenge,90000000,Falcon+CC (QC 10%),3,3
+arc_challenge,90000000,Falcon+CC (QC 20%),3,3
+arc_challenge,90000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,90000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,90000000,FineWeb-Edu,3,3
+arc_challenge,90000000,FineWeb-Pro,3,3
+arc_challenge,150000000,C4,3,3
+arc_challenge,150000000,DCLM-Baseline,3,3
+arc_challenge,150000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,150000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,150000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,150000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,150000000,Dolma1.6++,3,3
+arc_challenge,150000000,Dolma1.7,3,3
+arc_challenge,150000000,Dolma1.7 (no Flan),3,3
+arc_challenge,150000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,150000000,Dolma1.7 (no code),3,3
+arc_challenge,150000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,150000000,Falcon,3,3
+arc_challenge,150000000,Falcon+CC,3,3
+arc_challenge,150000000,Falcon+CC (QC 10%),3,3
+arc_challenge,150000000,Falcon+CC (QC 20%),3,3
+arc_challenge,150000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,150000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,150000000,FineWeb-Edu,3,3
+arc_challenge,150000000,FineWeb-Pro,3,3
+arc_challenge,300000000,C4,3,3
+arc_challenge,300000000,DCLM-Baseline,3,3
+arc_challenge,300000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,300000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,300000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,300000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,300000000,Dolma1.6++,3,3
+arc_challenge,300000000,Dolma1.7,3,3
+arc_challenge,300000000,Dolma1.7 (no Flan),3,3
+arc_challenge,300000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,300000000,Dolma1.7 (no code),3,3
+arc_challenge,300000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,300000000,Falcon,3,3
+arc_challenge,300000000,Falcon+CC,3,3
+arc_challenge,300000000,Falcon+CC (QC 10%),3,3
+arc_challenge,300000000,Falcon+CC (QC 20%),3,3
+arc_challenge,300000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,300000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,300000000,FineWeb-Edu,3,3
+arc_challenge,300000000,FineWeb-Pro,3,3
+arc_challenge,530000000,C4,3,3
+arc_challenge,530000000,DCLM-Baseline,3,3
+arc_challenge,530000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,530000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,530000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,530000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,530000000,Dolma1.6++,3,3
+arc_challenge,530000000,Dolma1.7,3,3
+arc_challenge,530000000,Dolma1.7 (no Flan),3,3
+arc_challenge,530000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,530000000,Dolma1.7 (no code),3,3
+arc_challenge,530000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,530000000,Falcon,3,3
+arc_challenge,530000000,Falcon+CC,3,3
+arc_challenge,530000000,Falcon+CC (QC 10%),3,3
+arc_challenge,530000000,Falcon+CC (QC 20%),3,3
+arc_challenge,530000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,530000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,530000000,FineWeb-Edu,3,3
+arc_challenge,530000000,FineWeb-Pro,3,3
+arc_challenge,750000000,C4,3,3
+arc_challenge,750000000,DCLM-Baseline,3,3
+arc_challenge,750000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,750000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,750000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,750000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,750000000,Dolma1.6++,3,3
+arc_challenge,750000000,Dolma1.7,3,3
+arc_challenge,750000000,Dolma1.7 (no Flan),3,3
+arc_challenge,750000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,750000000,Dolma1.7 (no code),3,3
+arc_challenge,750000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,750000000,Falcon,3,3
+arc_challenge,750000000,Falcon+CC,3,3
+arc_challenge,750000000,Falcon+CC (QC 10%),3,3
+arc_challenge,750000000,Falcon+CC (QC 20%),3,3
+arc_challenge,750000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,750000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,750000000,FineWeb-Edu,3,3
+arc_challenge,750000000,FineWeb-Pro,3,3
+arc_challenge,1000000000,C4,3,3
+arc_challenge,1000000000,DCLM-Baseline,3,3
+arc_challenge,1000000000,DCLM-Baseline (QC 10%),3,3
+arc_challenge,1000000000,DCLM-Baseline (QC 20%),3,3
+arc_challenge,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_challenge,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_challenge,1000000000,DCLM-Baseline (QC FW 10%),3,3
+arc_challenge,1000000000,DCLM-Baseline (QC FW 3%),3,3
+arc_challenge,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_challenge,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_challenge,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_challenge,1000000000,Dolma1.6++,3,3
+arc_challenge,1000000000,Dolma1.7,3,3
+arc_challenge,1000000000,Dolma1.7 (no Flan),3,3
+arc_challenge,1000000000,Dolma1.7 (no Reddit),3,3
+arc_challenge,1000000000,Dolma1.7 (no code),3,3
+arc_challenge,1000000000,"Dolma1.7 (no math, code)",3,3
+arc_challenge,1000000000,Falcon,3,3
+arc_challenge,1000000000,Falcon+CC,3,3
+arc_challenge,1000000000,Falcon+CC (QC 10%),3,3
+arc_challenge,1000000000,Falcon+CC (QC 20%),3,3
+arc_challenge,1000000000,Falcon+CC (QC Orig 10%),3,3
+arc_challenge,1000000000,Falcon+CC (QC Tulu 10%),3,3
+arc_challenge,1000000000,FineWeb-Edu,3,3
+arc_challenge,1000000000,FineWeb-Pro,3,3
+arc_easy,4000000,C4,3,3
+arc_easy,4000000,DCLM-Baseline,3,3
+arc_easy,4000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,4000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,4000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,4000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,4000000,Dolma1.6++,3,3
+arc_easy,4000000,Dolma1.7,3,3
+arc_easy,4000000,Dolma1.7 (no Flan),3,3
+arc_easy,4000000,Dolma1.7 (no Reddit),3,3
+arc_easy,4000000,Dolma1.7 (no code),3,3
+arc_easy,4000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,4000000,Falcon,3,3
+arc_easy,4000000,Falcon+CC,3,3
+arc_easy,4000000,Falcon+CC (QC 10%),3,3
+arc_easy,4000000,Falcon+CC (QC 20%),3,3
+arc_easy,4000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,4000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,4000000,FineWeb-Edu,3,3
+arc_easy,4000000,FineWeb-Pro,3,3
+arc_easy,6000000,C4,3,3
+arc_easy,6000000,DCLM-Baseline,3,3
+arc_easy,6000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,6000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,6000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,6000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,6000000,Dolma1.6++,3,3
+arc_easy,6000000,Dolma1.7,3,3
+arc_easy,6000000,Dolma1.7 (no Flan),3,3
+arc_easy,6000000,Dolma1.7 (no Reddit),3,3
+arc_easy,6000000,Dolma1.7 (no code),3,3
+arc_easy,6000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,6000000,Falcon,3,3
+arc_easy,6000000,Falcon+CC,3,3
+arc_easy,6000000,Falcon+CC (QC 10%),3,3
+arc_easy,6000000,Falcon+CC (QC 20%),3,3
+arc_easy,6000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,6000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,6000000,FineWeb-Edu,3,3
+arc_easy,6000000,FineWeb-Pro,3,3
+arc_easy,8000000,C4,3,3
+arc_easy,8000000,DCLM-Baseline,3,3
+arc_easy,8000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,8000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,8000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,8000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,8000000,Dolma1.6++,3,3
+arc_easy,8000000,Dolma1.7,3,3
+arc_easy,8000000,Dolma1.7 (no Flan),3,3
+arc_easy,8000000,Dolma1.7 (no Reddit),3,3
+arc_easy,8000000,Dolma1.7 (no code),3,3
+arc_easy,8000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,8000000,Falcon,3,3
+arc_easy,8000000,Falcon+CC,3,3
+arc_easy,8000000,Falcon+CC (QC 10%),3,3
+arc_easy,8000000,Falcon+CC (QC 20%),3,3
+arc_easy,8000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,8000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,8000000,FineWeb-Edu,3,3
+arc_easy,8000000,FineWeb-Pro,3,3
+arc_easy,10000000,C4,3,3
+arc_easy,10000000,DCLM-Baseline,3,3
+arc_easy,10000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,10000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,10000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,10000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,10000000,Dolma1.6++,3,3
+arc_easy,10000000,Dolma1.7,3,3
+arc_easy,10000000,Dolma1.7 (no Flan),3,3
+arc_easy,10000000,Dolma1.7 (no Reddit),3,3
+arc_easy,10000000,Dolma1.7 (no code),3,3
+arc_easy,10000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,10000000,Falcon,3,3
+arc_easy,10000000,Falcon+CC,3,3
+arc_easy,10000000,Falcon+CC (QC 10%),3,3
+arc_easy,10000000,Falcon+CC (QC 20%),3,3
+arc_easy,10000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,10000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,10000000,FineWeb-Edu,3,3
+arc_easy,10000000,FineWeb-Pro,3,3
+arc_easy,14000000,C4,3,3
+arc_easy,14000000,DCLM-Baseline,3,3
+arc_easy,14000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,14000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,14000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,14000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,14000000,Dolma1.6++,3,3
+arc_easy,14000000,Dolma1.7,3,3
+arc_easy,14000000,Dolma1.7 (no Flan),3,3
+arc_easy,14000000,Dolma1.7 (no Reddit),3,3
+arc_easy,14000000,Dolma1.7 (no code),3,3
+arc_easy,14000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,14000000,Falcon,3,3
+arc_easy,14000000,Falcon+CC,3,3
+arc_easy,14000000,Falcon+CC (QC 10%),3,3
+arc_easy,14000000,Falcon+CC (QC 20%),3,3
+arc_easy,14000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,14000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,14000000,FineWeb-Edu,3,3
+arc_easy,14000000,FineWeb-Pro,3,3
+arc_easy,16000000,C4,3,3
+arc_easy,16000000,DCLM-Baseline,3,3
+arc_easy,16000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,16000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,16000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,16000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,16000000,Dolma1.6++,3,3
+arc_easy,16000000,Dolma1.7,3,3
+arc_easy,16000000,Dolma1.7 (no Flan),3,3
+arc_easy,16000000,Dolma1.7 (no Reddit),3,3
+arc_easy,16000000,Dolma1.7 (no code),3,3
+arc_easy,16000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,16000000,Falcon,3,3
+arc_easy,16000000,Falcon+CC,3,3
+arc_easy,16000000,Falcon+CC (QC 10%),3,3
+arc_easy,16000000,Falcon+CC (QC 20%),3,3
+arc_easy,16000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,16000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,16000000,FineWeb-Edu,3,3
+arc_easy,16000000,FineWeb-Pro,3,3
+arc_easy,20000000,C4,3,3
+arc_easy,20000000,DCLM-Baseline,3,3
+arc_easy,20000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,20000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,20000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,20000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,20000000,Dolma1.6++,3,3
+arc_easy,20000000,Dolma1.7,3,3
+arc_easy,20000000,Dolma1.7 (no Flan),3,3
+arc_easy,20000000,Dolma1.7 (no Reddit),3,3
+arc_easy,20000000,Dolma1.7 (no code),3,3
+arc_easy,20000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,20000000,Falcon,3,3
+arc_easy,20000000,Falcon+CC,3,3
+arc_easy,20000000,Falcon+CC (QC 10%),3,3
+arc_easy,20000000,Falcon+CC (QC 20%),3,3
+arc_easy,20000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,20000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,20000000,FineWeb-Edu,3,3
+arc_easy,20000000,FineWeb-Pro,3,3
+arc_easy,60000000,C4,3,3
+arc_easy,60000000,DCLM-Baseline,3,3
+arc_easy,60000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,60000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,60000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,60000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,60000000,Dolma1.6++,3,3
+arc_easy,60000000,Dolma1.7,3,3
+arc_easy,60000000,Dolma1.7 (no Flan),3,3
+arc_easy,60000000,Dolma1.7 (no Reddit),3,3
+arc_easy,60000000,Dolma1.7 (no code),3,3
+arc_easy,60000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,60000000,Falcon,3,3
+arc_easy,60000000,Falcon+CC,3,3
+arc_easy,60000000,Falcon+CC (QC 10%),3,3
+arc_easy,60000000,Falcon+CC (QC 20%),3,3
+arc_easy,60000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,60000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,60000000,FineWeb-Edu,3,3
+arc_easy,60000000,FineWeb-Pro,3,3
+arc_easy,90000000,C4,3,3
+arc_easy,90000000,DCLM-Baseline,3,3
+arc_easy,90000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,90000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,90000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,90000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,90000000,Dolma1.6++,3,3
+arc_easy,90000000,Dolma1.7,3,3
+arc_easy,90000000,Dolma1.7 (no Flan),3,3
+arc_easy,90000000,Dolma1.7 (no Reddit),3,3
+arc_easy,90000000,Dolma1.7 (no code),3,3
+arc_easy,90000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,90000000,Falcon,3,3
+arc_easy,90000000,Falcon+CC,3,3
+arc_easy,90000000,Falcon+CC (QC 10%),3,3
+arc_easy,90000000,Falcon+CC (QC 20%),3,3
+arc_easy,90000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,90000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,90000000,FineWeb-Edu,3,3
+arc_easy,90000000,FineWeb-Pro,3,3
+arc_easy,150000000,C4,3,3
+arc_easy,150000000,DCLM-Baseline,3,3
+arc_easy,150000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,150000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,150000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,150000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,150000000,Dolma1.6++,3,3
+arc_easy,150000000,Dolma1.7,3,3
+arc_easy,150000000,Dolma1.7 (no Flan),3,3
+arc_easy,150000000,Dolma1.7 (no Reddit),3,3
+arc_easy,150000000,Dolma1.7 (no code),3,3
+arc_easy,150000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,150000000,Falcon,3,3
+arc_easy,150000000,Falcon+CC,3,3
+arc_easy,150000000,Falcon+CC (QC 10%),3,3
+arc_easy,150000000,Falcon+CC (QC 20%),3,3
+arc_easy,150000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,150000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,150000000,FineWeb-Edu,3,3
+arc_easy,150000000,FineWeb-Pro,3,3
+arc_easy,300000000,C4,3,3
+arc_easy,300000000,DCLM-Baseline,3,3
+arc_easy,300000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,300000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,300000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,300000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,300000000,Dolma1.6++,3,3
+arc_easy,300000000,Dolma1.7,3,3
+arc_easy,300000000,Dolma1.7 (no Flan),3,3
+arc_easy,300000000,Dolma1.7 (no Reddit),3,3
+arc_easy,300000000,Dolma1.7 (no code),3,3
+arc_easy,300000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,300000000,Falcon,3,3
+arc_easy,300000000,Falcon+CC,3,3
+arc_easy,300000000,Falcon+CC (QC 10%),3,3
+arc_easy,300000000,Falcon+CC (QC 20%),3,3
+arc_easy,300000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,300000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,300000000,FineWeb-Edu,3,3
+arc_easy,300000000,FineWeb-Pro,3,3
+arc_easy,530000000,C4,3,3
+arc_easy,530000000,DCLM-Baseline,3,3
+arc_easy,530000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,530000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,530000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,530000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,530000000,Dolma1.6++,3,3
+arc_easy,530000000,Dolma1.7,3,3
+arc_easy,530000000,Dolma1.7 (no Flan),3,3
+arc_easy,530000000,Dolma1.7 (no Reddit),3,3
+arc_easy,530000000,Dolma1.7 (no code),3,3
+arc_easy,530000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,530000000,Falcon,3,3
+arc_easy,530000000,Falcon+CC,3,3
+arc_easy,530000000,Falcon+CC (QC 10%),3,3
+arc_easy,530000000,Falcon+CC (QC 20%),3,3
+arc_easy,530000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,530000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,530000000,FineWeb-Edu,3,3
+arc_easy,530000000,FineWeb-Pro,3,3
+arc_easy,750000000,C4,3,3
+arc_easy,750000000,DCLM-Baseline,3,3
+arc_easy,750000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,750000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,750000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,750000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,750000000,Dolma1.6++,3,3
+arc_easy,750000000,Dolma1.7,3,3
+arc_easy,750000000,Dolma1.7 (no Flan),3,3
+arc_easy,750000000,Dolma1.7 (no Reddit),3,3
+arc_easy,750000000,Dolma1.7 (no code),3,3
+arc_easy,750000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,750000000,Falcon,3,3
+arc_easy,750000000,Falcon+CC,3,3
+arc_easy,750000000,Falcon+CC (QC 10%),3,3
+arc_easy,750000000,Falcon+CC (QC 20%),3,3
+arc_easy,750000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,750000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,750000000,FineWeb-Edu,3,3
+arc_easy,750000000,FineWeb-Pro,3,3
+arc_easy,1000000000,C4,3,3
+arc_easy,1000000000,DCLM-Baseline,3,3
+arc_easy,1000000000,DCLM-Baseline (QC 10%),3,3
+arc_easy,1000000000,DCLM-Baseline (QC 20%),3,3
+arc_easy,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+arc_easy,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+arc_easy,1000000000,DCLM-Baseline (QC FW 10%),3,3
+arc_easy,1000000000,DCLM-Baseline (QC FW 3%),3,3
+arc_easy,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+arc_easy,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+arc_easy,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+arc_easy,1000000000,Dolma1.6++,3,3
+arc_easy,1000000000,Dolma1.7,3,3
+arc_easy,1000000000,Dolma1.7 (no Flan),3,3
+arc_easy,1000000000,Dolma1.7 (no Reddit),3,3
+arc_easy,1000000000,Dolma1.7 (no code),3,3
+arc_easy,1000000000,"Dolma1.7 (no math, code)",3,3
+arc_easy,1000000000,Falcon,3,3
+arc_easy,1000000000,Falcon+CC,3,3
+arc_easy,1000000000,Falcon+CC (QC 10%),3,3
+arc_easy,1000000000,Falcon+CC (QC 20%),3,3
+arc_easy,1000000000,Falcon+CC (QC Orig 10%),3,3
+arc_easy,1000000000,Falcon+CC (QC Tulu 10%),3,3
+arc_easy,1000000000,FineWeb-Edu,3,3
+arc_easy,1000000000,FineWeb-Pro,3,3
+boolq,4000000,C4,3,3
+boolq,4000000,DCLM-Baseline,3,3
+boolq,4000000,DCLM-Baseline (QC 10%),3,3
+boolq,4000000,DCLM-Baseline (QC 20%),3,3
+boolq,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,4000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,4000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,4000000,Dolma1.6++,3,3
+boolq,4000000,Dolma1.7,3,3
+boolq,4000000,Dolma1.7 (no Flan),3,3
+boolq,4000000,Dolma1.7 (no Reddit),3,3
+boolq,4000000,Dolma1.7 (no code),3,3
+boolq,4000000,"Dolma1.7 (no math, code)",3,3
+boolq,4000000,Falcon,3,3
+boolq,4000000,Falcon+CC,3,3
+boolq,4000000,Falcon+CC (QC 10%),3,3
+boolq,4000000,Falcon+CC (QC 20%),3,3
+boolq,4000000,Falcon+CC (QC Orig 10%),3,3
+boolq,4000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,4000000,FineWeb-Edu,3,3
+boolq,4000000,FineWeb-Pro,3,3
+boolq,6000000,C4,3,3
+boolq,6000000,DCLM-Baseline,3,3
+boolq,6000000,DCLM-Baseline (QC 10%),3,3
+boolq,6000000,DCLM-Baseline (QC 20%),3,3
+boolq,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,6000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,6000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,6000000,Dolma1.6++,3,3
+boolq,6000000,Dolma1.7,3,3
+boolq,6000000,Dolma1.7 (no Flan),3,3
+boolq,6000000,Dolma1.7 (no Reddit),3,3
+boolq,6000000,Dolma1.7 (no code),3,3
+boolq,6000000,"Dolma1.7 (no math, code)",3,3
+boolq,6000000,Falcon,3,3
+boolq,6000000,Falcon+CC,3,3
+boolq,6000000,Falcon+CC (QC 10%),3,3
+boolq,6000000,Falcon+CC (QC 20%),3,3
+boolq,6000000,Falcon+CC (QC Orig 10%),3,3
+boolq,6000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,6000000,FineWeb-Edu,3,3
+boolq,6000000,FineWeb-Pro,3,3
+boolq,8000000,C4,3,3
+boolq,8000000,DCLM-Baseline,3,3
+boolq,8000000,DCLM-Baseline (QC 10%),3,3
+boolq,8000000,DCLM-Baseline (QC 20%),3,3
+boolq,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,8000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,8000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,8000000,Dolma1.6++,3,3
+boolq,8000000,Dolma1.7,3,3
+boolq,8000000,Dolma1.7 (no Flan),3,3
+boolq,8000000,Dolma1.7 (no Reddit),3,3
+boolq,8000000,Dolma1.7 (no code),3,3
+boolq,8000000,"Dolma1.7 (no math, code)",3,3
+boolq,8000000,Falcon,3,3
+boolq,8000000,Falcon+CC,3,3
+boolq,8000000,Falcon+CC (QC 10%),3,3
+boolq,8000000,Falcon+CC (QC 20%),3,3
+boolq,8000000,Falcon+CC (QC Orig 10%),3,3
+boolq,8000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,8000000,FineWeb-Edu,3,3
+boolq,8000000,FineWeb-Pro,3,3
+boolq,10000000,C4,3,3
+boolq,10000000,DCLM-Baseline,3,3
+boolq,10000000,DCLM-Baseline (QC 10%),3,3
+boolq,10000000,DCLM-Baseline (QC 20%),3,3
+boolq,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,10000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,10000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,10000000,Dolma1.6++,3,3
+boolq,10000000,Dolma1.7,3,3
+boolq,10000000,Dolma1.7 (no Flan),3,3
+boolq,10000000,Dolma1.7 (no Reddit),3,3
+boolq,10000000,Dolma1.7 (no code),3,3
+boolq,10000000,"Dolma1.7 (no math, code)",3,3
+boolq,10000000,Falcon,3,3
+boolq,10000000,Falcon+CC,3,3
+boolq,10000000,Falcon+CC (QC 10%),3,3
+boolq,10000000,Falcon+CC (QC 20%),3,3
+boolq,10000000,Falcon+CC (QC Orig 10%),3,3
+boolq,10000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,10000000,FineWeb-Edu,3,3
+boolq,10000000,FineWeb-Pro,3,3
+boolq,14000000,C4,3,3
+boolq,14000000,DCLM-Baseline,3,3
+boolq,14000000,DCLM-Baseline (QC 10%),3,3
+boolq,14000000,DCLM-Baseline (QC 20%),3,3
+boolq,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,14000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,14000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,14000000,Dolma1.6++,3,3
+boolq,14000000,Dolma1.7,3,3
+boolq,14000000,Dolma1.7 (no Flan),3,3
+boolq,14000000,Dolma1.7 (no Reddit),3,3
+boolq,14000000,Dolma1.7 (no code),3,3
+boolq,14000000,"Dolma1.7 (no math, code)",3,3
+boolq,14000000,Falcon,3,3
+boolq,14000000,Falcon+CC,3,3
+boolq,14000000,Falcon+CC (QC 10%),3,3
+boolq,14000000,Falcon+CC (QC 20%),3,3
+boolq,14000000,Falcon+CC (QC Orig 10%),3,3
+boolq,14000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,14000000,FineWeb-Edu,3,3
+boolq,14000000,FineWeb-Pro,3,3
+boolq,16000000,C4,3,3
+boolq,16000000,DCLM-Baseline,3,3
+boolq,16000000,DCLM-Baseline (QC 10%),3,3
+boolq,16000000,DCLM-Baseline (QC 20%),3,3
+boolq,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,16000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,16000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,16000000,Dolma1.6++,3,3
+boolq,16000000,Dolma1.7,3,3
+boolq,16000000,Dolma1.7 (no Flan),3,3
+boolq,16000000,Dolma1.7 (no Reddit),3,3
+boolq,16000000,Dolma1.7 (no code),3,3
+boolq,16000000,"Dolma1.7 (no math, code)",3,3
+boolq,16000000,Falcon,3,3
+boolq,16000000,Falcon+CC,3,3
+boolq,16000000,Falcon+CC (QC 10%),3,3
+boolq,16000000,Falcon+CC (QC 20%),3,3
+boolq,16000000,Falcon+CC (QC Orig 10%),3,3
+boolq,16000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,16000000,FineWeb-Edu,3,3
+boolq,16000000,FineWeb-Pro,3,3
+boolq,20000000,C4,3,3
+boolq,20000000,DCLM-Baseline,3,3
+boolq,20000000,DCLM-Baseline (QC 10%),3,3
+boolq,20000000,DCLM-Baseline (QC 20%),3,3
+boolq,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,20000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,20000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,20000000,Dolma1.6++,3,3
+boolq,20000000,Dolma1.7,3,3
+boolq,20000000,Dolma1.7 (no Flan),3,3
+boolq,20000000,Dolma1.7 (no Reddit),3,3
+boolq,20000000,Dolma1.7 (no code),3,3
+boolq,20000000,"Dolma1.7 (no math, code)",3,3
+boolq,20000000,Falcon,3,3
+boolq,20000000,Falcon+CC,3,3
+boolq,20000000,Falcon+CC (QC 10%),3,3
+boolq,20000000,Falcon+CC (QC 20%),3,3
+boolq,20000000,Falcon+CC (QC Orig 10%),3,3
+boolq,20000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,20000000,FineWeb-Edu,3,3
+boolq,20000000,FineWeb-Pro,3,3
+boolq,60000000,C4,3,3
+boolq,60000000,DCLM-Baseline,3,3
+boolq,60000000,DCLM-Baseline (QC 10%),3,3
+boolq,60000000,DCLM-Baseline (QC 20%),3,3
+boolq,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,60000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,60000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,60000000,Dolma1.6++,3,3
+boolq,60000000,Dolma1.7,3,3
+boolq,60000000,Dolma1.7 (no Flan),3,3
+boolq,60000000,Dolma1.7 (no Reddit),3,3
+boolq,60000000,Dolma1.7 (no code),3,3
+boolq,60000000,"Dolma1.7 (no math, code)",3,3
+boolq,60000000,Falcon,3,3
+boolq,60000000,Falcon+CC,3,3
+boolq,60000000,Falcon+CC (QC 10%),3,3
+boolq,60000000,Falcon+CC (QC 20%),3,3
+boolq,60000000,Falcon+CC (QC Orig 10%),3,3
+boolq,60000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,60000000,FineWeb-Edu,3,3
+boolq,60000000,FineWeb-Pro,3,3
+boolq,90000000,C4,3,3
+boolq,90000000,DCLM-Baseline,3,3
+boolq,90000000,DCLM-Baseline (QC 10%),3,3
+boolq,90000000,DCLM-Baseline (QC 20%),3,3
+boolq,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,90000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,90000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,90000000,Dolma1.6++,3,3
+boolq,90000000,Dolma1.7,3,3
+boolq,90000000,Dolma1.7 (no Flan),3,3
+boolq,90000000,Dolma1.7 (no Reddit),3,3
+boolq,90000000,Dolma1.7 (no code),3,3
+boolq,90000000,"Dolma1.7 (no math, code)",3,3
+boolq,90000000,Falcon,3,3
+boolq,90000000,Falcon+CC,3,3
+boolq,90000000,Falcon+CC (QC 10%),3,3
+boolq,90000000,Falcon+CC (QC 20%),3,3
+boolq,90000000,Falcon+CC (QC Orig 10%),3,3
+boolq,90000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,90000000,FineWeb-Edu,3,3
+boolq,90000000,FineWeb-Pro,3,3
+boolq,150000000,C4,3,3
+boolq,150000000,DCLM-Baseline,3,3
+boolq,150000000,DCLM-Baseline (QC 10%),3,3
+boolq,150000000,DCLM-Baseline (QC 20%),3,3
+boolq,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,150000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,150000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,150000000,Dolma1.6++,3,3
+boolq,150000000,Dolma1.7,3,3
+boolq,150000000,Dolma1.7 (no Flan),3,3
+boolq,150000000,Dolma1.7 (no Reddit),3,3
+boolq,150000000,Dolma1.7 (no code),3,3
+boolq,150000000,"Dolma1.7 (no math, code)",3,3
+boolq,150000000,Falcon,3,3
+boolq,150000000,Falcon+CC,3,3
+boolq,150000000,Falcon+CC (QC 10%),3,3
+boolq,150000000,Falcon+CC (QC 20%),3,3
+boolq,150000000,Falcon+CC (QC Orig 10%),3,3
+boolq,150000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,150000000,FineWeb-Edu,3,3
+boolq,150000000,FineWeb-Pro,3,3
+boolq,300000000,C4,3,3
+boolq,300000000,DCLM-Baseline,3,3
+boolq,300000000,DCLM-Baseline (QC 10%),3,3
+boolq,300000000,DCLM-Baseline (QC 20%),3,3
+boolq,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,300000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,300000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,300000000,Dolma1.6++,3,3
+boolq,300000000,Dolma1.7,3,3
+boolq,300000000,Dolma1.7 (no Flan),3,3
+boolq,300000000,Dolma1.7 (no Reddit),3,3
+boolq,300000000,Dolma1.7 (no code),3,3
+boolq,300000000,"Dolma1.7 (no math, code)",3,3
+boolq,300000000,Falcon,3,3
+boolq,300000000,Falcon+CC,3,3
+boolq,300000000,Falcon+CC (QC 10%),3,3
+boolq,300000000,Falcon+CC (QC 20%),3,3
+boolq,300000000,Falcon+CC (QC Orig 10%),3,3
+boolq,300000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,300000000,FineWeb-Edu,3,3
+boolq,300000000,FineWeb-Pro,3,3
+boolq,530000000,C4,3,3
+boolq,530000000,DCLM-Baseline,3,3
+boolq,530000000,DCLM-Baseline (QC 10%),3,3
+boolq,530000000,DCLM-Baseline (QC 20%),3,3
+boolq,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,530000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,530000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,530000000,Dolma1.6++,3,3
+boolq,530000000,Dolma1.7,3,3
+boolq,530000000,Dolma1.7 (no Flan),3,3
+boolq,530000000,Dolma1.7 (no Reddit),3,3
+boolq,530000000,Dolma1.7 (no code),3,3
+boolq,530000000,"Dolma1.7 (no math, code)",3,3
+boolq,530000000,Falcon,3,3
+boolq,530000000,Falcon+CC,3,3
+boolq,530000000,Falcon+CC (QC 10%),3,3
+boolq,530000000,Falcon+CC (QC 20%),3,3
+boolq,530000000,Falcon+CC (QC Orig 10%),3,3
+boolq,530000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,530000000,FineWeb-Edu,3,3
+boolq,530000000,FineWeb-Pro,3,3
+boolq,750000000,C4,3,3
+boolq,750000000,DCLM-Baseline,3,3
+boolq,750000000,DCLM-Baseline (QC 10%),3,3
+boolq,750000000,DCLM-Baseline (QC 20%),3,3
+boolq,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,750000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,750000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,750000000,Dolma1.6++,3,3
+boolq,750000000,Dolma1.7,3,3
+boolq,750000000,Dolma1.7 (no Flan),3,3
+boolq,750000000,Dolma1.7 (no Reddit),3,3
+boolq,750000000,Dolma1.7 (no code),3,3
+boolq,750000000,"Dolma1.7 (no math, code)",3,3
+boolq,750000000,Falcon,3,3
+boolq,750000000,Falcon+CC,3,3
+boolq,750000000,Falcon+CC (QC 10%),3,3
+boolq,750000000,Falcon+CC (QC 20%),3,3
+boolq,750000000,Falcon+CC (QC Orig 10%),3,3
+boolq,750000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,750000000,FineWeb-Edu,3,3
+boolq,750000000,FineWeb-Pro,3,3
+boolq,1000000000,C4,3,3
+boolq,1000000000,DCLM-Baseline,3,3
+boolq,1000000000,DCLM-Baseline (QC 10%),3,3
+boolq,1000000000,DCLM-Baseline (QC 20%),3,3
+boolq,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+boolq,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+boolq,1000000000,DCLM-Baseline (QC FW 10%),3,3
+boolq,1000000000,DCLM-Baseline (QC FW 3%),3,3
+boolq,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+boolq,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+boolq,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+boolq,1000000000,Dolma1.6++,3,3
+boolq,1000000000,Dolma1.7,3,3
+boolq,1000000000,Dolma1.7 (no Flan),3,3
+boolq,1000000000,Dolma1.7 (no Reddit),3,3
+boolq,1000000000,Dolma1.7 (no code),3,3
+boolq,1000000000,"Dolma1.7 (no math, code)",3,3
+boolq,1000000000,Falcon,3,3
+boolq,1000000000,Falcon+CC,3,3
+boolq,1000000000,Falcon+CC (QC 10%),3,3
+boolq,1000000000,Falcon+CC (QC 20%),3,3
+boolq,1000000000,Falcon+CC (QC Orig 10%),3,3
+boolq,1000000000,Falcon+CC (QC Tulu 10%),3,3
+boolq,1000000000,FineWeb-Edu,3,3
+boolq,1000000000,FineWeb-Pro,3,3
+csqa,4000000,C4,3,3
+csqa,4000000,DCLM-Baseline,3,3
+csqa,4000000,DCLM-Baseline (QC 10%),3,3
+csqa,4000000,DCLM-Baseline (QC 20%),3,3
+csqa,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,4000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,4000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,4000000,Dolma1.6++,3,3
+csqa,4000000,Dolma1.7,3,3
+csqa,4000000,Dolma1.7 (no Flan),3,3
+csqa,4000000,Dolma1.7 (no Reddit),3,3
+csqa,4000000,Dolma1.7 (no code),3,3
+csqa,4000000,"Dolma1.7 (no math, code)",3,3
+csqa,4000000,Falcon,3,3
+csqa,4000000,Falcon+CC,3,3
+csqa,4000000,Falcon+CC (QC 10%),3,3
+csqa,4000000,Falcon+CC (QC 20%),3,3
+csqa,4000000,Falcon+CC (QC Orig 10%),3,3
+csqa,4000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,4000000,FineWeb-Edu,3,3
+csqa,4000000,FineWeb-Pro,3,3
+csqa,6000000,C4,3,3
+csqa,6000000,DCLM-Baseline,3,3
+csqa,6000000,DCLM-Baseline (QC 10%),3,3
+csqa,6000000,DCLM-Baseline (QC 20%),3,3
+csqa,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,6000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,6000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,6000000,Dolma1.6++,3,3
+csqa,6000000,Dolma1.7,3,3
+csqa,6000000,Dolma1.7 (no Flan),3,3
+csqa,6000000,Dolma1.7 (no Reddit),3,3
+csqa,6000000,Dolma1.7 (no code),3,3
+csqa,6000000,"Dolma1.7 (no math, code)",3,3
+csqa,6000000,Falcon,3,3
+csqa,6000000,Falcon+CC,3,3
+csqa,6000000,Falcon+CC (QC 10%),3,3
+csqa,6000000,Falcon+CC (QC 20%),3,3
+csqa,6000000,Falcon+CC (QC Orig 10%),3,3
+csqa,6000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,6000000,FineWeb-Edu,3,3
+csqa,6000000,FineWeb-Pro,3,3
+csqa,8000000,C4,3,3
+csqa,8000000,DCLM-Baseline,3,3
+csqa,8000000,DCLM-Baseline (QC 10%),3,3
+csqa,8000000,DCLM-Baseline (QC 20%),3,3
+csqa,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,8000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,8000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,8000000,Dolma1.6++,3,3
+csqa,8000000,Dolma1.7,3,3
+csqa,8000000,Dolma1.7 (no Flan),3,3
+csqa,8000000,Dolma1.7 (no Reddit),3,3
+csqa,8000000,Dolma1.7 (no code),3,3
+csqa,8000000,"Dolma1.7 (no math, code)",3,3
+csqa,8000000,Falcon,3,3
+csqa,8000000,Falcon+CC,3,3
+csqa,8000000,Falcon+CC (QC 10%),3,3
+csqa,8000000,Falcon+CC (QC 20%),3,3
+csqa,8000000,Falcon+CC (QC Orig 10%),3,3
+csqa,8000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,8000000,FineWeb-Edu,3,3
+csqa,8000000,FineWeb-Pro,3,3
+csqa,10000000,C4,3,3
+csqa,10000000,DCLM-Baseline,3,3
+csqa,10000000,DCLM-Baseline (QC 10%),3,3
+csqa,10000000,DCLM-Baseline (QC 20%),3,3
+csqa,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,10000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,10000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,10000000,Dolma1.6++,3,3
+csqa,10000000,Dolma1.7,3,3
+csqa,10000000,Dolma1.7 (no Flan),3,3
+csqa,10000000,Dolma1.7 (no Reddit),3,3
+csqa,10000000,Dolma1.7 (no code),3,3
+csqa,10000000,"Dolma1.7 (no math, code)",3,3
+csqa,10000000,Falcon,3,3
+csqa,10000000,Falcon+CC,3,3
+csqa,10000000,Falcon+CC (QC 10%),3,3
+csqa,10000000,Falcon+CC (QC 20%),3,3
+csqa,10000000,Falcon+CC (QC Orig 10%),3,3
+csqa,10000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,10000000,FineWeb-Edu,3,3
+csqa,10000000,FineWeb-Pro,3,3
+csqa,14000000,C4,3,3
+csqa,14000000,DCLM-Baseline,3,3
+csqa,14000000,DCLM-Baseline (QC 10%),3,3
+csqa,14000000,DCLM-Baseline (QC 20%),3,3
+csqa,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,14000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,14000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,14000000,Dolma1.6++,3,3
+csqa,14000000,Dolma1.7,3,3
+csqa,14000000,Dolma1.7 (no Flan),3,3
+csqa,14000000,Dolma1.7 (no Reddit),3,3
+csqa,14000000,Dolma1.7 (no code),3,3
+csqa,14000000,"Dolma1.7 (no math, code)",3,3
+csqa,14000000,Falcon,3,3
+csqa,14000000,Falcon+CC,3,3
+csqa,14000000,Falcon+CC (QC 10%),3,3
+csqa,14000000,Falcon+CC (QC 20%),3,3
+csqa,14000000,Falcon+CC (QC Orig 10%),3,3
+csqa,14000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,14000000,FineWeb-Edu,3,3
+csqa,14000000,FineWeb-Pro,3,3
+csqa,16000000,C4,3,3
+csqa,16000000,DCLM-Baseline,3,3
+csqa,16000000,DCLM-Baseline (QC 10%),3,3
+csqa,16000000,DCLM-Baseline (QC 20%),3,3
+csqa,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,16000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,16000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,16000000,Dolma1.6++,3,3
+csqa,16000000,Dolma1.7,3,3
+csqa,16000000,Dolma1.7 (no Flan),3,3
+csqa,16000000,Dolma1.7 (no Reddit),3,3
+csqa,16000000,Dolma1.7 (no code),3,3
+csqa,16000000,"Dolma1.7 (no math, code)",3,3
+csqa,16000000,Falcon,3,3
+csqa,16000000,Falcon+CC,3,3
+csqa,16000000,Falcon+CC (QC 10%),3,3
+csqa,16000000,Falcon+CC (QC 20%),3,3
+csqa,16000000,Falcon+CC (QC Orig 10%),3,3
+csqa,16000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,16000000,FineWeb-Edu,3,3
+csqa,16000000,FineWeb-Pro,3,3
+csqa,20000000,C4,3,3
+csqa,20000000,DCLM-Baseline,3,3
+csqa,20000000,DCLM-Baseline (QC 10%),3,3
+csqa,20000000,DCLM-Baseline (QC 20%),3,3
+csqa,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,20000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,20000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,20000000,Dolma1.6++,3,3
+csqa,20000000,Dolma1.7,3,3
+csqa,20000000,Dolma1.7 (no Flan),3,3
+csqa,20000000,Dolma1.7 (no Reddit),3,3
+csqa,20000000,Dolma1.7 (no code),3,3
+csqa,20000000,"Dolma1.7 (no math, code)",3,3
+csqa,20000000,Falcon,3,3
+csqa,20000000,Falcon+CC,3,3
+csqa,20000000,Falcon+CC (QC 10%),3,3
+csqa,20000000,Falcon+CC (QC 20%),3,3
+csqa,20000000,Falcon+CC (QC Orig 10%),3,3
+csqa,20000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,20000000,FineWeb-Edu,3,3
+csqa,20000000,FineWeb-Pro,3,3
+csqa,60000000,C4,3,3
+csqa,60000000,DCLM-Baseline,3,3
+csqa,60000000,DCLM-Baseline (QC 10%),3,3
+csqa,60000000,DCLM-Baseline (QC 20%),3,3
+csqa,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,60000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,60000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,60000000,Dolma1.6++,3,3
+csqa,60000000,Dolma1.7,3,3
+csqa,60000000,Dolma1.7 (no Flan),3,3
+csqa,60000000,Dolma1.7 (no Reddit),3,3
+csqa,60000000,Dolma1.7 (no code),3,3
+csqa,60000000,"Dolma1.7 (no math, code)",3,3
+csqa,60000000,Falcon,3,3
+csqa,60000000,Falcon+CC,3,3
+csqa,60000000,Falcon+CC (QC 10%),3,3
+csqa,60000000,Falcon+CC (QC 20%),3,3
+csqa,60000000,Falcon+CC (QC Orig 10%),3,3
+csqa,60000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,60000000,FineWeb-Edu,3,3
+csqa,60000000,FineWeb-Pro,3,3
+csqa,90000000,C4,3,3
+csqa,90000000,DCLM-Baseline,3,3
+csqa,90000000,DCLM-Baseline (QC 10%),3,3
+csqa,90000000,DCLM-Baseline (QC 20%),3,3
+csqa,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,90000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,90000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,90000000,Dolma1.6++,3,3
+csqa,90000000,Dolma1.7,3,3
+csqa,90000000,Dolma1.7 (no Flan),3,3
+csqa,90000000,Dolma1.7 (no Reddit),3,3
+csqa,90000000,Dolma1.7 (no code),3,3
+csqa,90000000,"Dolma1.7 (no math, code)",3,3
+csqa,90000000,Falcon,3,3
+csqa,90000000,Falcon+CC,3,3
+csqa,90000000,Falcon+CC (QC 10%),3,3
+csqa,90000000,Falcon+CC (QC 20%),3,3
+csqa,90000000,Falcon+CC (QC Orig 10%),3,3
+csqa,90000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,90000000,FineWeb-Edu,3,3
+csqa,90000000,FineWeb-Pro,3,3
+csqa,150000000,C4,3,3
+csqa,150000000,DCLM-Baseline,3,3
+csqa,150000000,DCLM-Baseline (QC 10%),3,3
+csqa,150000000,DCLM-Baseline (QC 20%),3,3
+csqa,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,150000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,150000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,150000000,Dolma1.6++,3,3
+csqa,150000000,Dolma1.7,3,3
+csqa,150000000,Dolma1.7 (no Flan),3,3
+csqa,150000000,Dolma1.7 (no Reddit),3,3
+csqa,150000000,Dolma1.7 (no code),3,3
+csqa,150000000,"Dolma1.7 (no math, code)",3,3
+csqa,150000000,Falcon,3,3
+csqa,150000000,Falcon+CC,3,3
+csqa,150000000,Falcon+CC (QC 10%),3,3
+csqa,150000000,Falcon+CC (QC 20%),3,3
+csqa,150000000,Falcon+CC (QC Orig 10%),3,3
+csqa,150000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,150000000,FineWeb-Edu,3,3
+csqa,150000000,FineWeb-Pro,3,3
+csqa,300000000,C4,3,3
+csqa,300000000,DCLM-Baseline,3,3
+csqa,300000000,DCLM-Baseline (QC 10%),3,3
+csqa,300000000,DCLM-Baseline (QC 20%),3,3
+csqa,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,300000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,300000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,300000000,Dolma1.6++,3,3
+csqa,300000000,Dolma1.7,3,3
+csqa,300000000,Dolma1.7 (no Flan),3,3
+csqa,300000000,Dolma1.7 (no Reddit),3,3
+csqa,300000000,Dolma1.7 (no code),3,3
+csqa,300000000,"Dolma1.7 (no math, code)",3,3
+csqa,300000000,Falcon,3,3
+csqa,300000000,Falcon+CC,3,3
+csqa,300000000,Falcon+CC (QC 10%),3,3
+csqa,300000000,Falcon+CC (QC 20%),3,3
+csqa,300000000,Falcon+CC (QC Orig 10%),3,3
+csqa,300000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,300000000,FineWeb-Edu,3,3
+csqa,300000000,FineWeb-Pro,3,3
+csqa,530000000,C4,3,3
+csqa,530000000,DCLM-Baseline,3,3
+csqa,530000000,DCLM-Baseline (QC 10%),3,3
+csqa,530000000,DCLM-Baseline (QC 20%),3,3
+csqa,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,530000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,530000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,530000000,Dolma1.6++,3,3
+csqa,530000000,Dolma1.7,3,3
+csqa,530000000,Dolma1.7 (no Flan),3,3
+csqa,530000000,Dolma1.7 (no Reddit),3,3
+csqa,530000000,Dolma1.7 (no code),3,3
+csqa,530000000,"Dolma1.7 (no math, code)",3,3
+csqa,530000000,Falcon,3,3
+csqa,530000000,Falcon+CC,3,3
+csqa,530000000,Falcon+CC (QC 10%),3,3
+csqa,530000000,Falcon+CC (QC 20%),3,3
+csqa,530000000,Falcon+CC (QC Orig 10%),3,3
+csqa,530000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,530000000,FineWeb-Edu,3,3
+csqa,530000000,FineWeb-Pro,3,3
+csqa,750000000,C4,3,3
+csqa,750000000,DCLM-Baseline,3,3
+csqa,750000000,DCLM-Baseline (QC 10%),3,3
+csqa,750000000,DCLM-Baseline (QC 20%),3,3
+csqa,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,750000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,750000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,750000000,Dolma1.6++,3,3
+csqa,750000000,Dolma1.7,3,3
+csqa,750000000,Dolma1.7 (no Flan),3,3
+csqa,750000000,Dolma1.7 (no Reddit),3,3
+csqa,750000000,Dolma1.7 (no code),3,3
+csqa,750000000,"Dolma1.7 (no math, code)",3,3
+csqa,750000000,Falcon,3,3
+csqa,750000000,Falcon+CC,3,3
+csqa,750000000,Falcon+CC (QC 10%),3,3
+csqa,750000000,Falcon+CC (QC 20%),3,3
+csqa,750000000,Falcon+CC (QC Orig 10%),3,3
+csqa,750000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,750000000,FineWeb-Edu,3,3
+csqa,750000000,FineWeb-Pro,3,3
+csqa,1000000000,C4,3,3
+csqa,1000000000,DCLM-Baseline,3,3
+csqa,1000000000,DCLM-Baseline (QC 10%),3,3
+csqa,1000000000,DCLM-Baseline (QC 20%),3,3
+csqa,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+csqa,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+csqa,1000000000,DCLM-Baseline (QC FW 10%),3,3
+csqa,1000000000,DCLM-Baseline (QC FW 3%),3,3
+csqa,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+csqa,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+csqa,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+csqa,1000000000,Dolma1.6++,3,3
+csqa,1000000000,Dolma1.7,3,3
+csqa,1000000000,Dolma1.7 (no Flan),3,3
+csqa,1000000000,Dolma1.7 (no Reddit),3,3
+csqa,1000000000,Dolma1.7 (no code),3,3
+csqa,1000000000,"Dolma1.7 (no math, code)",3,3
+csqa,1000000000,Falcon,3,3
+csqa,1000000000,Falcon+CC,3,3
+csqa,1000000000,Falcon+CC (QC 10%),3,3
+csqa,1000000000,Falcon+CC (QC 20%),3,3
+csqa,1000000000,Falcon+CC (QC Orig 10%),3,3
+csqa,1000000000,Falcon+CC (QC Tulu 10%),3,3
+csqa,1000000000,FineWeb-Edu,3,3
+csqa,1000000000,FineWeb-Pro,3,3
+hellaswag,4000000,C4,3,3
+hellaswag,4000000,DCLM-Baseline,3,3
+hellaswag,4000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,4000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,4000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,4000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,4000000,Dolma1.6++,3,3
+hellaswag,4000000,Dolma1.7,3,3
+hellaswag,4000000,Dolma1.7 (no Flan),3,3
+hellaswag,4000000,Dolma1.7 (no Reddit),3,3
+hellaswag,4000000,Dolma1.7 (no code),3,3
+hellaswag,4000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,4000000,Falcon,3,3
+hellaswag,4000000,Falcon+CC,3,3
+hellaswag,4000000,Falcon+CC (QC 10%),3,3
+hellaswag,4000000,Falcon+CC (QC 20%),3,3
+hellaswag,4000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,4000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,4000000,FineWeb-Edu,3,3
+hellaswag,4000000,FineWeb-Pro,3,3
+hellaswag,6000000,C4,3,3
+hellaswag,6000000,DCLM-Baseline,3,3
+hellaswag,6000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,6000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,6000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,6000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,6000000,Dolma1.6++,3,3
+hellaswag,6000000,Dolma1.7,3,3
+hellaswag,6000000,Dolma1.7 (no Flan),3,3
+hellaswag,6000000,Dolma1.7 (no Reddit),3,3
+hellaswag,6000000,Dolma1.7 (no code),3,3
+hellaswag,6000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,6000000,Falcon,3,3
+hellaswag,6000000,Falcon+CC,3,3
+hellaswag,6000000,Falcon+CC (QC 10%),3,3
+hellaswag,6000000,Falcon+CC (QC 20%),3,3
+hellaswag,6000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,6000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,6000000,FineWeb-Edu,3,3
+hellaswag,6000000,FineWeb-Pro,3,3
+hellaswag,8000000,C4,3,3
+hellaswag,8000000,DCLM-Baseline,3,3
+hellaswag,8000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,8000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,8000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,8000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,8000000,Dolma1.6++,3,3
+hellaswag,8000000,Dolma1.7,3,3
+hellaswag,8000000,Dolma1.7 (no Flan),3,3
+hellaswag,8000000,Dolma1.7 (no Reddit),3,3
+hellaswag,8000000,Dolma1.7 (no code),3,3
+hellaswag,8000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,8000000,Falcon,3,3
+hellaswag,8000000,Falcon+CC,3,3
+hellaswag,8000000,Falcon+CC (QC 10%),3,3
+hellaswag,8000000,Falcon+CC (QC 20%),3,3
+hellaswag,8000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,8000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,8000000,FineWeb-Edu,3,3
+hellaswag,8000000,FineWeb-Pro,3,3
+hellaswag,10000000,C4,3,3
+hellaswag,10000000,DCLM-Baseline,3,3
+hellaswag,10000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,10000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,10000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,10000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,10000000,Dolma1.6++,3,3
+hellaswag,10000000,Dolma1.7,3,3
+hellaswag,10000000,Dolma1.7 (no Flan),3,3
+hellaswag,10000000,Dolma1.7 (no Reddit),3,3
+hellaswag,10000000,Dolma1.7 (no code),3,3
+hellaswag,10000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,10000000,Falcon,3,3
+hellaswag,10000000,Falcon+CC,3,3
+hellaswag,10000000,Falcon+CC (QC 10%),3,3
+hellaswag,10000000,Falcon+CC (QC 20%),3,3
+hellaswag,10000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,10000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,10000000,FineWeb-Edu,3,3
+hellaswag,10000000,FineWeb-Pro,3,3
+hellaswag,14000000,C4,3,3
+hellaswag,14000000,DCLM-Baseline,3,3
+hellaswag,14000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,14000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,14000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,14000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,14000000,Dolma1.6++,3,3
+hellaswag,14000000,Dolma1.7,3,3
+hellaswag,14000000,Dolma1.7 (no Flan),3,3
+hellaswag,14000000,Dolma1.7 (no Reddit),3,3
+hellaswag,14000000,Dolma1.7 (no code),3,3
+hellaswag,14000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,14000000,Falcon,3,3
+hellaswag,14000000,Falcon+CC,3,3
+hellaswag,14000000,Falcon+CC (QC 10%),3,3
+hellaswag,14000000,Falcon+CC (QC 20%),3,3
+hellaswag,14000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,14000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,14000000,FineWeb-Edu,3,3
+hellaswag,14000000,FineWeb-Pro,3,3
+hellaswag,16000000,C4,3,3
+hellaswag,16000000,DCLM-Baseline,3,3
+hellaswag,16000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,16000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,16000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,16000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,16000000,Dolma1.6++,3,3
+hellaswag,16000000,Dolma1.7,3,3
+hellaswag,16000000,Dolma1.7 (no Flan),3,3
+hellaswag,16000000,Dolma1.7 (no Reddit),3,3
+hellaswag,16000000,Dolma1.7 (no code),3,3
+hellaswag,16000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,16000000,Falcon,3,3
+hellaswag,16000000,Falcon+CC,3,3
+hellaswag,16000000,Falcon+CC (QC 10%),3,3
+hellaswag,16000000,Falcon+CC (QC 20%),3,3
+hellaswag,16000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,16000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,16000000,FineWeb-Edu,3,3
+hellaswag,16000000,FineWeb-Pro,3,3
+hellaswag,20000000,C4,3,3
+hellaswag,20000000,DCLM-Baseline,3,3
+hellaswag,20000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,20000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,20000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,20000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,20000000,Dolma1.6++,3,3
+hellaswag,20000000,Dolma1.7,3,3
+hellaswag,20000000,Dolma1.7 (no Flan),3,3
+hellaswag,20000000,Dolma1.7 (no Reddit),3,3
+hellaswag,20000000,Dolma1.7 (no code),3,3
+hellaswag,20000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,20000000,Falcon,3,3
+hellaswag,20000000,Falcon+CC,3,3
+hellaswag,20000000,Falcon+CC (QC 10%),3,3
+hellaswag,20000000,Falcon+CC (QC 20%),3,3
+hellaswag,20000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,20000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,20000000,FineWeb-Edu,3,3
+hellaswag,20000000,FineWeb-Pro,3,3
+hellaswag,60000000,C4,3,3
+hellaswag,60000000,DCLM-Baseline,3,3
+hellaswag,60000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,60000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,60000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,60000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,60000000,Dolma1.6++,3,3
+hellaswag,60000000,Dolma1.7,3,3
+hellaswag,60000000,Dolma1.7 (no Flan),3,3
+hellaswag,60000000,Dolma1.7 (no Reddit),3,3
+hellaswag,60000000,Dolma1.7 (no code),3,3
+hellaswag,60000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,60000000,Falcon,3,3
+hellaswag,60000000,Falcon+CC,3,3
+hellaswag,60000000,Falcon+CC (QC 10%),3,3
+hellaswag,60000000,Falcon+CC (QC 20%),3,3
+hellaswag,60000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,60000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,60000000,FineWeb-Edu,3,3
+hellaswag,60000000,FineWeb-Pro,3,3
+hellaswag,90000000,C4,3,3
+hellaswag,90000000,DCLM-Baseline,3,3
+hellaswag,90000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,90000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,90000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,90000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,90000000,Dolma1.6++,3,3
+hellaswag,90000000,Dolma1.7,3,3
+hellaswag,90000000,Dolma1.7 (no Flan),3,3
+hellaswag,90000000,Dolma1.7 (no Reddit),3,3
+hellaswag,90000000,Dolma1.7 (no code),3,3
+hellaswag,90000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,90000000,Falcon,3,3
+hellaswag,90000000,Falcon+CC,3,3
+hellaswag,90000000,Falcon+CC (QC 10%),3,3
+hellaswag,90000000,Falcon+CC (QC 20%),3,3
+hellaswag,90000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,90000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,90000000,FineWeb-Edu,3,3
+hellaswag,90000000,FineWeb-Pro,3,3
+hellaswag,150000000,C4,3,3
+hellaswag,150000000,DCLM-Baseline,3,3
+hellaswag,150000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,150000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,150000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,150000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,150000000,Dolma1.6++,3,3
+hellaswag,150000000,Dolma1.7,3,3
+hellaswag,150000000,Dolma1.7 (no Flan),3,3
+hellaswag,150000000,Dolma1.7 (no Reddit),3,3
+hellaswag,150000000,Dolma1.7 (no code),3,3
+hellaswag,150000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,150000000,Falcon,3,3
+hellaswag,150000000,Falcon+CC,3,3
+hellaswag,150000000,Falcon+CC (QC 10%),3,3
+hellaswag,150000000,Falcon+CC (QC 20%),3,3
+hellaswag,150000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,150000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,150000000,FineWeb-Edu,3,3
+hellaswag,150000000,FineWeb-Pro,3,3
+hellaswag,300000000,C4,3,3
+hellaswag,300000000,DCLM-Baseline,3,3
+hellaswag,300000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,300000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,300000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,300000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,300000000,Dolma1.6++,3,3
+hellaswag,300000000,Dolma1.7,3,3
+hellaswag,300000000,Dolma1.7 (no Flan),3,3
+hellaswag,300000000,Dolma1.7 (no Reddit),3,3
+hellaswag,300000000,Dolma1.7 (no code),3,3
+hellaswag,300000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,300000000,Falcon,3,3
+hellaswag,300000000,Falcon+CC,3,3
+hellaswag,300000000,Falcon+CC (QC 10%),3,3
+hellaswag,300000000,Falcon+CC (QC 20%),3,3
+hellaswag,300000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,300000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,300000000,FineWeb-Edu,3,3
+hellaswag,300000000,FineWeb-Pro,3,3
+hellaswag,530000000,C4,3,3
+hellaswag,530000000,DCLM-Baseline,3,3
+hellaswag,530000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,530000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,530000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,530000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,530000000,Dolma1.6++,3,3
+hellaswag,530000000,Dolma1.7,3,3
+hellaswag,530000000,Dolma1.7 (no Flan),3,3
+hellaswag,530000000,Dolma1.7 (no Reddit),3,3
+hellaswag,530000000,Dolma1.7 (no code),3,3
+hellaswag,530000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,530000000,Falcon,3,3
+hellaswag,530000000,Falcon+CC,3,3
+hellaswag,530000000,Falcon+CC (QC 10%),3,3
+hellaswag,530000000,Falcon+CC (QC 20%),3,3
+hellaswag,530000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,530000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,530000000,FineWeb-Edu,3,3
+hellaswag,530000000,FineWeb-Pro,3,3
+hellaswag,750000000,C4,3,3
+hellaswag,750000000,DCLM-Baseline,3,3
+hellaswag,750000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,750000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,750000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,750000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,750000000,Dolma1.6++,3,3
+hellaswag,750000000,Dolma1.7,3,3
+hellaswag,750000000,Dolma1.7 (no Flan),3,3
+hellaswag,750000000,Dolma1.7 (no Reddit),3,3
+hellaswag,750000000,Dolma1.7 (no code),3,3
+hellaswag,750000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,750000000,Falcon,3,3
+hellaswag,750000000,Falcon+CC,3,3
+hellaswag,750000000,Falcon+CC (QC 10%),3,3
+hellaswag,750000000,Falcon+CC (QC 20%),3,3
+hellaswag,750000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,750000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,750000000,FineWeb-Edu,3,3
+hellaswag,750000000,FineWeb-Pro,3,3
+hellaswag,1000000000,C4,3,3
+hellaswag,1000000000,DCLM-Baseline,3,3
+hellaswag,1000000000,DCLM-Baseline (QC 10%),3,3
+hellaswag,1000000000,DCLM-Baseline (QC 20%),3,3
+hellaswag,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+hellaswag,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+hellaswag,1000000000,DCLM-Baseline (QC FW 10%),3,3
+hellaswag,1000000000,DCLM-Baseline (QC FW 3%),3,3
+hellaswag,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+hellaswag,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+hellaswag,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+hellaswag,1000000000,Dolma1.6++,3,3
+hellaswag,1000000000,Dolma1.7,3,3
+hellaswag,1000000000,Dolma1.7 (no Flan),3,3
+hellaswag,1000000000,Dolma1.7 (no Reddit),3,3
+hellaswag,1000000000,Dolma1.7 (no code),3,3
+hellaswag,1000000000,"Dolma1.7 (no math, code)",3,3
+hellaswag,1000000000,Falcon,3,3
+hellaswag,1000000000,Falcon+CC,3,3
+hellaswag,1000000000,Falcon+CC (QC 10%),3,3
+hellaswag,1000000000,Falcon+CC (QC 20%),3,3
+hellaswag,1000000000,Falcon+CC (QC Orig 10%),3,3
+hellaswag,1000000000,Falcon+CC (QC Tulu 10%),3,3
+hellaswag,1000000000,FineWeb-Edu,3,3
+hellaswag,1000000000,FineWeb-Pro,3,3
+mmlu,4000000,C4,3,3
+mmlu,4000000,DCLM-Baseline,3,3
+mmlu,4000000,DCLM-Baseline (QC 10%),3,3
+mmlu,4000000,DCLM-Baseline (QC 20%),3,3
+mmlu,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,4000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,4000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,4000000,Dolma1.6++,3,3
+mmlu,4000000,Dolma1.7,3,3
+mmlu,4000000,Dolma1.7 (no Flan),3,3
+mmlu,4000000,Dolma1.7 (no Reddit),3,3
+mmlu,4000000,Dolma1.7 (no code),3,3
+mmlu,4000000,"Dolma1.7 (no math, code)",3,3
+mmlu,4000000,Falcon,3,3
+mmlu,4000000,Falcon+CC,3,3
+mmlu,4000000,Falcon+CC (QC 10%),3,3
+mmlu,4000000,Falcon+CC (QC 20%),3,3
+mmlu,4000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,4000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,4000000,FineWeb-Edu,3,3
+mmlu,4000000,FineWeb-Pro,3,3
+mmlu,6000000,C4,3,3
+mmlu,6000000,DCLM-Baseline,3,3
+mmlu,6000000,DCLM-Baseline (QC 10%),3,3
+mmlu,6000000,DCLM-Baseline (QC 20%),3,3
+mmlu,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,6000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,6000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,6000000,Dolma1.6++,3,3
+mmlu,6000000,Dolma1.7,3,3
+mmlu,6000000,Dolma1.7 (no Flan),3,3
+mmlu,6000000,Dolma1.7 (no Reddit),3,3
+mmlu,6000000,Dolma1.7 (no code),3,3
+mmlu,6000000,"Dolma1.7 (no math, code)",3,3
+mmlu,6000000,Falcon,3,3
+mmlu,6000000,Falcon+CC,3,3
+mmlu,6000000,Falcon+CC (QC 10%),3,3
+mmlu,6000000,Falcon+CC (QC 20%),3,3
+mmlu,6000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,6000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,6000000,FineWeb-Edu,3,3
+mmlu,6000000,FineWeb-Pro,3,3
+mmlu,8000000,C4,3,3
+mmlu,8000000,DCLM-Baseline,3,3
+mmlu,8000000,DCLM-Baseline (QC 10%),3,3
+mmlu,8000000,DCLM-Baseline (QC 20%),3,3
+mmlu,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,8000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,8000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,8000000,Dolma1.6++,3,3
+mmlu,8000000,Dolma1.7,3,3
+mmlu,8000000,Dolma1.7 (no Flan),3,3
+mmlu,8000000,Dolma1.7 (no Reddit),3,3
+mmlu,8000000,Dolma1.7 (no code),3,3
+mmlu,8000000,"Dolma1.7 (no math, code)",3,3
+mmlu,8000000,Falcon,3,3
+mmlu,8000000,Falcon+CC,3,3
+mmlu,8000000,Falcon+CC (QC 10%),3,3
+mmlu,8000000,Falcon+CC (QC 20%),3,3
+mmlu,8000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,8000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,8000000,FineWeb-Edu,3,3
+mmlu,8000000,FineWeb-Pro,3,3
+mmlu,10000000,C4,3,3
+mmlu,10000000,DCLM-Baseline,3,3
+mmlu,10000000,DCLM-Baseline (QC 10%),3,3
+mmlu,10000000,DCLM-Baseline (QC 20%),3,3
+mmlu,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,10000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,10000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,10000000,Dolma1.6++,3,3
+mmlu,10000000,Dolma1.7,3,3
+mmlu,10000000,Dolma1.7 (no Flan),3,3
+mmlu,10000000,Dolma1.7 (no Reddit),3,3
+mmlu,10000000,Dolma1.7 (no code),3,3
+mmlu,10000000,"Dolma1.7 (no math, code)",3,3
+mmlu,10000000,Falcon,3,3
+mmlu,10000000,Falcon+CC,3,3
+mmlu,10000000,Falcon+CC (QC 10%),3,3
+mmlu,10000000,Falcon+CC (QC 20%),3,3
+mmlu,10000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,10000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,10000000,FineWeb-Edu,3,3
+mmlu,10000000,FineWeb-Pro,3,3
+mmlu,14000000,C4,3,3
+mmlu,14000000,DCLM-Baseline,3,3
+mmlu,14000000,DCLM-Baseline (QC 10%),3,3
+mmlu,14000000,DCLM-Baseline (QC 20%),3,3
+mmlu,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,14000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,14000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,14000000,Dolma1.6++,3,3
+mmlu,14000000,Dolma1.7,3,3
+mmlu,14000000,Dolma1.7 (no Flan),3,3
+mmlu,14000000,Dolma1.7 (no Reddit),3,3
+mmlu,14000000,Dolma1.7 (no code),3,3
+mmlu,14000000,"Dolma1.7 (no math, code)",3,3
+mmlu,14000000,Falcon,3,3
+mmlu,14000000,Falcon+CC,3,3
+mmlu,14000000,Falcon+CC (QC 10%),3,3
+mmlu,14000000,Falcon+CC (QC 20%),3,3
+mmlu,14000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,14000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,14000000,FineWeb-Edu,3,3
+mmlu,14000000,FineWeb-Pro,3,3
+mmlu,16000000,C4,3,3
+mmlu,16000000,DCLM-Baseline,3,3
+mmlu,16000000,DCLM-Baseline (QC 10%),3,3
+mmlu,16000000,DCLM-Baseline (QC 20%),3,3
+mmlu,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,16000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,16000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,16000000,Dolma1.6++,3,3
+mmlu,16000000,Dolma1.7,3,3
+mmlu,16000000,Dolma1.7 (no Flan),3,3
+mmlu,16000000,Dolma1.7 (no Reddit),3,3
+mmlu,16000000,Dolma1.7 (no code),3,3
+mmlu,16000000,"Dolma1.7 (no math, code)",3,3
+mmlu,16000000,Falcon,3,3
+mmlu,16000000,Falcon+CC,3,3
+mmlu,16000000,Falcon+CC (QC 10%),3,3
+mmlu,16000000,Falcon+CC (QC 20%),3,3
+mmlu,16000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,16000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,16000000,FineWeb-Edu,3,3
+mmlu,16000000,FineWeb-Pro,3,3
+mmlu,20000000,C4,3,3
+mmlu,20000000,DCLM-Baseline,3,3
+mmlu,20000000,DCLM-Baseline (QC 10%),3,3
+mmlu,20000000,DCLM-Baseline (QC 20%),3,3
+mmlu,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,20000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,20000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,20000000,Dolma1.6++,3,3
+mmlu,20000000,Dolma1.7,3,3
+mmlu,20000000,Dolma1.7 (no Flan),3,3
+mmlu,20000000,Dolma1.7 (no Reddit),3,3
+mmlu,20000000,Dolma1.7 (no code),3,3
+mmlu,20000000,"Dolma1.7 (no math, code)",3,3
+mmlu,20000000,Falcon,3,3
+mmlu,20000000,Falcon+CC,3,3
+mmlu,20000000,Falcon+CC (QC 10%),3,3
+mmlu,20000000,Falcon+CC (QC 20%),3,3
+mmlu,20000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,20000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,20000000,FineWeb-Edu,3,3
+mmlu,20000000,FineWeb-Pro,3,3
+mmlu,60000000,C4,3,3
+mmlu,60000000,DCLM-Baseline,3,3
+mmlu,60000000,DCLM-Baseline (QC 10%),3,3
+mmlu,60000000,DCLM-Baseline (QC 20%),3,3
+mmlu,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,60000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,60000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,60000000,Dolma1.6++,3,3
+mmlu,60000000,Dolma1.7,3,3
+mmlu,60000000,Dolma1.7 (no Flan),3,3
+mmlu,60000000,Dolma1.7 (no Reddit),3,3
+mmlu,60000000,Dolma1.7 (no code),3,3
+mmlu,60000000,"Dolma1.7 (no math, code)",3,3
+mmlu,60000000,Falcon,3,3
+mmlu,60000000,Falcon+CC,3,3
+mmlu,60000000,Falcon+CC (QC 10%),3,3
+mmlu,60000000,Falcon+CC (QC 20%),3,3
+mmlu,60000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,60000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,60000000,FineWeb-Edu,3,3
+mmlu,60000000,FineWeb-Pro,3,3
+mmlu,90000000,C4,3,3
+mmlu,90000000,DCLM-Baseline,3,3
+mmlu,90000000,DCLM-Baseline (QC 10%),3,3
+mmlu,90000000,DCLM-Baseline (QC 20%),3,3
+mmlu,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,90000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,90000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,90000000,Dolma1.6++,3,3
+mmlu,90000000,Dolma1.7,3,3
+mmlu,90000000,Dolma1.7 (no Flan),3,3
+mmlu,90000000,Dolma1.7 (no Reddit),3,3
+mmlu,90000000,Dolma1.7 (no code),3,3
+mmlu,90000000,"Dolma1.7 (no math, code)",3,3
+mmlu,90000000,Falcon,3,3
+mmlu,90000000,Falcon+CC,3,3
+mmlu,90000000,Falcon+CC (QC 10%),3,3
+mmlu,90000000,Falcon+CC (QC 20%),3,3
+mmlu,90000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,90000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,90000000,FineWeb-Edu,3,3
+mmlu,90000000,FineWeb-Pro,3,3
+mmlu,150000000,C4,3,3
+mmlu,150000000,DCLM-Baseline,3,3
+mmlu,150000000,DCLM-Baseline (QC 10%),3,3
+mmlu,150000000,DCLM-Baseline (QC 20%),3,3
+mmlu,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,150000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,150000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,150000000,Dolma1.6++,3,3
+mmlu,150000000,Dolma1.7,3,3
+mmlu,150000000,Dolma1.7 (no Flan),3,3
+mmlu,150000000,Dolma1.7 (no Reddit),3,3
+mmlu,150000000,Dolma1.7 (no code),3,3
+mmlu,150000000,"Dolma1.7 (no math, code)",3,3
+mmlu,150000000,Falcon,3,3
+mmlu,150000000,Falcon+CC,3,3
+mmlu,150000000,Falcon+CC (QC 10%),3,3
+mmlu,150000000,Falcon+CC (QC 20%),3,3
+mmlu,150000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,150000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,150000000,FineWeb-Edu,3,3
+mmlu,150000000,FineWeb-Pro,3,3
+mmlu,300000000,C4,3,3
+mmlu,300000000,DCLM-Baseline,3,3
+mmlu,300000000,DCLM-Baseline (QC 10%),3,3
+mmlu,300000000,DCLM-Baseline (QC 20%),3,3
+mmlu,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,300000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,300000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,300000000,Dolma1.6++,3,3
+mmlu,300000000,Dolma1.7,3,3
+mmlu,300000000,Dolma1.7 (no Flan),3,3
+mmlu,300000000,Dolma1.7 (no Reddit),3,3
+mmlu,300000000,Dolma1.7 (no code),3,3
+mmlu,300000000,"Dolma1.7 (no math, code)",3,3
+mmlu,300000000,Falcon,3,3
+mmlu,300000000,Falcon+CC,3,3
+mmlu,300000000,Falcon+CC (QC 10%),3,3
+mmlu,300000000,Falcon+CC (QC 20%),3,3
+mmlu,300000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,300000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,300000000,FineWeb-Edu,3,3
+mmlu,300000000,FineWeb-Pro,3,3
+mmlu,530000000,C4,3,3
+mmlu,530000000,DCLM-Baseline,3,3
+mmlu,530000000,DCLM-Baseline (QC 10%),3,3
+mmlu,530000000,DCLM-Baseline (QC 20%),3,3
+mmlu,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,530000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,530000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,530000000,Dolma1.6++,3,3
+mmlu,530000000,Dolma1.7,3,3
+mmlu,530000000,Dolma1.7 (no Flan),3,3
+mmlu,530000000,Dolma1.7 (no Reddit),3,3
+mmlu,530000000,Dolma1.7 (no code),3,3
+mmlu,530000000,"Dolma1.7 (no math, code)",3,3
+mmlu,530000000,Falcon,3,3
+mmlu,530000000,Falcon+CC,3,3
+mmlu,530000000,Falcon+CC (QC 10%),3,3
+mmlu,530000000,Falcon+CC (QC 20%),3,3
+mmlu,530000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,530000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,530000000,FineWeb-Edu,3,3
+mmlu,530000000,FineWeb-Pro,3,3
+mmlu,750000000,C4,3,3
+mmlu,750000000,DCLM-Baseline,3,3
+mmlu,750000000,DCLM-Baseline (QC 10%),3,3
+mmlu,750000000,DCLM-Baseline (QC 20%),3,3
+mmlu,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,750000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,750000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,750000000,Dolma1.6++,3,3
+mmlu,750000000,Dolma1.7,3,3
+mmlu,750000000,Dolma1.7 (no Flan),3,3
+mmlu,750000000,Dolma1.7 (no Reddit),3,3
+mmlu,750000000,Dolma1.7 (no code),3,3
+mmlu,750000000,"Dolma1.7 (no math, code)",3,3
+mmlu,750000000,Falcon,3,3
+mmlu,750000000,Falcon+CC,3,3
+mmlu,750000000,Falcon+CC (QC 10%),3,3
+mmlu,750000000,Falcon+CC (QC 20%),3,3
+mmlu,750000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,750000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,750000000,FineWeb-Edu,3,3
+mmlu,750000000,FineWeb-Pro,3,3
+mmlu,1000000000,C4,3,3
+mmlu,1000000000,DCLM-Baseline,3,3
+mmlu,1000000000,DCLM-Baseline (QC 10%),3,3
+mmlu,1000000000,DCLM-Baseline (QC 20%),3,3
+mmlu,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+mmlu,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+mmlu,1000000000,DCLM-Baseline (QC FW 10%),3,3
+mmlu,1000000000,DCLM-Baseline (QC FW 3%),3,3
+mmlu,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+mmlu,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+mmlu,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+mmlu,1000000000,Dolma1.6++,3,3
+mmlu,1000000000,Dolma1.7,3,3
+mmlu,1000000000,Dolma1.7 (no Flan),3,3
+mmlu,1000000000,Dolma1.7 (no Reddit),3,3
+mmlu,1000000000,Dolma1.7 (no code),3,3
+mmlu,1000000000,"Dolma1.7 (no math, code)",3,3
+mmlu,1000000000,Falcon,3,3
+mmlu,1000000000,Falcon+CC,3,3
+mmlu,1000000000,Falcon+CC (QC 10%),3,3
+mmlu,1000000000,Falcon+CC (QC 20%),3,3
+mmlu,1000000000,Falcon+CC (QC Orig 10%),3,3
+mmlu,1000000000,Falcon+CC (QC Tulu 10%),3,3
+mmlu,1000000000,FineWeb-Edu,3,3
+mmlu,1000000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,4000000,C4,3,3
+olmes_10_macro_avg,4000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,4000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,4000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,4000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,4000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,4000000,Dolma1.6++,3,3
+olmes_10_macro_avg,4000000,Dolma1.7,3,3
+olmes_10_macro_avg,4000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,4000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,4000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,4000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,4000000,Falcon,3,3
+olmes_10_macro_avg,4000000,Falcon+CC,3,3
+olmes_10_macro_avg,4000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,4000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,4000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,4000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,4000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,4000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,6000000,C4,3,3
+olmes_10_macro_avg,6000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,6000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,6000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,6000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,6000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,6000000,Dolma1.6++,3,3
+olmes_10_macro_avg,6000000,Dolma1.7,3,3
+olmes_10_macro_avg,6000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,6000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,6000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,6000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,6000000,Falcon,3,3
+olmes_10_macro_avg,6000000,Falcon+CC,3,3
+olmes_10_macro_avg,6000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,6000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,6000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,6000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,6000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,6000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,8000000,C4,3,3
+olmes_10_macro_avg,8000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,8000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,8000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,8000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,8000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,8000000,Dolma1.6++,3,3
+olmes_10_macro_avg,8000000,Dolma1.7,3,3
+olmes_10_macro_avg,8000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,8000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,8000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,8000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,8000000,Falcon,3,3
+olmes_10_macro_avg,8000000,Falcon+CC,3,3
+olmes_10_macro_avg,8000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,8000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,8000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,8000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,8000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,8000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,10000000,C4,3,3
+olmes_10_macro_avg,10000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,10000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,10000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,10000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,10000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,10000000,Dolma1.6++,3,3
+olmes_10_macro_avg,10000000,Dolma1.7,3,3
+olmes_10_macro_avg,10000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,10000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,10000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,10000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,10000000,Falcon,3,3
+olmes_10_macro_avg,10000000,Falcon+CC,3,3
+olmes_10_macro_avg,10000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,10000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,10000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,10000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,10000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,10000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,14000000,C4,3,3
+olmes_10_macro_avg,14000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,14000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,14000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,14000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,14000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,14000000,Dolma1.6++,3,3
+olmes_10_macro_avg,14000000,Dolma1.7,3,3
+olmes_10_macro_avg,14000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,14000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,14000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,14000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,14000000,Falcon,3,3
+olmes_10_macro_avg,14000000,Falcon+CC,3,3
+olmes_10_macro_avg,14000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,14000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,14000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,14000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,14000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,14000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,16000000,C4,3,3
+olmes_10_macro_avg,16000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,16000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,16000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,16000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,16000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,16000000,Dolma1.6++,3,3
+olmes_10_macro_avg,16000000,Dolma1.7,3,3
+olmes_10_macro_avg,16000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,16000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,16000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,16000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,16000000,Falcon,3,3
+olmes_10_macro_avg,16000000,Falcon+CC,3,3
+olmes_10_macro_avg,16000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,16000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,16000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,16000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,16000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,16000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,20000000,C4,3,3
+olmes_10_macro_avg,20000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,20000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,20000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,20000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,20000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,20000000,Dolma1.6++,3,3
+olmes_10_macro_avg,20000000,Dolma1.7,3,3
+olmes_10_macro_avg,20000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,20000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,20000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,20000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,20000000,Falcon,3,3
+olmes_10_macro_avg,20000000,Falcon+CC,3,3
+olmes_10_macro_avg,20000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,20000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,20000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,20000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,20000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,20000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,60000000,C4,3,3
+olmes_10_macro_avg,60000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,60000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,60000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,60000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,60000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,60000000,Dolma1.6++,3,3
+olmes_10_macro_avg,60000000,Dolma1.7,3,3
+olmes_10_macro_avg,60000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,60000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,60000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,60000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,60000000,Falcon,3,3
+olmes_10_macro_avg,60000000,Falcon+CC,3,3
+olmes_10_macro_avg,60000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,60000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,60000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,60000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,60000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,60000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,90000000,C4,3,3
+olmes_10_macro_avg,90000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,90000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,90000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,90000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,90000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,90000000,Dolma1.6++,3,3
+olmes_10_macro_avg,90000000,Dolma1.7,3,3
+olmes_10_macro_avg,90000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,90000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,90000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,90000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,90000000,Falcon,3,3
+olmes_10_macro_avg,90000000,Falcon+CC,3,3
+olmes_10_macro_avg,90000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,90000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,90000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,90000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,90000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,90000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,150000000,C4,3,3
+olmes_10_macro_avg,150000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,150000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,150000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,150000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,150000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,150000000,Dolma1.6++,3,3
+olmes_10_macro_avg,150000000,Dolma1.7,3,3
+olmes_10_macro_avg,150000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,150000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,150000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,150000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,150000000,Falcon,3,3
+olmes_10_macro_avg,150000000,Falcon+CC,3,3
+olmes_10_macro_avg,150000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,150000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,150000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,150000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,150000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,150000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,300000000,C4,3,3
+olmes_10_macro_avg,300000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,300000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,300000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,300000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,300000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,300000000,Dolma1.6++,3,3
+olmes_10_macro_avg,300000000,Dolma1.7,3,3
+olmes_10_macro_avg,300000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,300000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,300000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,300000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,300000000,Falcon,3,3
+olmes_10_macro_avg,300000000,Falcon+CC,3,3
+olmes_10_macro_avg,300000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,300000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,300000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,300000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,300000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,300000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,530000000,C4,3,3
+olmes_10_macro_avg,530000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,530000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,530000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,530000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,530000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,530000000,Dolma1.6++,3,3
+olmes_10_macro_avg,530000000,Dolma1.7,3,3
+olmes_10_macro_avg,530000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,530000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,530000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,530000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,530000000,Falcon,3,3
+olmes_10_macro_avg,530000000,Falcon+CC,3,3
+olmes_10_macro_avg,530000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,530000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,530000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,530000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,530000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,530000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,750000000,C4,3,3
+olmes_10_macro_avg,750000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,750000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,750000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,750000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,750000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,750000000,Dolma1.6++,3,3
+olmes_10_macro_avg,750000000,Dolma1.7,3,3
+olmes_10_macro_avg,750000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,750000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,750000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,750000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,750000000,Falcon,3,3
+olmes_10_macro_avg,750000000,Falcon+CC,3,3
+olmes_10_macro_avg,750000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,750000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,750000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,750000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,750000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,750000000,FineWeb-Pro,3,3
+olmes_10_macro_avg,1000000000,C4,3,3
+olmes_10_macro_avg,1000000000,DCLM-Baseline,3,3
+olmes_10_macro_avg,1000000000,DCLM-Baseline (QC 10%),3,3
+olmes_10_macro_avg,1000000000,DCLM-Baseline (QC 20%),3,3
+olmes_10_macro_avg,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+olmes_10_macro_avg,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+olmes_10_macro_avg,1000000000,DCLM-Baseline (QC FW 10%),3,3
+olmes_10_macro_avg,1000000000,DCLM-Baseline (QC FW 3%),3,3
+olmes_10_macro_avg,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+olmes_10_macro_avg,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+olmes_10_macro_avg,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+olmes_10_macro_avg,1000000000,Dolma1.6++,3,3
+olmes_10_macro_avg,1000000000,Dolma1.7,3,3
+olmes_10_macro_avg,1000000000,Dolma1.7 (no Flan),3,3
+olmes_10_macro_avg,1000000000,Dolma1.7 (no Reddit),3,3
+olmes_10_macro_avg,1000000000,Dolma1.7 (no code),3,3
+olmes_10_macro_avg,1000000000,"Dolma1.7 (no math, code)",3,3
+olmes_10_macro_avg,1000000000,Falcon,3,3
+olmes_10_macro_avg,1000000000,Falcon+CC,3,3
+olmes_10_macro_avg,1000000000,Falcon+CC (QC 10%),3,3
+olmes_10_macro_avg,1000000000,Falcon+CC (QC 20%),3,3
+olmes_10_macro_avg,1000000000,Falcon+CC (QC Orig 10%),3,3
+olmes_10_macro_avg,1000000000,Falcon+CC (QC Tulu 10%),3,3
+olmes_10_macro_avg,1000000000,FineWeb-Edu,3,3
+olmes_10_macro_avg,1000000000,FineWeb-Pro,3,3
+openbookqa,4000000,C4,3,3
+openbookqa,4000000,DCLM-Baseline,3,3
+openbookqa,4000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,4000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,4000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,4000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,4000000,Dolma1.6++,3,3
+openbookqa,4000000,Dolma1.7,3,3
+openbookqa,4000000,Dolma1.7 (no Flan),3,3
+openbookqa,4000000,Dolma1.7 (no Reddit),3,3
+openbookqa,4000000,Dolma1.7 (no code),3,3
+openbookqa,4000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,4000000,Falcon,3,3
+openbookqa,4000000,Falcon+CC,3,3
+openbookqa,4000000,Falcon+CC (QC 10%),3,3
+openbookqa,4000000,Falcon+CC (QC 20%),3,3
+openbookqa,4000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,4000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,4000000,FineWeb-Edu,3,3
+openbookqa,4000000,FineWeb-Pro,3,3
+openbookqa,6000000,C4,3,3
+openbookqa,6000000,DCLM-Baseline,3,3
+openbookqa,6000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,6000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,6000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,6000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,6000000,Dolma1.6++,3,3
+openbookqa,6000000,Dolma1.7,3,3
+openbookqa,6000000,Dolma1.7 (no Flan),3,3
+openbookqa,6000000,Dolma1.7 (no Reddit),3,3
+openbookqa,6000000,Dolma1.7 (no code),3,3
+openbookqa,6000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,6000000,Falcon,3,3
+openbookqa,6000000,Falcon+CC,3,3
+openbookqa,6000000,Falcon+CC (QC 10%),3,3
+openbookqa,6000000,Falcon+CC (QC 20%),3,3
+openbookqa,6000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,6000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,6000000,FineWeb-Edu,3,3
+openbookqa,6000000,FineWeb-Pro,3,3
+openbookqa,8000000,C4,3,3
+openbookqa,8000000,DCLM-Baseline,3,3
+openbookqa,8000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,8000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,8000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,8000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,8000000,Dolma1.6++,3,3
+openbookqa,8000000,Dolma1.7,3,3
+openbookqa,8000000,Dolma1.7 (no Flan),3,3
+openbookqa,8000000,Dolma1.7 (no Reddit),3,3
+openbookqa,8000000,Dolma1.7 (no code),3,3
+openbookqa,8000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,8000000,Falcon,3,3
+openbookqa,8000000,Falcon+CC,3,3
+openbookqa,8000000,Falcon+CC (QC 10%),3,3
+openbookqa,8000000,Falcon+CC (QC 20%),3,3
+openbookqa,8000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,8000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,8000000,FineWeb-Edu,3,3
+openbookqa,8000000,FineWeb-Pro,3,3
+openbookqa,10000000,C4,3,3
+openbookqa,10000000,DCLM-Baseline,3,3
+openbookqa,10000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,10000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,10000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,10000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,10000000,Dolma1.6++,3,3
+openbookqa,10000000,Dolma1.7,3,3
+openbookqa,10000000,Dolma1.7 (no Flan),3,3
+openbookqa,10000000,Dolma1.7 (no Reddit),3,3
+openbookqa,10000000,Dolma1.7 (no code),3,3
+openbookqa,10000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,10000000,Falcon,3,3
+openbookqa,10000000,Falcon+CC,3,3
+openbookqa,10000000,Falcon+CC (QC 10%),3,3
+openbookqa,10000000,Falcon+CC (QC 20%),3,3
+openbookqa,10000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,10000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,10000000,FineWeb-Edu,3,3
+openbookqa,10000000,FineWeb-Pro,3,3
+openbookqa,14000000,C4,3,3
+openbookqa,14000000,DCLM-Baseline,3,3
+openbookqa,14000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,14000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,14000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,14000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,14000000,Dolma1.6++,3,3
+openbookqa,14000000,Dolma1.7,3,3
+openbookqa,14000000,Dolma1.7 (no Flan),3,3
+openbookqa,14000000,Dolma1.7 (no Reddit),3,3
+openbookqa,14000000,Dolma1.7 (no code),3,3
+openbookqa,14000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,14000000,Falcon,3,3
+openbookqa,14000000,Falcon+CC,3,3
+openbookqa,14000000,Falcon+CC (QC 10%),3,3
+openbookqa,14000000,Falcon+CC (QC 20%),3,3
+openbookqa,14000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,14000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,14000000,FineWeb-Edu,3,3
+openbookqa,14000000,FineWeb-Pro,3,3
+openbookqa,16000000,C4,3,3
+openbookqa,16000000,DCLM-Baseline,3,3
+openbookqa,16000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,16000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,16000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,16000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,16000000,Dolma1.6++,3,3
+openbookqa,16000000,Dolma1.7,3,3
+openbookqa,16000000,Dolma1.7 (no Flan),3,3
+openbookqa,16000000,Dolma1.7 (no Reddit),3,3
+openbookqa,16000000,Dolma1.7 (no code),3,3
+openbookqa,16000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,16000000,Falcon,3,3
+openbookqa,16000000,Falcon+CC,3,3
+openbookqa,16000000,Falcon+CC (QC 10%),3,3
+openbookqa,16000000,Falcon+CC (QC 20%),3,3
+openbookqa,16000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,16000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,16000000,FineWeb-Edu,3,3
+openbookqa,16000000,FineWeb-Pro,3,3
+openbookqa,20000000,C4,3,3
+openbookqa,20000000,DCLM-Baseline,3,3
+openbookqa,20000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,20000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,20000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,20000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,20000000,Dolma1.6++,3,3
+openbookqa,20000000,Dolma1.7,3,3
+openbookqa,20000000,Dolma1.7 (no Flan),3,3
+openbookqa,20000000,Dolma1.7 (no Reddit),3,3
+openbookqa,20000000,Dolma1.7 (no code),3,3
+openbookqa,20000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,20000000,Falcon,3,3
+openbookqa,20000000,Falcon+CC,3,3
+openbookqa,20000000,Falcon+CC (QC 10%),3,3
+openbookqa,20000000,Falcon+CC (QC 20%),3,3
+openbookqa,20000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,20000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,20000000,FineWeb-Edu,3,3
+openbookqa,20000000,FineWeb-Pro,3,3
+openbookqa,60000000,C4,3,3
+openbookqa,60000000,DCLM-Baseline,3,3
+openbookqa,60000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,60000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,60000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,60000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,60000000,Dolma1.6++,3,3
+openbookqa,60000000,Dolma1.7,3,3
+openbookqa,60000000,Dolma1.7 (no Flan),3,3
+openbookqa,60000000,Dolma1.7 (no Reddit),3,3
+openbookqa,60000000,Dolma1.7 (no code),3,3
+openbookqa,60000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,60000000,Falcon,3,3
+openbookqa,60000000,Falcon+CC,3,3
+openbookqa,60000000,Falcon+CC (QC 10%),3,3
+openbookqa,60000000,Falcon+CC (QC 20%),3,3
+openbookqa,60000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,60000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,60000000,FineWeb-Edu,3,3
+openbookqa,60000000,FineWeb-Pro,3,3
+openbookqa,90000000,C4,3,3
+openbookqa,90000000,DCLM-Baseline,3,3
+openbookqa,90000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,90000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,90000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,90000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,90000000,Dolma1.6++,3,3
+openbookqa,90000000,Dolma1.7,3,3
+openbookqa,90000000,Dolma1.7 (no Flan),3,3
+openbookqa,90000000,Dolma1.7 (no Reddit),3,3
+openbookqa,90000000,Dolma1.7 (no code),3,3
+openbookqa,90000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,90000000,Falcon,3,3
+openbookqa,90000000,Falcon+CC,3,3
+openbookqa,90000000,Falcon+CC (QC 10%),3,3
+openbookqa,90000000,Falcon+CC (QC 20%),3,3
+openbookqa,90000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,90000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,90000000,FineWeb-Edu,3,3
+openbookqa,90000000,FineWeb-Pro,3,3
+openbookqa,150000000,C4,3,3
+openbookqa,150000000,DCLM-Baseline,3,3
+openbookqa,150000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,150000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,150000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,150000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,150000000,Dolma1.6++,3,3
+openbookqa,150000000,Dolma1.7,3,3
+openbookqa,150000000,Dolma1.7 (no Flan),3,3
+openbookqa,150000000,Dolma1.7 (no Reddit),3,3
+openbookqa,150000000,Dolma1.7 (no code),3,3
+openbookqa,150000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,150000000,Falcon,3,3
+openbookqa,150000000,Falcon+CC,3,3
+openbookqa,150000000,Falcon+CC (QC 10%),3,3
+openbookqa,150000000,Falcon+CC (QC 20%),3,3
+openbookqa,150000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,150000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,150000000,FineWeb-Edu,3,3
+openbookqa,150000000,FineWeb-Pro,3,3
+openbookqa,300000000,C4,3,3
+openbookqa,300000000,DCLM-Baseline,3,3
+openbookqa,300000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,300000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,300000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,300000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,300000000,Dolma1.6++,3,3
+openbookqa,300000000,Dolma1.7,3,3
+openbookqa,300000000,Dolma1.7 (no Flan),3,3
+openbookqa,300000000,Dolma1.7 (no Reddit),3,3
+openbookqa,300000000,Dolma1.7 (no code),3,3
+openbookqa,300000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,300000000,Falcon,3,3
+openbookqa,300000000,Falcon+CC,3,3
+openbookqa,300000000,Falcon+CC (QC 10%),3,3
+openbookqa,300000000,Falcon+CC (QC 20%),3,3
+openbookqa,300000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,300000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,300000000,FineWeb-Edu,3,3
+openbookqa,300000000,FineWeb-Pro,3,3
+openbookqa,530000000,C4,3,3
+openbookqa,530000000,DCLM-Baseline,3,3
+openbookqa,530000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,530000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,530000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,530000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,530000000,Dolma1.6++,3,3
+openbookqa,530000000,Dolma1.7,3,3
+openbookqa,530000000,Dolma1.7 (no Flan),3,3
+openbookqa,530000000,Dolma1.7 (no Reddit),3,3
+openbookqa,530000000,Dolma1.7 (no code),3,3
+openbookqa,530000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,530000000,Falcon,3,3
+openbookqa,530000000,Falcon+CC,3,3
+openbookqa,530000000,Falcon+CC (QC 10%),3,3
+openbookqa,530000000,Falcon+CC (QC 20%),3,3
+openbookqa,530000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,530000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,530000000,FineWeb-Edu,3,3
+openbookqa,530000000,FineWeb-Pro,3,3
+openbookqa,750000000,C4,3,3
+openbookqa,750000000,DCLM-Baseline,3,3
+openbookqa,750000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,750000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,750000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,750000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,750000000,Dolma1.6++,3,3
+openbookqa,750000000,Dolma1.7,3,3
+openbookqa,750000000,Dolma1.7 (no Flan),3,3
+openbookqa,750000000,Dolma1.7 (no Reddit),3,3
+openbookqa,750000000,Dolma1.7 (no code),3,3
+openbookqa,750000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,750000000,Falcon,3,3
+openbookqa,750000000,Falcon+CC,3,3
+openbookqa,750000000,Falcon+CC (QC 10%),3,3
+openbookqa,750000000,Falcon+CC (QC 20%),3,3
+openbookqa,750000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,750000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,750000000,FineWeb-Edu,3,3
+openbookqa,750000000,FineWeb-Pro,3,3
+openbookqa,1000000000,C4,3,3
+openbookqa,1000000000,DCLM-Baseline,3,3
+openbookqa,1000000000,DCLM-Baseline (QC 10%),3,3
+openbookqa,1000000000,DCLM-Baseline (QC 20%),3,3
+openbookqa,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+openbookqa,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+openbookqa,1000000000,DCLM-Baseline (QC FW 10%),3,3
+openbookqa,1000000000,DCLM-Baseline (QC FW 3%),3,3
+openbookqa,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+openbookqa,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+openbookqa,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+openbookqa,1000000000,Dolma1.6++,3,3
+openbookqa,1000000000,Dolma1.7,3,3
+openbookqa,1000000000,Dolma1.7 (no Flan),3,3
+openbookqa,1000000000,Dolma1.7 (no Reddit),3,3
+openbookqa,1000000000,Dolma1.7 (no code),3,3
+openbookqa,1000000000,"Dolma1.7 (no math, code)",3,3
+openbookqa,1000000000,Falcon,3,3
+openbookqa,1000000000,Falcon+CC,3,3
+openbookqa,1000000000,Falcon+CC (QC 10%),3,3
+openbookqa,1000000000,Falcon+CC (QC 20%),3,3
+openbookqa,1000000000,Falcon+CC (QC Orig 10%),3,3
+openbookqa,1000000000,Falcon+CC (QC Tulu 10%),3,3
+openbookqa,1000000000,FineWeb-Edu,3,3
+openbookqa,1000000000,FineWeb-Pro,3,3
+piqa,4000000,C4,3,3
+piqa,4000000,DCLM-Baseline,3,3
+piqa,4000000,DCLM-Baseline (QC 10%),3,3
+piqa,4000000,DCLM-Baseline (QC 20%),3,3
+piqa,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,4000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,4000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,4000000,Dolma1.6++,3,3
+piqa,4000000,Dolma1.7,3,3
+piqa,4000000,Dolma1.7 (no Flan),3,3
+piqa,4000000,Dolma1.7 (no Reddit),3,3
+piqa,4000000,Dolma1.7 (no code),3,3
+piqa,4000000,"Dolma1.7 (no math, code)",3,3
+piqa,4000000,Falcon,3,3
+piqa,4000000,Falcon+CC,3,3
+piqa,4000000,Falcon+CC (QC 10%),3,3
+piqa,4000000,Falcon+CC (QC 20%),3,3
+piqa,4000000,Falcon+CC (QC Orig 10%),3,3
+piqa,4000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,4000000,FineWeb-Edu,3,3
+piqa,4000000,FineWeb-Pro,3,3
+piqa,6000000,C4,3,3
+piqa,6000000,DCLM-Baseline,3,3
+piqa,6000000,DCLM-Baseline (QC 10%),3,3
+piqa,6000000,DCLM-Baseline (QC 20%),3,3
+piqa,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,6000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,6000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,6000000,Dolma1.6++,3,3
+piqa,6000000,Dolma1.7,3,3
+piqa,6000000,Dolma1.7 (no Flan),3,3
+piqa,6000000,Dolma1.7 (no Reddit),3,3
+piqa,6000000,Dolma1.7 (no code),3,3
+piqa,6000000,"Dolma1.7 (no math, code)",3,3
+piqa,6000000,Falcon,3,3
+piqa,6000000,Falcon+CC,3,3
+piqa,6000000,Falcon+CC (QC 10%),3,3
+piqa,6000000,Falcon+CC (QC 20%),3,3
+piqa,6000000,Falcon+CC (QC Orig 10%),3,3
+piqa,6000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,6000000,FineWeb-Edu,3,3
+piqa,6000000,FineWeb-Pro,3,3
+piqa,8000000,C4,3,3
+piqa,8000000,DCLM-Baseline,3,3
+piqa,8000000,DCLM-Baseline (QC 10%),3,3
+piqa,8000000,DCLM-Baseline (QC 20%),3,3
+piqa,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,8000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,8000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,8000000,Dolma1.6++,3,3
+piqa,8000000,Dolma1.7,3,3
+piqa,8000000,Dolma1.7 (no Flan),3,3
+piqa,8000000,Dolma1.7 (no Reddit),3,3
+piqa,8000000,Dolma1.7 (no code),3,3
+piqa,8000000,"Dolma1.7 (no math, code)",3,3
+piqa,8000000,Falcon,3,3
+piqa,8000000,Falcon+CC,3,3
+piqa,8000000,Falcon+CC (QC 10%),3,3
+piqa,8000000,Falcon+CC (QC 20%),3,3
+piqa,8000000,Falcon+CC (QC Orig 10%),3,3
+piqa,8000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,8000000,FineWeb-Edu,3,3
+piqa,8000000,FineWeb-Pro,3,3
+piqa,10000000,C4,3,3
+piqa,10000000,DCLM-Baseline,3,3
+piqa,10000000,DCLM-Baseline (QC 10%),3,3
+piqa,10000000,DCLM-Baseline (QC 20%),3,3
+piqa,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,10000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,10000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,10000000,Dolma1.6++,3,3
+piqa,10000000,Dolma1.7,3,3
+piqa,10000000,Dolma1.7 (no Flan),3,3
+piqa,10000000,Dolma1.7 (no Reddit),3,3
+piqa,10000000,Dolma1.7 (no code),3,3
+piqa,10000000,"Dolma1.7 (no math, code)",3,3
+piqa,10000000,Falcon,3,3
+piqa,10000000,Falcon+CC,3,3
+piqa,10000000,Falcon+CC (QC 10%),3,3
+piqa,10000000,Falcon+CC (QC 20%),3,3
+piqa,10000000,Falcon+CC (QC Orig 10%),3,3
+piqa,10000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,10000000,FineWeb-Edu,3,3
+piqa,10000000,FineWeb-Pro,3,3
+piqa,14000000,C4,3,3
+piqa,14000000,DCLM-Baseline,3,3
+piqa,14000000,DCLM-Baseline (QC 10%),3,3
+piqa,14000000,DCLM-Baseline (QC 20%),3,3
+piqa,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,14000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,14000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,14000000,Dolma1.6++,3,3
+piqa,14000000,Dolma1.7,3,3
+piqa,14000000,Dolma1.7 (no Flan),3,3
+piqa,14000000,Dolma1.7 (no Reddit),3,3
+piqa,14000000,Dolma1.7 (no code),3,3
+piqa,14000000,"Dolma1.7 (no math, code)",3,3
+piqa,14000000,Falcon,3,3
+piqa,14000000,Falcon+CC,3,3
+piqa,14000000,Falcon+CC (QC 10%),3,3
+piqa,14000000,Falcon+CC (QC 20%),3,3
+piqa,14000000,Falcon+CC (QC Orig 10%),3,3
+piqa,14000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,14000000,FineWeb-Edu,3,3
+piqa,14000000,FineWeb-Pro,3,3
+piqa,16000000,C4,3,3
+piqa,16000000,DCLM-Baseline,3,3
+piqa,16000000,DCLM-Baseline (QC 10%),3,3
+piqa,16000000,DCLM-Baseline (QC 20%),3,3
+piqa,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,16000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,16000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,16000000,Dolma1.6++,3,3
+piqa,16000000,Dolma1.7,3,3
+piqa,16000000,Dolma1.7 (no Flan),3,3
+piqa,16000000,Dolma1.7 (no Reddit),3,3
+piqa,16000000,Dolma1.7 (no code),3,3
+piqa,16000000,"Dolma1.7 (no math, code)",3,3
+piqa,16000000,Falcon,3,3
+piqa,16000000,Falcon+CC,3,3
+piqa,16000000,Falcon+CC (QC 10%),3,3
+piqa,16000000,Falcon+CC (QC 20%),3,3
+piqa,16000000,Falcon+CC (QC Orig 10%),3,3
+piqa,16000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,16000000,FineWeb-Edu,3,3
+piqa,16000000,FineWeb-Pro,3,3
+piqa,20000000,C4,3,3
+piqa,20000000,DCLM-Baseline,3,3
+piqa,20000000,DCLM-Baseline (QC 10%),3,3
+piqa,20000000,DCLM-Baseline (QC 20%),3,3
+piqa,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,20000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,20000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,20000000,Dolma1.6++,3,3
+piqa,20000000,Dolma1.7,3,3
+piqa,20000000,Dolma1.7 (no Flan),3,3
+piqa,20000000,Dolma1.7 (no Reddit),3,3
+piqa,20000000,Dolma1.7 (no code),3,3
+piqa,20000000,"Dolma1.7 (no math, code)",3,3
+piqa,20000000,Falcon,3,3
+piqa,20000000,Falcon+CC,3,3
+piqa,20000000,Falcon+CC (QC 10%),3,3
+piqa,20000000,Falcon+CC (QC 20%),3,3
+piqa,20000000,Falcon+CC (QC Orig 10%),3,3
+piqa,20000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,20000000,FineWeb-Edu,3,3
+piqa,20000000,FineWeb-Pro,3,3
+piqa,60000000,C4,3,3
+piqa,60000000,DCLM-Baseline,3,3
+piqa,60000000,DCLM-Baseline (QC 10%),3,3
+piqa,60000000,DCLM-Baseline (QC 20%),3,3
+piqa,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,60000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,60000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,60000000,Dolma1.6++,3,3
+piqa,60000000,Dolma1.7,3,3
+piqa,60000000,Dolma1.7 (no Flan),3,3
+piqa,60000000,Dolma1.7 (no Reddit),3,3
+piqa,60000000,Dolma1.7 (no code),3,3
+piqa,60000000,"Dolma1.7 (no math, code)",3,3
+piqa,60000000,Falcon,3,3
+piqa,60000000,Falcon+CC,3,3
+piqa,60000000,Falcon+CC (QC 10%),3,3
+piqa,60000000,Falcon+CC (QC 20%),3,3
+piqa,60000000,Falcon+CC (QC Orig 10%),3,3
+piqa,60000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,60000000,FineWeb-Edu,3,3
+piqa,60000000,FineWeb-Pro,3,3
+piqa,90000000,C4,3,3
+piqa,90000000,DCLM-Baseline,3,3
+piqa,90000000,DCLM-Baseline (QC 10%),3,3
+piqa,90000000,DCLM-Baseline (QC 20%),3,3
+piqa,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,90000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,90000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,90000000,Dolma1.6++,3,3
+piqa,90000000,Dolma1.7,3,3
+piqa,90000000,Dolma1.7 (no Flan),3,3
+piqa,90000000,Dolma1.7 (no Reddit),3,3
+piqa,90000000,Dolma1.7 (no code),3,3
+piqa,90000000,"Dolma1.7 (no math, code)",3,3
+piqa,90000000,Falcon,3,3
+piqa,90000000,Falcon+CC,3,3
+piqa,90000000,Falcon+CC (QC 10%),3,3
+piqa,90000000,Falcon+CC (QC 20%),3,3
+piqa,90000000,Falcon+CC (QC Orig 10%),3,3
+piqa,90000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,90000000,FineWeb-Edu,3,3
+piqa,90000000,FineWeb-Pro,3,3
+piqa,150000000,C4,3,3
+piqa,150000000,DCLM-Baseline,3,3
+piqa,150000000,DCLM-Baseline (QC 10%),3,3
+piqa,150000000,DCLM-Baseline (QC 20%),3,3
+piqa,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,150000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,150000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,150000000,Dolma1.6++,3,3
+piqa,150000000,Dolma1.7,3,3
+piqa,150000000,Dolma1.7 (no Flan),3,3
+piqa,150000000,Dolma1.7 (no Reddit),3,3
+piqa,150000000,Dolma1.7 (no code),3,3
+piqa,150000000,"Dolma1.7 (no math, code)",3,3
+piqa,150000000,Falcon,3,3
+piqa,150000000,Falcon+CC,3,3
+piqa,150000000,Falcon+CC (QC 10%),3,3
+piqa,150000000,Falcon+CC (QC 20%),3,3
+piqa,150000000,Falcon+CC (QC Orig 10%),3,3
+piqa,150000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,150000000,FineWeb-Edu,3,3
+piqa,150000000,FineWeb-Pro,3,3
+piqa,300000000,C4,3,3
+piqa,300000000,DCLM-Baseline,3,3
+piqa,300000000,DCLM-Baseline (QC 10%),3,3
+piqa,300000000,DCLM-Baseline (QC 20%),3,3
+piqa,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,300000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,300000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,300000000,Dolma1.6++,3,3
+piqa,300000000,Dolma1.7,3,3
+piqa,300000000,Dolma1.7 (no Flan),3,3
+piqa,300000000,Dolma1.7 (no Reddit),3,3
+piqa,300000000,Dolma1.7 (no code),3,3
+piqa,300000000,"Dolma1.7 (no math, code)",3,3
+piqa,300000000,Falcon,3,3
+piqa,300000000,Falcon+CC,3,3
+piqa,300000000,Falcon+CC (QC 10%),3,3
+piqa,300000000,Falcon+CC (QC 20%),3,3
+piqa,300000000,Falcon+CC (QC Orig 10%),3,3
+piqa,300000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,300000000,FineWeb-Edu,3,3
+piqa,300000000,FineWeb-Pro,3,3
+piqa,530000000,C4,3,3
+piqa,530000000,DCLM-Baseline,3,3
+piqa,530000000,DCLM-Baseline (QC 10%),3,3
+piqa,530000000,DCLM-Baseline (QC 20%),3,3
+piqa,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,530000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,530000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,530000000,Dolma1.6++,3,3
+piqa,530000000,Dolma1.7,3,3
+piqa,530000000,Dolma1.7 (no Flan),3,3
+piqa,530000000,Dolma1.7 (no Reddit),3,3
+piqa,530000000,Dolma1.7 (no code),3,3
+piqa,530000000,"Dolma1.7 (no math, code)",3,3
+piqa,530000000,Falcon,3,3
+piqa,530000000,Falcon+CC,3,3
+piqa,530000000,Falcon+CC (QC 10%),3,3
+piqa,530000000,Falcon+CC (QC 20%),3,3
+piqa,530000000,Falcon+CC (QC Orig 10%),3,3
+piqa,530000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,530000000,FineWeb-Edu,3,3
+piqa,530000000,FineWeb-Pro,3,3
+piqa,750000000,C4,3,3
+piqa,750000000,DCLM-Baseline,3,3
+piqa,750000000,DCLM-Baseline (QC 10%),3,3
+piqa,750000000,DCLM-Baseline (QC 20%),3,3
+piqa,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,750000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,750000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,750000000,Dolma1.6++,3,3
+piqa,750000000,Dolma1.7,3,3
+piqa,750000000,Dolma1.7 (no Flan),3,3
+piqa,750000000,Dolma1.7 (no Reddit),3,3
+piqa,750000000,Dolma1.7 (no code),3,3
+piqa,750000000,"Dolma1.7 (no math, code)",3,3
+piqa,750000000,Falcon,3,3
+piqa,750000000,Falcon+CC,3,3
+piqa,750000000,Falcon+CC (QC 10%),3,3
+piqa,750000000,Falcon+CC (QC 20%),3,3
+piqa,750000000,Falcon+CC (QC Orig 10%),3,3
+piqa,750000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,750000000,FineWeb-Edu,3,3
+piqa,750000000,FineWeb-Pro,3,3
+piqa,1000000000,C4,3,3
+piqa,1000000000,DCLM-Baseline,3,3
+piqa,1000000000,DCLM-Baseline (QC 10%),3,3
+piqa,1000000000,DCLM-Baseline (QC 20%),3,3
+piqa,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+piqa,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+piqa,1000000000,DCLM-Baseline (QC FW 10%),3,3
+piqa,1000000000,DCLM-Baseline (QC FW 3%),3,3
+piqa,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+piqa,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+piqa,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+piqa,1000000000,Dolma1.6++,3,3
+piqa,1000000000,Dolma1.7,3,3
+piqa,1000000000,Dolma1.7 (no Flan),3,3
+piqa,1000000000,Dolma1.7 (no Reddit),3,3
+piqa,1000000000,Dolma1.7 (no code),3,3
+piqa,1000000000,"Dolma1.7 (no math, code)",3,3
+piqa,1000000000,Falcon,3,3
+piqa,1000000000,Falcon+CC,3,3
+piqa,1000000000,Falcon+CC (QC 10%),3,3
+piqa,1000000000,Falcon+CC (QC 20%),3,3
+piqa,1000000000,Falcon+CC (QC Orig 10%),3,3
+piqa,1000000000,Falcon+CC (QC Tulu 10%),3,3
+piqa,1000000000,FineWeb-Edu,3,3
+piqa,1000000000,FineWeb-Pro,3,3
+socialiqa,4000000,C4,3,3
+socialiqa,4000000,DCLM-Baseline,3,3
+socialiqa,4000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,4000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,4000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,4000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,4000000,Dolma1.6++,3,3
+socialiqa,4000000,Dolma1.7,3,3
+socialiqa,4000000,Dolma1.7 (no Flan),3,3
+socialiqa,4000000,Dolma1.7 (no Reddit),3,3
+socialiqa,4000000,Dolma1.7 (no code),3,3
+socialiqa,4000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,4000000,Falcon,3,3
+socialiqa,4000000,Falcon+CC,3,3
+socialiqa,4000000,Falcon+CC (QC 10%),3,3
+socialiqa,4000000,Falcon+CC (QC 20%),3,3
+socialiqa,4000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,4000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,4000000,FineWeb-Edu,3,3
+socialiqa,4000000,FineWeb-Pro,3,3
+socialiqa,6000000,C4,3,3
+socialiqa,6000000,DCLM-Baseline,3,3
+socialiqa,6000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,6000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,6000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,6000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,6000000,Dolma1.6++,3,3
+socialiqa,6000000,Dolma1.7,3,3
+socialiqa,6000000,Dolma1.7 (no Flan),3,3
+socialiqa,6000000,Dolma1.7 (no Reddit),3,3
+socialiqa,6000000,Dolma1.7 (no code),3,3
+socialiqa,6000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,6000000,Falcon,3,3
+socialiqa,6000000,Falcon+CC,3,3
+socialiqa,6000000,Falcon+CC (QC 10%),3,3
+socialiqa,6000000,Falcon+CC (QC 20%),3,3
+socialiqa,6000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,6000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,6000000,FineWeb-Edu,3,3
+socialiqa,6000000,FineWeb-Pro,3,3
+socialiqa,8000000,C4,3,3
+socialiqa,8000000,DCLM-Baseline,3,3
+socialiqa,8000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,8000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,8000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,8000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,8000000,Dolma1.6++,3,3
+socialiqa,8000000,Dolma1.7,3,3
+socialiqa,8000000,Dolma1.7 (no Flan),3,3
+socialiqa,8000000,Dolma1.7 (no Reddit),3,3
+socialiqa,8000000,Dolma1.7 (no code),3,3
+socialiqa,8000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,8000000,Falcon,3,3
+socialiqa,8000000,Falcon+CC,3,3
+socialiqa,8000000,Falcon+CC (QC 10%),3,3
+socialiqa,8000000,Falcon+CC (QC 20%),3,3
+socialiqa,8000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,8000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,8000000,FineWeb-Edu,3,3
+socialiqa,8000000,FineWeb-Pro,3,3
+socialiqa,10000000,C4,3,3
+socialiqa,10000000,DCLM-Baseline,3,3
+socialiqa,10000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,10000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,10000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,10000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,10000000,Dolma1.6++,3,3
+socialiqa,10000000,Dolma1.7,3,3
+socialiqa,10000000,Dolma1.7 (no Flan),3,3
+socialiqa,10000000,Dolma1.7 (no Reddit),3,3
+socialiqa,10000000,Dolma1.7 (no code),3,3
+socialiqa,10000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,10000000,Falcon,3,3
+socialiqa,10000000,Falcon+CC,3,3
+socialiqa,10000000,Falcon+CC (QC 10%),3,3
+socialiqa,10000000,Falcon+CC (QC 20%),3,3
+socialiqa,10000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,10000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,10000000,FineWeb-Edu,3,3
+socialiqa,10000000,FineWeb-Pro,3,3
+socialiqa,14000000,C4,3,3
+socialiqa,14000000,DCLM-Baseline,3,3
+socialiqa,14000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,14000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,14000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,14000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,14000000,Dolma1.6++,3,3
+socialiqa,14000000,Dolma1.7,3,3
+socialiqa,14000000,Dolma1.7 (no Flan),3,3
+socialiqa,14000000,Dolma1.7 (no Reddit),3,3
+socialiqa,14000000,Dolma1.7 (no code),3,3
+socialiqa,14000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,14000000,Falcon,3,3
+socialiqa,14000000,Falcon+CC,3,3
+socialiqa,14000000,Falcon+CC (QC 10%),3,3
+socialiqa,14000000,Falcon+CC (QC 20%),3,3
+socialiqa,14000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,14000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,14000000,FineWeb-Edu,3,3
+socialiqa,14000000,FineWeb-Pro,3,3
+socialiqa,16000000,C4,3,3
+socialiqa,16000000,DCLM-Baseline,3,3
+socialiqa,16000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,16000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,16000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,16000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,16000000,Dolma1.6++,3,3
+socialiqa,16000000,Dolma1.7,3,3
+socialiqa,16000000,Dolma1.7 (no Flan),3,3
+socialiqa,16000000,Dolma1.7 (no Reddit),3,3
+socialiqa,16000000,Dolma1.7 (no code),3,3
+socialiqa,16000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,16000000,Falcon,3,3
+socialiqa,16000000,Falcon+CC,3,3
+socialiqa,16000000,Falcon+CC (QC 10%),3,3
+socialiqa,16000000,Falcon+CC (QC 20%),3,3
+socialiqa,16000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,16000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,16000000,FineWeb-Edu,3,3
+socialiqa,16000000,FineWeb-Pro,3,3
+socialiqa,20000000,C4,3,3
+socialiqa,20000000,DCLM-Baseline,3,3
+socialiqa,20000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,20000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,20000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,20000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,20000000,Dolma1.6++,3,3
+socialiqa,20000000,Dolma1.7,3,3
+socialiqa,20000000,Dolma1.7 (no Flan),3,3
+socialiqa,20000000,Dolma1.7 (no Reddit),3,3
+socialiqa,20000000,Dolma1.7 (no code),3,3
+socialiqa,20000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,20000000,Falcon,3,3
+socialiqa,20000000,Falcon+CC,3,3
+socialiqa,20000000,Falcon+CC (QC 10%),3,3
+socialiqa,20000000,Falcon+CC (QC 20%),3,3
+socialiqa,20000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,20000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,20000000,FineWeb-Edu,3,3
+socialiqa,20000000,FineWeb-Pro,3,3
+socialiqa,60000000,C4,3,3
+socialiqa,60000000,DCLM-Baseline,3,3
+socialiqa,60000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,60000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,60000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,60000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,60000000,Dolma1.6++,3,3
+socialiqa,60000000,Dolma1.7,3,3
+socialiqa,60000000,Dolma1.7 (no Flan),3,3
+socialiqa,60000000,Dolma1.7 (no Reddit),3,3
+socialiqa,60000000,Dolma1.7 (no code),3,3
+socialiqa,60000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,60000000,Falcon,3,3
+socialiqa,60000000,Falcon+CC,3,3
+socialiqa,60000000,Falcon+CC (QC 10%),3,3
+socialiqa,60000000,Falcon+CC (QC 20%),3,3
+socialiqa,60000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,60000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,60000000,FineWeb-Edu,3,3
+socialiqa,60000000,FineWeb-Pro,3,3
+socialiqa,90000000,C4,3,3
+socialiqa,90000000,DCLM-Baseline,3,3
+socialiqa,90000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,90000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,90000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,90000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,90000000,Dolma1.6++,3,3
+socialiqa,90000000,Dolma1.7,3,3
+socialiqa,90000000,Dolma1.7 (no Flan),3,3
+socialiqa,90000000,Dolma1.7 (no Reddit),3,3
+socialiqa,90000000,Dolma1.7 (no code),3,3
+socialiqa,90000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,90000000,Falcon,3,3
+socialiqa,90000000,Falcon+CC,3,3
+socialiqa,90000000,Falcon+CC (QC 10%),3,3
+socialiqa,90000000,Falcon+CC (QC 20%),3,3
+socialiqa,90000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,90000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,90000000,FineWeb-Edu,3,3
+socialiqa,90000000,FineWeb-Pro,3,3
+socialiqa,150000000,C4,3,3
+socialiqa,150000000,DCLM-Baseline,3,3
+socialiqa,150000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,150000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,150000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,150000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,150000000,Dolma1.6++,3,3
+socialiqa,150000000,Dolma1.7,3,3
+socialiqa,150000000,Dolma1.7 (no Flan),3,3
+socialiqa,150000000,Dolma1.7 (no Reddit),3,3
+socialiqa,150000000,Dolma1.7 (no code),3,3
+socialiqa,150000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,150000000,Falcon,3,3
+socialiqa,150000000,Falcon+CC,3,3
+socialiqa,150000000,Falcon+CC (QC 10%),3,3
+socialiqa,150000000,Falcon+CC (QC 20%),3,3
+socialiqa,150000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,150000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,150000000,FineWeb-Edu,3,3
+socialiqa,150000000,FineWeb-Pro,3,3
+socialiqa,300000000,C4,3,3
+socialiqa,300000000,DCLM-Baseline,3,3
+socialiqa,300000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,300000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,300000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,300000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,300000000,Dolma1.6++,3,3
+socialiqa,300000000,Dolma1.7,3,3
+socialiqa,300000000,Dolma1.7 (no Flan),3,3
+socialiqa,300000000,Dolma1.7 (no Reddit),3,3
+socialiqa,300000000,Dolma1.7 (no code),3,3
+socialiqa,300000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,300000000,Falcon,3,3
+socialiqa,300000000,Falcon+CC,3,3
+socialiqa,300000000,Falcon+CC (QC 10%),3,3
+socialiqa,300000000,Falcon+CC (QC 20%),3,3
+socialiqa,300000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,300000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,300000000,FineWeb-Edu,3,3
+socialiqa,300000000,FineWeb-Pro,3,3
+socialiqa,530000000,C4,3,3
+socialiqa,530000000,DCLM-Baseline,3,3
+socialiqa,530000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,530000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,530000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,530000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,530000000,Dolma1.6++,3,3
+socialiqa,530000000,Dolma1.7,3,3
+socialiqa,530000000,Dolma1.7 (no Flan),3,3
+socialiqa,530000000,Dolma1.7 (no Reddit),3,3
+socialiqa,530000000,Dolma1.7 (no code),3,3
+socialiqa,530000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,530000000,Falcon,3,3
+socialiqa,530000000,Falcon+CC,3,3
+socialiqa,530000000,Falcon+CC (QC 10%),3,3
+socialiqa,530000000,Falcon+CC (QC 20%),3,3
+socialiqa,530000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,530000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,530000000,FineWeb-Edu,3,3
+socialiqa,530000000,FineWeb-Pro,3,3
+socialiqa,750000000,C4,3,3
+socialiqa,750000000,DCLM-Baseline,3,3
+socialiqa,750000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,750000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,750000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,750000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,750000000,Dolma1.6++,3,3
+socialiqa,750000000,Dolma1.7,3,3
+socialiqa,750000000,Dolma1.7 (no Flan),3,3
+socialiqa,750000000,Dolma1.7 (no Reddit),3,3
+socialiqa,750000000,Dolma1.7 (no code),3,3
+socialiqa,750000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,750000000,Falcon,3,3
+socialiqa,750000000,Falcon+CC,3,3
+socialiqa,750000000,Falcon+CC (QC 10%),3,3
+socialiqa,750000000,Falcon+CC (QC 20%),3,3
+socialiqa,750000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,750000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,750000000,FineWeb-Edu,3,3
+socialiqa,750000000,FineWeb-Pro,3,3
+socialiqa,1000000000,C4,3,3
+socialiqa,1000000000,DCLM-Baseline,3,3
+socialiqa,1000000000,DCLM-Baseline (QC 10%),3,3
+socialiqa,1000000000,DCLM-Baseline (QC 20%),3,3
+socialiqa,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+socialiqa,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+socialiqa,1000000000,DCLM-Baseline (QC FW 10%),3,3
+socialiqa,1000000000,DCLM-Baseline (QC FW 3%),3,3
+socialiqa,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+socialiqa,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+socialiqa,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+socialiqa,1000000000,Dolma1.6++,3,3
+socialiqa,1000000000,Dolma1.7,3,3
+socialiqa,1000000000,Dolma1.7 (no Flan),3,3
+socialiqa,1000000000,Dolma1.7 (no Reddit),3,3
+socialiqa,1000000000,Dolma1.7 (no code),3,3
+socialiqa,1000000000,"Dolma1.7 (no math, code)",3,3
+socialiqa,1000000000,Falcon,3,3
+socialiqa,1000000000,Falcon+CC,3,3
+socialiqa,1000000000,Falcon+CC (QC 10%),3,3
+socialiqa,1000000000,Falcon+CC (QC 20%),3,3
+socialiqa,1000000000,Falcon+CC (QC Orig 10%),3,3
+socialiqa,1000000000,Falcon+CC (QC Tulu 10%),3,3
+socialiqa,1000000000,FineWeb-Edu,3,3
+socialiqa,1000000000,FineWeb-Pro,3,3
+winogrande,4000000,C4,3,3
+winogrande,4000000,DCLM-Baseline,3,3
+winogrande,4000000,DCLM-Baseline (QC 10%),3,3
+winogrande,4000000,DCLM-Baseline (QC 20%),3,3
+winogrande,4000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,4000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,4000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,4000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,4000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,4000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,4000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,4000000,Dolma1.6++,3,3
+winogrande,4000000,Dolma1.7,3,3
+winogrande,4000000,Dolma1.7 (no Flan),3,3
+winogrande,4000000,Dolma1.7 (no Reddit),3,3
+winogrande,4000000,Dolma1.7 (no code),3,3
+winogrande,4000000,"Dolma1.7 (no math, code)",3,3
+winogrande,4000000,Falcon,3,3
+winogrande,4000000,Falcon+CC,3,3
+winogrande,4000000,Falcon+CC (QC 10%),3,3
+winogrande,4000000,Falcon+CC (QC 20%),3,3
+winogrande,4000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,4000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,4000000,FineWeb-Edu,3,3
+winogrande,4000000,FineWeb-Pro,3,3
+winogrande,6000000,C4,3,3
+winogrande,6000000,DCLM-Baseline,3,3
+winogrande,6000000,DCLM-Baseline (QC 10%),3,3
+winogrande,6000000,DCLM-Baseline (QC 20%),3,3
+winogrande,6000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,6000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,6000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,6000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,6000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,6000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,6000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,6000000,Dolma1.6++,3,3
+winogrande,6000000,Dolma1.7,3,3
+winogrande,6000000,Dolma1.7 (no Flan),3,3
+winogrande,6000000,Dolma1.7 (no Reddit),3,3
+winogrande,6000000,Dolma1.7 (no code),3,3
+winogrande,6000000,"Dolma1.7 (no math, code)",3,3
+winogrande,6000000,Falcon,3,3
+winogrande,6000000,Falcon+CC,3,3
+winogrande,6000000,Falcon+CC (QC 10%),3,3
+winogrande,6000000,Falcon+CC (QC 20%),3,3
+winogrande,6000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,6000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,6000000,FineWeb-Edu,3,3
+winogrande,6000000,FineWeb-Pro,3,3
+winogrande,8000000,C4,3,3
+winogrande,8000000,DCLM-Baseline,3,3
+winogrande,8000000,DCLM-Baseline (QC 10%),3,3
+winogrande,8000000,DCLM-Baseline (QC 20%),3,3
+winogrande,8000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,8000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,8000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,8000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,8000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,8000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,8000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,8000000,Dolma1.6++,3,3
+winogrande,8000000,Dolma1.7,3,3
+winogrande,8000000,Dolma1.7 (no Flan),3,3
+winogrande,8000000,Dolma1.7 (no Reddit),3,3
+winogrande,8000000,Dolma1.7 (no code),3,3
+winogrande,8000000,"Dolma1.7 (no math, code)",3,3
+winogrande,8000000,Falcon,3,3
+winogrande,8000000,Falcon+CC,3,3
+winogrande,8000000,Falcon+CC (QC 10%),3,3
+winogrande,8000000,Falcon+CC (QC 20%),3,3
+winogrande,8000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,8000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,8000000,FineWeb-Edu,3,3
+winogrande,8000000,FineWeb-Pro,3,3
+winogrande,10000000,C4,3,3
+winogrande,10000000,DCLM-Baseline,3,3
+winogrande,10000000,DCLM-Baseline (QC 10%),3,3
+winogrande,10000000,DCLM-Baseline (QC 20%),3,3
+winogrande,10000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,10000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,10000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,10000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,10000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,10000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,10000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,10000000,Dolma1.6++,3,3
+winogrande,10000000,Dolma1.7,3,3
+winogrande,10000000,Dolma1.7 (no Flan),3,3
+winogrande,10000000,Dolma1.7 (no Reddit),3,3
+winogrande,10000000,Dolma1.7 (no code),3,3
+winogrande,10000000,"Dolma1.7 (no math, code)",3,3
+winogrande,10000000,Falcon,3,3
+winogrande,10000000,Falcon+CC,3,3
+winogrande,10000000,Falcon+CC (QC 10%),3,3
+winogrande,10000000,Falcon+CC (QC 20%),3,3
+winogrande,10000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,10000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,10000000,FineWeb-Edu,3,3
+winogrande,10000000,FineWeb-Pro,3,3
+winogrande,14000000,C4,3,3
+winogrande,14000000,DCLM-Baseline,3,3
+winogrande,14000000,DCLM-Baseline (QC 10%),3,3
+winogrande,14000000,DCLM-Baseline (QC 20%),3,3
+winogrande,14000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,14000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,14000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,14000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,14000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,14000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,14000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,14000000,Dolma1.6++,3,3
+winogrande,14000000,Dolma1.7,3,3
+winogrande,14000000,Dolma1.7 (no Flan),3,3
+winogrande,14000000,Dolma1.7 (no Reddit),3,3
+winogrande,14000000,Dolma1.7 (no code),3,3
+winogrande,14000000,"Dolma1.7 (no math, code)",3,3
+winogrande,14000000,Falcon,3,3
+winogrande,14000000,Falcon+CC,3,3
+winogrande,14000000,Falcon+CC (QC 10%),3,3
+winogrande,14000000,Falcon+CC (QC 20%),3,3
+winogrande,14000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,14000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,14000000,FineWeb-Edu,3,3
+winogrande,14000000,FineWeb-Pro,3,3
+winogrande,16000000,C4,3,3
+winogrande,16000000,DCLM-Baseline,3,3
+winogrande,16000000,DCLM-Baseline (QC 10%),3,3
+winogrande,16000000,DCLM-Baseline (QC 20%),3,3
+winogrande,16000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,16000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,16000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,16000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,16000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,16000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,16000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,16000000,Dolma1.6++,3,3
+winogrande,16000000,Dolma1.7,3,3
+winogrande,16000000,Dolma1.7 (no Flan),3,3
+winogrande,16000000,Dolma1.7 (no Reddit),3,3
+winogrande,16000000,Dolma1.7 (no code),3,3
+winogrande,16000000,"Dolma1.7 (no math, code)",3,3
+winogrande,16000000,Falcon,3,3
+winogrande,16000000,Falcon+CC,3,3
+winogrande,16000000,Falcon+CC (QC 10%),3,3
+winogrande,16000000,Falcon+CC (QC 20%),3,3
+winogrande,16000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,16000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,16000000,FineWeb-Edu,3,3
+winogrande,16000000,FineWeb-Pro,3,3
+winogrande,20000000,C4,3,3
+winogrande,20000000,DCLM-Baseline,3,3
+winogrande,20000000,DCLM-Baseline (QC 10%),3,3
+winogrande,20000000,DCLM-Baseline (QC 20%),3,3
+winogrande,20000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,20000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,20000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,20000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,20000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,20000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,20000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,20000000,Dolma1.6++,3,3
+winogrande,20000000,Dolma1.7,3,3
+winogrande,20000000,Dolma1.7 (no Flan),3,3
+winogrande,20000000,Dolma1.7 (no Reddit),3,3
+winogrande,20000000,Dolma1.7 (no code),3,3
+winogrande,20000000,"Dolma1.7 (no math, code)",3,3
+winogrande,20000000,Falcon,3,3
+winogrande,20000000,Falcon+CC,3,3
+winogrande,20000000,Falcon+CC (QC 10%),3,3
+winogrande,20000000,Falcon+CC (QC 20%),3,3
+winogrande,20000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,20000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,20000000,FineWeb-Edu,3,3
+winogrande,20000000,FineWeb-Pro,3,3
+winogrande,60000000,C4,3,3
+winogrande,60000000,DCLM-Baseline,3,3
+winogrande,60000000,DCLM-Baseline (QC 10%),3,3
+winogrande,60000000,DCLM-Baseline (QC 20%),3,3
+winogrande,60000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,60000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,60000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,60000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,60000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,60000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,60000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,60000000,Dolma1.6++,3,3
+winogrande,60000000,Dolma1.7,3,3
+winogrande,60000000,Dolma1.7 (no Flan),3,3
+winogrande,60000000,Dolma1.7 (no Reddit),3,3
+winogrande,60000000,Dolma1.7 (no code),3,3
+winogrande,60000000,"Dolma1.7 (no math, code)",3,3
+winogrande,60000000,Falcon,3,3
+winogrande,60000000,Falcon+CC,3,3
+winogrande,60000000,Falcon+CC (QC 10%),3,3
+winogrande,60000000,Falcon+CC (QC 20%),3,3
+winogrande,60000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,60000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,60000000,FineWeb-Edu,3,3
+winogrande,60000000,FineWeb-Pro,3,3
+winogrande,90000000,C4,3,3
+winogrande,90000000,DCLM-Baseline,3,3
+winogrande,90000000,DCLM-Baseline (QC 10%),3,3
+winogrande,90000000,DCLM-Baseline (QC 20%),3,3
+winogrande,90000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,90000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,90000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,90000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,90000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,90000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,90000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,90000000,Dolma1.6++,3,3
+winogrande,90000000,Dolma1.7,3,3
+winogrande,90000000,Dolma1.7 (no Flan),3,3
+winogrande,90000000,Dolma1.7 (no Reddit),3,3
+winogrande,90000000,Dolma1.7 (no code),3,3
+winogrande,90000000,"Dolma1.7 (no math, code)",3,3
+winogrande,90000000,Falcon,3,3
+winogrande,90000000,Falcon+CC,3,3
+winogrande,90000000,Falcon+CC (QC 10%),3,3
+winogrande,90000000,Falcon+CC (QC 20%),3,3
+winogrande,90000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,90000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,90000000,FineWeb-Edu,3,3
+winogrande,90000000,FineWeb-Pro,3,3
+winogrande,150000000,C4,3,3
+winogrande,150000000,DCLM-Baseline,3,3
+winogrande,150000000,DCLM-Baseline (QC 10%),3,3
+winogrande,150000000,DCLM-Baseline (QC 20%),3,3
+winogrande,150000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,150000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,150000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,150000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,150000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,150000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,150000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,150000000,Dolma1.6++,3,3
+winogrande,150000000,Dolma1.7,3,3
+winogrande,150000000,Dolma1.7 (no Flan),3,3
+winogrande,150000000,Dolma1.7 (no Reddit),3,3
+winogrande,150000000,Dolma1.7 (no code),3,3
+winogrande,150000000,"Dolma1.7 (no math, code)",3,3
+winogrande,150000000,Falcon,3,3
+winogrande,150000000,Falcon+CC,3,3
+winogrande,150000000,Falcon+CC (QC 10%),3,3
+winogrande,150000000,Falcon+CC (QC 20%),3,3
+winogrande,150000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,150000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,150000000,FineWeb-Edu,3,3
+winogrande,150000000,FineWeb-Pro,3,3
+winogrande,300000000,C4,3,3
+winogrande,300000000,DCLM-Baseline,3,3
+winogrande,300000000,DCLM-Baseline (QC 10%),3,3
+winogrande,300000000,DCLM-Baseline (QC 20%),3,3
+winogrande,300000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,300000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,300000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,300000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,300000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,300000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,300000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,300000000,Dolma1.6++,3,3
+winogrande,300000000,Dolma1.7,3,3
+winogrande,300000000,Dolma1.7 (no Flan),3,3
+winogrande,300000000,Dolma1.7 (no Reddit),3,3
+winogrande,300000000,Dolma1.7 (no code),3,3
+winogrande,300000000,"Dolma1.7 (no math, code)",3,3
+winogrande,300000000,Falcon,3,3
+winogrande,300000000,Falcon+CC,3,3
+winogrande,300000000,Falcon+CC (QC 10%),3,3
+winogrande,300000000,Falcon+CC (QC 20%),3,3
+winogrande,300000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,300000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,300000000,FineWeb-Edu,3,3
+winogrande,300000000,FineWeb-Pro,3,3
+winogrande,530000000,C4,3,3
+winogrande,530000000,DCLM-Baseline,3,3
+winogrande,530000000,DCLM-Baseline (QC 10%),3,3
+winogrande,530000000,DCLM-Baseline (QC 20%),3,3
+winogrande,530000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,530000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,530000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,530000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,530000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,530000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,530000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,530000000,Dolma1.6++,3,3
+winogrande,530000000,Dolma1.7,3,3
+winogrande,530000000,Dolma1.7 (no Flan),3,3
+winogrande,530000000,Dolma1.7 (no Reddit),3,3
+winogrande,530000000,Dolma1.7 (no code),3,3
+winogrande,530000000,"Dolma1.7 (no math, code)",3,3
+winogrande,530000000,Falcon,3,3
+winogrande,530000000,Falcon+CC,3,3
+winogrande,530000000,Falcon+CC (QC 10%),3,3
+winogrande,530000000,Falcon+CC (QC 20%),3,3
+winogrande,530000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,530000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,530000000,FineWeb-Edu,3,3
+winogrande,530000000,FineWeb-Pro,3,3
+winogrande,750000000,C4,3,3
+winogrande,750000000,DCLM-Baseline,3,3
+winogrande,750000000,DCLM-Baseline (QC 10%),3,3
+winogrande,750000000,DCLM-Baseline (QC 20%),3,3
+winogrande,750000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,750000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,750000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,750000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,750000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,750000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,750000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,750000000,Dolma1.6++,3,3
+winogrande,750000000,Dolma1.7,3,3
+winogrande,750000000,Dolma1.7 (no Flan),3,3
+winogrande,750000000,Dolma1.7 (no Reddit),3,3
+winogrande,750000000,Dolma1.7 (no code),3,3
+winogrande,750000000,"Dolma1.7 (no math, code)",3,3
+winogrande,750000000,Falcon,3,3
+winogrande,750000000,Falcon+CC,3,3
+winogrande,750000000,Falcon+CC (QC 10%),3,3
+winogrande,750000000,Falcon+CC (QC 20%),3,3
+winogrande,750000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,750000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,750000000,FineWeb-Edu,3,3
+winogrande,750000000,FineWeb-Pro,3,3
+winogrande,1000000000,C4,3,3
+winogrande,1000000000,DCLM-Baseline,3,3
+winogrande,1000000000,DCLM-Baseline (QC 10%),3,3
+winogrande,1000000000,DCLM-Baseline (QC 20%),3,3
+winogrande,1000000000,"DCLM-Baseline (QC 7%, FW2)",3,3
+winogrande,1000000000,"DCLM-Baseline (QC 7%, FW3)",3,3
+winogrande,1000000000,DCLM-Baseline (QC FW 10%),3,3
+winogrande,1000000000,DCLM-Baseline (QC FW 3%),3,3
+winogrande,1000000000,DCLM-Baseline 25% / Dolma 75%,3,3
+winogrande,1000000000,DCLM-Baseline 50% / Dolma 50%,3,3
+winogrande,1000000000,DCLM-Baseline 75% / Dolma 25%,3,3
+winogrande,1000000000,Dolma1.6++,3,3
+winogrande,1000000000,Dolma1.7,3,3
+winogrande,1000000000,Dolma1.7 (no Flan),3,3
+winogrande,1000000000,Dolma1.7 (no Reddit),3,3
+winogrande,1000000000,Dolma1.7 (no code),3,3
+winogrande,1000000000,"Dolma1.7 (no math, code)",3,3
+winogrande,1000000000,Falcon,3,3
+winogrande,1000000000,Falcon+CC,3,3
+winogrande,1000000000,Falcon+CC (QC 10%),3,3
+winogrande,1000000000,Falcon+CC (QC 20%),3,3
+winogrande,1000000000,Falcon+CC (QC Orig 10%),3,3
+winogrande,1000000000,Falcon+CC (QC Tulu 10%),3,3
+winogrande,1000000000,FineWeb-Edu,3,3
+winogrande,1000000000,FineWeb-Pro,3,3

@@ -1,0 +1,119 @@
+{
+  "raw_rows": 235125,
+  "untrained_rows_excluded": 10725,
+  "positive_step_rows": 224400,
+  "final_rows": 11550,
+  "intermediate_rows_excluded": 212850,
+  "recipes": 25,
+  "scales": 14,
+  "tasks": [
+    "arc_challenge",
+    "arc_easy",
+    "boolq",
+    "csqa",
+    "hellaswag",
+    "mmlu",
+    "olmes_10_macro_avg",
+    "openbookqa",
+    "piqa",
+    "socialiqa",
+    "winogrande"
+  ],
+  "aggregate": "olmes_10_macro_avg",
+  "seeds_per_cell": 3,
+  "missing_cells": 0,
+  "duplicates": 0,
+  "aggregate_max_error": 2.220446049250313e-16,
+  "seed_labels_by_scale": {
+    "10M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "14M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "150M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "16M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "1B": [
+      "default",
+      "large aux 2",
+      "large aux 3"
+    ],
+    "20M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "300M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "4M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "530M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "60M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "6M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "750M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "8M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ],
+    "90M": [
+      "default",
+      "small aux 2",
+      "small aux 3"
+    ]
+  },
+  "source_manifest": [
+    {
+      "file": "macro_avg-00000-of-00001.parquet",
+      "source": "https://huggingface.co/datasets/allenai/DataDecide-eval-results/resolve/9919b5a0e61e57a85021263918fa82d6ceaee038/data/macro_avg-00000-of-00001.parquet",
+      "revision": "9919b5a0e61e57a85021263918fa82d6ceaee038",
+      "bytes": 138871626,
+      "sha256": "b5012e963952ba2b5814bc07c260f8389c288db0ad7558e312db49fa1ab57fdf"
+    },
+    {
+      "file": "README.md",
+      "source": "https://huggingface.co/datasets/allenai/DataDecide-eval-results/resolve/9919b5a0e61e57a85021263918fa82d6ceaee038/README.md",
+      "revision": "9919b5a0e61e57a85021263918fa82d6ceaee038",
+      "bytes": 32977,
+      "sha256": "ea7cedd98c4b07b349ddcf6b739e6f0e084529dbe9de903612aff1f14a24baab"
+    }
+  ],
+  "metric": "primary_metric",
+  "direction": "higher is better",
+  "pairing": "not established; no cross-scale paired inference",
+  "final_checkpoint": "maximum positive step per recipe, size and seed, without using scores"
+}
