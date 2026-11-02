@@ -404,6 +404,28 @@ def stage7():
     pred=pd.read_csv(OUT/'cross_scale_predictability.csv')
     details=pd.read_csv(OUT/'extrapolation_metrics.csv')
     near=details[(details.task!=AGG)&(details.cutoff==750_000_000)].groupby('method')[['rmse','top1','regret']].mean()
+    loo=pd.read_csv(OUT/'robustness_leave_one_task_out.csv')
+    ranges=loo.groupby('params_num').spearman.agg(['min','max'])
+    assert ranges.loc[530_000_000,'min']>ranges.loc[4_000_000,'max']
+    variants=pd.read_csv(OUT/'robustness_targets_ties.csv')
+    vv=variants[(variants.task!=AGG)&(variants.tie_rule=='lexical')]
+    improvements=[]
+    for target,g in vv.groupby('target'):
+        z=g.groupby('params_num').spearman.mean()
+        improvements.append({'target':target,'smallest_source_correlation':z.iloc[0],
+                             'largest_source_correlation':z.iloc[-1],'improves':bool(z.iloc[-1]>z.iloc[0])})
+    recipe=pd.read_csv(OUT/'robustness_recipe_exclusion.csv')
+    rr=recipe[recipe.task!=AGG].groupby(['omitted_recipe','params_num']).spearman.mean().unstack()
+    assert (rr[530_000_000]>rr[4_000_000]).all()
+    csv('robustness_matrix.csv',[
+      {'finding':'Broad ranking improvement from smallest to larger sources','status':'robust across tested target, task and recipe exclusions',
+       'evidence':f'All {len(improvements)} targets improve; all 25 recipe omissions preserve 530M over 4M; task-omission ranges do not overlap'},
+      {'finding':'Monotonic improvement at every size','status':'not supported','evidence':'530M mean correlation exceeds 750M'},
+      {'finding':'Exact reversal count','status':'sensitive to threshold','evidence':'7, 18, 32, 72 at alpha 0.01, 0.025, 0.05, 0.10'},
+      {'finding':'Power-law dominance','status':'not supported; metric and cutoff dependent','evidence':'Largest baseline best overall top1; linear best RMSE at 750M'},
+      {'finding':'Seeds required for general reliability','status':'inconclusive','evidence':'Only three runs; subset reference overlaps'}])
+    save_json('robustness_findings.json',{'alternate_targets':improvements,'leave_one_task_ranges':ranges.reset_index().to_dict('records'),
+          'recipe_omissions_preserving_530M_over_4M':int((rr[530_000_000]>rr[4_000_000]).sum())})
     findings=[
       {'id':'F1','type':'descriptive','finding':'Ranking improves overall with source scale but not monotonically; winner selection remains imperfect.',
        'numbers':scale.loc[[4_000_000,530_000_000,750_000_000]].reset_index().to_dict('records'),

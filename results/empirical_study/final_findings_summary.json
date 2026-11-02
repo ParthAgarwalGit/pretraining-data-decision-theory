@@ -1,0 +1,296 @@
+{
+  "primary": [
+    {
+      "id": "F1",
+      "type": "descriptive",
+      "finding": "Ranking improves overall with source scale but not monotonically; winner selection remains imperfect.",
+      "numbers": [
+        {
+          "params_num": 4000000,
+          "spearman": 0.1297796144856733,
+          "kendall_tau_b": 0.111377062004486,
+          "top1": 0.2,
+          "top5_hit": 0.4,
+          "regret": 0.0460384139390671,
+          "normalized_regret": 0.4617299502039927
+        },
+        {
+          "params_num": 530000000,
+          "spearman": 0.830054143860627,
+          "kendall_tau_b": 0.6979799564162111,
+          "top1": 0.4,
+          "top5_hit": 0.8,
+          "regret": 0.0071285812744469,
+          "normalized_regret": 0.0755176060204148
+        },
+        {
+          "params_num": 750000000,
+          "spearman": 0.7868206452932293,
+          "kendall_tau_b": 0.6619159226848575,
+          "top1": 0.5,
+          "top5_hit": 0.8,
+          "regret": 0.0093471164744408,
+          "normalized_regret": 0.0951430806419556
+        }
+      ],
+      "source": "scale_summary.csv",
+      "figure": "spearman_by_scale.png",
+      "subset": "10 individual tasks; 25 recipes; 1B target",
+      "method": "Three-seed means, Spearman, lexical tie rule and target regret",
+      "limitation": "Dependent tasks and sizes; noisy held-out reference; size and token budget covary"
+    },
+    {
+      "id": "F2",
+      "type": "descriptive",
+      "finding": "Predictability depends strongly on evaluation task.",
+      "numbers": [
+        {
+          "task": "arc_easy",
+          "mean_spearman": 0.9538691647828073,
+          "min_spearman": 0.913076923076923,
+          "max_spearman": 0.9884615384615384,
+          "top1_fraction": 0.2307692307692307,
+          "top5_fraction": 1.0,
+          "mean_regret": 0.0199646032979365,
+          "max_regret": 0.0259539842873174
+        },
+        {
+          "task": "boolq",
+          "mean_spearman": 0.0595606806242313,
+          "min_spearman": -0.4415384615384613,
+          "max_spearman": 0.4438461538461537,
+          "top1_fraction": 0.0769230769230769,
+          "top5_fraction": 0.4615384615384615,
+          "mean_regret": 0.0475417548812044,
+          "max_regret": 0.2103975535168196
+        },
+        {
+          "task": "winogrande",
+          "mean_spearman": 0.0404078926518069,
+          "min_spearman": -0.5127909308167539,
+          "max_spearman": 0.7623076923076924,
+          "top1_fraction": 0.0,
+          "top5_fraction": 0.3076923076923077,
+          "mean_regret": 0.0287980895715702,
+          "max_regret": 0.0734017363851617
+        },
+        {
+          "task": "olmes_10_macro_avg",
+          "mean_spearman": 0.4588165680473372,
+          "min_spearman": -0.5169230769230769,
+          "max_spearman": 0.8976923076923076,
+          "top1_fraction": 0.0,
+          "top5_fraction": 0.5384615384615384,
+          "mean_regret": 0.0202732527240681,
+          "max_regret": 0.0588899025026475
+        }
+      ],
+      "source": "task_heterogeneity.csv",
+      "figure": "task_ranking_heatmap.png",
+      "subset": "13 source sizes per task",
+      "method": "Equal average across source sizes, aggregate separate",
+      "limitation": "No causal explanation from these task differences; aggregate is not independent"
+    },
+    {
+      "id": "F3",
+      "type": "descriptive",
+      "finding": "No extrapolation method dominates every metric and cutoff.",
+      "numbers": [
+        {
+          "method": "largest_observed",
+          "rmse": 0.1535171737629491,
+          "mae": 0.1509687194753269,
+          "spearman": 0.5753028827684284,
+          "top1": 0.27,
+          "top5_hit": 0.69,
+          "regret": 0.0202845002625927
+        },
+        {
+          "method": "linear",
+          "rmse": 1.3969235711746597,
+          "mae": 1.2336058810655772,
+          "spearman": 0.5460153650092437,
+          "top1": 0.23,
+          "top5_hit": 0.5799999999999998,
+          "regret": 0.0190297065614837
+        },
+        {
+          "method": "log_linear",
+          "rmse": 0.1292654946709639,
+          "mae": 0.121640828639454,
+          "spearman": 0.5826848665666482,
+          "top1": 0.26,
+          "top5_hit": 0.63,
+          "regret": 0.018957642968538
+        },
+        {
+          "method": "power_law",
+          "rmse": 0.1271166072251447,
+          "mae": 0.1206372308756013,
+          "spearman": 0.5326690247187736,
+          "top1": 0.26,
+          "top5_hit": 0.57,
+          "regret": 0.0183168400745365
+        }
+      ],
+      "near_target_numbers": [
+        {
+          "method": "largest_observed",
+          "rmse": 0.07007009459051222,
+          "top1": 0.5,
+          "regret": 0.00934711647444087
+        },
+        {
+          "method": "linear",
+          "rmse": 0.05829225546981849,
+          "top1": 0.5,
+          "regret": 0.00539953563660827
+        },
+        {
+          "method": "log_linear",
+          "rmse": 0.05846654982331845,
+          "top1": 0.4,
+          "regret": 0.00971720055657263
+        },
+        {
+          "method": "power_law",
+          "rmse": 0.05989023301950286,
+          "top1": 0.5,
+          "regret": 0.00712180212784088
+        }
+      ],
+      "source": "extrapolation_metrics.csv; extrapolation_summary.csv",
+      "figure": "extrapolation_error_comparison.png",
+      "subset": "10 tasks x 10 cutoffs, 25 recipes per comparison",
+      "method": "Fixed source-only fitting with unmodified predictions",
+      "limitation": "Boundary-sensitive power-law fits; linear out-of-range predictions; no independent tuning/test panel"
+    }
+  ],
+  "secondary": [
+    {
+      "id": "F4",
+      "type": "descriptive",
+      "finding": "Seed subsets frequently change the selected winner.",
+      "numbers": [
+        {
+          "n_seeds": 1,
+          "spearman": 0.7802810941532786,
+          "top1": 0.469047619047619,
+          "pairwise_order_agreement": 0.8092460317460317,
+          "resolved_fraction": null,
+          "regret": 0.0056468763511355,
+          "target_regret": 0.0218466134945315
+        },
+        {
+          "n_seeds": 2,
+          "spearman": 0.9094958603938846,
+          "top1": 0.6785714285714286,
+          "pairwise_order_agreement": 0.8898888888888888,
+          "resolved_fraction": 0.0139603174603174,
+          "regret": 0.0020788126757398,
+          "target_regret": 0.020242183884807
+        },
+        {
+          "n_seeds": 3,
+          "spearman": 1.0,
+          "top1": 1.0,
+          "pairwise_order_agreement": 1.0,
+          "resolved_fraction": 0.1027857142857142,
+          "regret": 0.0,
+          "target_regret": 0.0224993032299693
+        }
+      ],
+      "source": "seed_subsampling_summary.csv",
+      "figure": "seed_subsampling_predictability.png",
+      "subset": "10 tasks x 14 sizes; all 7 nonempty subsets per cell",
+      "method": "Agreement with three-seed reference",
+      "limitation": "Reference and subsets overlap; one-seed variance undefined; cannot infer required seed count"
+    },
+    {
+      "id": "F5",
+      "type": "assumption-dependent inference",
+      "finding": "Historical reversal census reproduces exactly, but resolved counts depend on threshold.",
+      "numbers": [
+        {
+          "alpha": 0.01,
+          "reversing": 7,
+          "stable": 932,
+          "within_noise": 2361,
+          "total": 3300
+        },
+        {
+          "alpha": 0.025,
+          "reversing": 18,
+          "stable": 1178,
+          "within_noise": 2104,
+          "total": 3300
+        },
+        {
+          "alpha": 0.05,
+          "reversing": 32,
+          "stable": 1424,
+          "within_noise": 1844,
+          "total": 3300
+        },
+        {
+          "alpha": 0.1,
+          "reversing": 72,
+          "stable": 1718,
+          "within_noise": 1510,
+          "total": 3300
+        }
+      ],
+      "source": "rank_reversal_sensitivity.csv; rank_reversal_reproduction.json",
+      "subset": "3300 pair trajectories including the aggregate",
+      "method": "Independent Welch calculation with per-pair Bonferroni across 14 scales",
+      "limitation": "Not 3300 independent samples; no global multiplicity correction; unresolved is not equivalence"
+    }
+  ],
+  "diagnostics": [
+    {
+      "method": "largest_observed",
+      "n_predictions": 2750,
+      "alpha_boundary_count": 0,
+      "alpha_boundary_fraction": 0.0,
+      "outside_score_range_count": 0,
+      "outside_score_range_fraction": 0.0
+    },
+    {
+      "method": "linear",
+      "n_predictions": 2750,
+      "alpha_boundary_count": 0,
+      "alpha_boundary_fraction": 0.0,
+      "outside_score_range_count": 1460,
+      "outside_score_range_fraction": 0.5309090909090908
+    },
+    {
+      "method": "log_linear",
+      "n_predictions": 2750,
+      "alpha_boundary_count": 0,
+      "alpha_boundary_fraction": 0.0,
+      "outside_score_range_count": 25,
+      "outside_score_range_fraction": 0.009090909090909
+    },
+    {
+      "method": "power_law",
+      "n_predictions": 2750,
+      "alpha_boundary_count": 2344,
+      "alpha_boundary_fraction": 0.8523636363636363,
+      "outside_score_range_count": 5,
+      "outside_score_range_fraction": 0.0018181818181818
+    }
+  ],
+  "unsupported_claims": [
+    "Universal prediction reliability",
+    "General certification guarantee",
+    "Measured GPU savings",
+    "More than three independent seeds",
+    "Causal attribution of instability to noise",
+    "Novelty relative to all prior literature"
+  ],
+  "contradictions": [
+    "530M has better mean ranking correlation than 750M, but lower top-1 success.",
+    "Largest-observed baseline has highest overall top-1 rate, despite worse numeric prediction error.",
+    "Linear extrapolation performs poorly over distant cutoffs but best on several metrics at 750M."
+  ]
+}

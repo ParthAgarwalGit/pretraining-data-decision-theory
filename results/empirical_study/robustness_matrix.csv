@@ -1,5 +1,6 @@
 finding,status,evidence
-Larger source sizes generally improve ranking,"evaluate target, recipe and task sensitivity",robustness_targets_ties.csv; robustness_recipe_exclusion.csv; robustness_leave_one_task_out.csv
-Reversal prevalence,threshold-sensitive; report all counts,rank_reversal_sensitivity.csv
-Power-law advantage,assumption- and metric-dependent,extrapolation_metrics.csv; robustness_power_bounds.csv
-General seed requirement,inconclusive with three seeds,seed_subsampling.csv
+Broad ranking improvement from smallest to larger sources,"robust across tested target, task and recipe exclusions",All 3 targets improve; all 25 recipe omissions preserve 530M over 4M; task-omission ranges do not overlap
+Monotonic improvement at every size,not supported,530M mean correlation exceeds 750M
+Exact reversal count,sensitive to threshold,"7, 18, 32, 72 at alpha 0.01, 0.025, 0.05, 0.10"
+Power-law dominance,not supported; metric and cutoff dependent,Largest baseline best overall top1; linear best RMSE at 750M
+Seeds required for general reliability,inconclusive,Only three runs; subset reference overlaps

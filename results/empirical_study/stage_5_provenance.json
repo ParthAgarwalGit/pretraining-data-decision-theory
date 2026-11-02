@@ -2,8 +2,8 @@
   "stage": 5,
   "seed": 20261103,
   "command": "python tools/empirical_study.py --stage 5",
-  "git_commit": "90a765c1ad759208e5fc44fd15ec4ce38ae4c0c9",
-  "script_sha256": "d33dae408ec3e09cb76cdbb814d50a63f0fb2f8584bdcd8b0a124fb8925c0afd",
+  "git_commit": "9325c08d1bc59a428342e80a846db03a7bf7b8ca",
+  "script_sha256": "41eea01fabecac1790dc696689763f3c2f25f188a7c1a18f73c6d3c1d54b9dc2",
   "python": "3.12.14",
   "packages": {
     "numpy": "2.5.3",
