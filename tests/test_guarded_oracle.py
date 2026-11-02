@@ -86,4 +86,6 @@ def test_a_real_algorithm_cannot_pull_the_target_through_the_guard():
         solver_n_restarts=1,
         solver_n_iter=20,
     )
-    assert res.outcome in ("certified", "abstained")
+    # The bounded LogLinear fit may recommend, but cannot claim supported
+    # certification. Reaching this result also proves the target was never pulled.
+    assert res.outcome in ("recommended", "abstained")

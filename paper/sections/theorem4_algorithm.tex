@@ -124,7 +124,9 @@ finite-sample estimator bias and Assumption~B must be supplied separately.) Unde
 Assumption~B and $\mathcal{E}$, whenever the algorithm stops and outputs $\hat{k}$, $\hat{k} =
 k^\star$. Hence $\mathbb{P}[\hat{k} \ne k^\star] \le \mathbb{P}[\mathcal{E}^c]$.
 (b) \emph{$\mathbb{P}[\mathcal{E}^c] \le \delta$ for a fixed, non-adaptive schedule.} If $g$ is linear
-in $\theta$, the noise is independent sub-Gaussian with the \emph{known} variance proxy
+in $\theta$, the estimator is genuinely unconstrained full-rank least squares
+(not merely an interior realization of a constrained fit), and the noise is
+independent sub-Gaussian with the \emph{known} variance proxy
 $\sigma^2(s)$ used in $v_k(t)$, and the pulled design at each round does not depend on the
 noise being certified (a pre-committed schedule), then each noise part is exactly
 sub-Gaussian with proxy $v_a(t) + v_b(t)$, a one-sided Chernoff bound gives

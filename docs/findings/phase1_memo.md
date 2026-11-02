@@ -1,5 +1,9 @@
 # Phase 1 memo: what the DataDecide re-analysis found, and which framing it supports
 
+**Course submission note (2026-11-02):** the reversal counts below are corrected.
+Other numerical results describe historical runs, not a regeneration after the
+uncertainty fix. See [course submission scope](../course_submission_scope.md).
+
 **To:** PI **From:** Agent **Re:** Phase 1 results (P1-01 through P1-11), and the framing
 question P1-12 asks to be settled before Phase 2 theory drafting hardens.
 
@@ -72,8 +76,10 @@ refreshed.
   fitters and designs (far below the 59.5-85.1% all-pairs range) and which P1-08 now
   reports separately from the all-pairs ordering accuracy (F3, PR #20).
 - **P1-09 — rank reversals.** Naive reversal rate across the 14-size ladder was 61.7%,
-  but that used 14 uncorrected simultaneous per-pair tests; Bonferroni-corrected, it's
-  **15.2%** (500/3,300 pairs) — still real and non-trivial, just not the inflated number.
+  but that used uncorrected simultaneous per-pair tests. The corrected Welch tests
+  with Bonferroni adjustment give **0.97%** (32/3,300 pairs), with 1,424 stable
+  and 1,844 unresolved within noise. This establishes some detected reversals,
+  not pervasive reversal or stability of the unresolved pairs.
 - **P1-10 — secondary ladder (Pythia).** Scoped to Pythia only, per the plan's own escape
   clause. Only 2 of 6 fitters can even fit (3 usable proxy sizes below target), and the
   P1-06 ratio-vs-compute finding is **only weakly consistent with the decreasing
@@ -120,9 +126,10 @@ different denominator that also counts `ConstantExtrapolator`). One candidate ex
 that with 9 of 11 tasks statistically ambiguous at the target scale, "beat single-scale"
 is a demanding bar for *any* method to clear, extrapolation included, simply because
 there is usually no stable winner to correctly recover in the first place. That is a
-hypothesis these data are consistent with, not one they isolate. P1-09's Bonferroni-corrected 15.2% reversal rate is a second, independent line of
-evidence for the same underlying picture: the ranking that "matters" at the target scale
-is often not stable even across seeds of the *same* method.
+hypothesis these data are consistent with, not one they isolate. P1-09's corrected
+0.97% detected reversal rate provides specific examples of rankings changing across
+scale. It does not establish that reversals are pervasive, and it is a different
+question from seed-to-seed ambiguity at a fixed scale.
 
 **Recommendation:** neither framing (A) nor (B) as originally posed is the right
 headline by itself. The best-supported story is closer to an **impossibility/ambiguity

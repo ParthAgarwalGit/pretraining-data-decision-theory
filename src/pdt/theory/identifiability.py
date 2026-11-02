@@ -36,9 +36,10 @@ from __future__ import annotations
 
 import numpy as np
 
-#: A parameter column whose norm is below this fraction of the largest column
-#: norm is numerically zero: no scale in the design moves that parameter.
-_ZERO_COLUMN_RTOL = 1e-12
+
+def _column_scales(rows: np.ndarray) -> np.ndarray:
+    """Scale each nonzero column independently, without squaring tiny derivatives."""
+    return np.max(np.abs(rows), axis=0)
 
 
 def target_in_row_space(
@@ -48,11 +49,10 @@ def target_in_row_space(
     (`n_scales x n_params`, one Jacobian row per observed scale), to relative
     tolerance `rtol` on the equilibrated problem.
 
-    Steps: (1) equilibrate parameter columns by their norms so parameters on
+    Steps: (1) equilibrate parameter columns by their maximum magnitudes so parameters on
     wildly different scales (`E` ~ 1, `alpha`-derivatives ~ 1e-10) are judged
-    on equal footing; a column that is numerically zero -- no scale moves
-    that parameter -- is dropped, and the target must have (relatively)
-    nothing in it; (2) take the numerical rank of the equilibrated matrix
+    on equal footing; only an exactly zero column is dropped, and the target
+    must have exactly zero in it; (2) take the numerical rank of the equilibrated matrix
     from its SVD with the standard `max(shape) * eps` cutoff; (3) measure the
     target's residual outside the span of the retained right-singular
     vectors, relative to `||target||`.
@@ -62,27 +62,30 @@ def target_in_row_space(
     """
     rows = np.atleast_2d(np.asarray(jacobian_rows, dtype=float))
     target = np.asarray(j_target, dtype=float)
-    target_norm = float(np.linalg.norm(target))
-    if target_norm == 0.0:
+    if not np.all(np.isfinite(rows)) or not np.all(np.isfinite(target)):
+        return False
+    if not np.any(target):
         return True
     if rows.size == 0:
         return False
 
-    col_norms = np.linalg.norm(rows, axis=0)
+    col_norms = _column_scales(rows)
     max_col = float(col_norms.max())
     if max_col == 0.0:
         return False
-    keep = col_norms > _ZERO_COLUMN_RTOL * max_col
+    keep = col_norms > 0.0
 
     # A parameter no observed scale moves: the target prediction must not
-    # depend on it either, up to numerical noise.
-    if np.linalg.norm(target[~keep]) > rtol * target_norm:
+    # depend on it either. Raw parameter units cannot define a tolerance here.
+    if np.any(target[~keep] != 0.0):
         return False
     if not keep.any():
         return True  # target depends on nothing that is identified, and nothing else
 
     a = rows[:, keep] / col_norms[keep]
     t = target[keep] / col_norms[keep]
+    if not np.all(np.isfinite(t)):
+        return False
     t_norm = float(np.linalg.norm(t))
     if t_norm == 0.0:
         return True
@@ -117,24 +120,27 @@ def prediction_influence_weights(
     rows = np.atleast_2d(np.asarray(jacobian_rows, dtype=float))
     target = np.asarray(j_target, dtype=float)
     n_scales = rows.shape[0]
+    if not np.all(np.isfinite(rows)) or not np.all(np.isfinite(target)):
+        return None
     if not np.any(target):
         return np.zeros(n_scales)
     if rows.size == 0:
         return None
 
-    col_norms = np.linalg.norm(rows, axis=0)
+    col_norms = _column_scales(rows)
     max_col = float(col_norms.max())
     if max_col == 0.0:
         return None
-    keep = col_norms > _ZERO_COLUMN_RTOL * max_col
-    target_norm = float(np.linalg.norm(target))
-    if np.linalg.norm(target[~keep]) > rtol * target_norm:
+    keep = col_norms > 0.0
+    if np.any(target[~keep] != 0.0):
         return None
     if not keep.any():
         return np.zeros(n_scales)
 
     a = rows[:, keep] / col_norms[keep]
     t = target[keep] / col_norms[keep]
+    if not np.all(np.isfinite(t)):
+        return None
     u, singular_values, vt = np.linalg.svd(a, full_matrices=False)
     tol = max(a.shape) * np.finfo(float).eps * singular_values[0]
     retained = singular_values > tol

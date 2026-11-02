@@ -65,9 +65,9 @@ estimator respects it, the fit is no longer linear in the noise: for $g(\theta, 
 \theta$, $\Theta = [0, 1]$, true $\theta = 0$ and Gaussian observations, the constrained
 least-squares estimate is $\mathrm{clip}(\bar y, 0, 1)$, which is neither Gaussian nor
 centred at the population projection (half its mass sits at $0$, the rest is folded
-positive). The shipped fitters impose box bounds, so their fits belong to (i) only when
-no bound binds -- a checkable, run-time condition (\texttt{Extrapolator.bounds\_inactive}
-in \texttt{src/pdt/scaling/base.py}) -- and to (ii) otherwise.
+positive). An interior realized fit does not remove the constraints from the
+estimator's sampling distribution. The shipped box-constrained fitters therefore
+belong to (ii), even when no bound binds in the observed sample.
 
 \textbf{(ii) Nonlinear $g$, or a binding constraint (conditional, not proved here).} For
 nonlinear $g$, or whenever a constraint binds, the delta-method variance $v_k(C)$ is a
