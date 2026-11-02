@@ -53,7 +53,7 @@ not a linear functional of the noise (a constrained mean of Gaussian data,
 "supported_only"` (the default) returns `"certified"` ONLY where the argument is
 proved -- (A1) `sigma2` is a valid sub-Gaussian variance proxy (an input), (A2) each
 arm's bias is at most `eta` (an input), the model is linear in its parameters with
-inactive bounds (`Extrapolator.linear_in_parameters` and `bounds_inactive()`, verified
+no finite parameter bounds (`Extrapolator.linear_in_parameters` and `_bounds`, verified
 at run time), and the design has not adapted (the first check, right after the
 non-adaptive warm-up). Every other stopping event returns `"recommended"`, with
 `certificate["unmet_supported_conditions"]` naming what failed and NO error-probability
@@ -254,7 +254,7 @@ _VARIANCE_MODES = ("known_sigma2", "hc0_heuristic")
 
 #: `"supported_only"` (default): a `"certified"` outcome is returned ONLY where the
 #: confidence argument is actually proved -- known noise, a family linear in its parameters
-#: with inactive bounds (exactly OLS), and a design that has not adapted to the data
+#: with no finite parameter bounds (unconstrained OLS), and a design that has not adapted
 #: (the first check, right after the non-adaptive warm-up); every other stopping event is
 #: labelled `"recommended"`. `"assume_unproved_conditions"`: the caller explicitly
 #: accepts A3 (linearization) and A4 (adaptive-design independence), which are NOT
@@ -281,10 +281,12 @@ def _unmet_support_conditions(
                     "sub-Gaussian linear functional of the noise (A3)"
                 )
                 reported.add(name)
-        elif not model.bounds_inactive():
+        elif (bounds := getattr(model, "_bounds", None)) is not None and (
+            np.any(np.isfinite(bounds[0])) or np.any(np.isfinite(bounds[1]))
+        ):
             unmet.append(
-                f"{recipe}: a parameter bound is active, so the fit is a clipped (non-Gaussian, "
-                "non-centred) estimator (A3)"
+                f"{recipe}: the estimator imposes finite parameter bounds; an interior "
+                "realized fit does not establish a linear sampling distribution (A3)"
             )
     if n_adaptive_pulls > 0:
         unmet.append(
@@ -297,8 +299,8 @@ def _unmet_support_conditions(
 _CERTIFICATE_ASSUMPTIONS = (
     "A1: sigma2 is a valid sub-Gaussian variance proxy for the oracle noise (input, not estimated)",
     "A2: each arm's extrapolation bias is at most eta (input)",
-    "A3: prediction linear in observations, fit unconstrained (exact for LogLinear with inactive "
-    "bounds; only a first-order approximation for nonlinear fits)",
+    "A3: prediction linear in observations for all samples, fit genuinely unconstrained; "
+    "an interior bounded fit does not establish this",
     "A4: pulled design independent of the noise being certified (exact only at the non-adaptive "
     "warm-up check; an unproved heuristic once tracking adapts)",
 )
@@ -593,7 +595,7 @@ def extrapolation_track_and_stop(
     each recipe's extrapolation-bias magnitude at `target_scale`, supplied by
     the caller, possibly via `docs/when_to_trust_extrapolation.md`'s plug-in
     estimator -- a point estimate does not make it valid); (A3) the prediction
-    is linear in the data (exact for `LogLinear`; a first-order approximation
+    is linear in the data (not established for bounded `LogLinear`; a first-order approximation
     for the nonlinear power-law fits); (A4) the pulled design at each check is
     independent of the noise being certified -- exact only at the non-adaptive
     warm-up check, a heuristic once the tracking rule adapts (not proved;
@@ -638,7 +640,7 @@ def extrapolation_track_and_stop(
 
     `certification` decides what a satisfied stopping rule is allowed to be called.
     The default `"supported_only"` returns `"certified"` only where the confidence
-    argument is proved (linear model with inactive bounds, known noise, no adaptive pull
+    argument is proved (genuinely unconstrained linear least squares, known noise, no adaptive pull
     yet) and `"recommended"` otherwise -- known noise alone does not cover adaptive
     tracking or a nonlinear fit (PR #29's third review). `"assume_unproved_conditions"`
     is the caller's explicit acceptance of the unproved conditions (A3 linearization, A4

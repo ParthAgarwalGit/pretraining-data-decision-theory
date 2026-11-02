@@ -14,7 +14,7 @@
 
 \begin{theorem}[Local identifiability: a sufficient rank condition, and a constant-rank converse]
 \label{thm:identifiability}
-Fix arm $k$ with true parameter $\theta_k \in \Theta$ and a design $S_{\mathrm{fit}}$ of
+Fix arm $k$ with true parameter $\theta_k$ in the interior of $\Theta \subseteq \mathbb{R}^p$ and a design $S_{\mathrm{fit}}$ of
 $m$ scales. Let $X \in \mathbb{R}^{m \times p}$ stack $J(\theta_k, s)^\top$ (Assumption
 1's Jacobian) as rows, one per scale in $S_{\mathrm{fit}}$, and let
 $F(\theta) = \big(g(\theta,s) - g(\theta_k,s)\big)_{s \in S_{\mathrm{fit}}}$, so
@@ -73,6 +73,12 @@ hypothesis) and $X$ full rank but ill-conditioned (identifiable in principle, us
     family.
 \end{itemize}
 \end{remark}
+
+The interior assumption matters: on $\Theta=[0,1]^2$, the map
+$F(\theta)=\theta_1+\theta_2$ has constant rank one, but its zero fiber
+in $\Theta$ is the singleton $(0,0)$. A boundary can remove the otherwise
+observationally equivalent directions. Also, when $A=0$ in the power-law
+example below, every exponent gives the same zero curve.
 
 \subsection{Minimax rate}
 \label{sec:theorem3-minimax}
@@ -147,7 +153,7 @@ N_2$, the design matrix satisfies
 \[
   \det X = -A \, N_1^{-\alpha} N_2^{-\alpha} \, \log(N_2 / N_1),
 \]
-so $(A, \alpha)$ are identifiable from $\{N_1, N_2\}$ iff $N_1 \ne N_2$, with
+so, for $A \ne 0$ and positive scales, $(A, \alpha)$ are identifiable from $\{N_1, N_2\}$ iff $N_1 \ne N_2$, with
 conditioning governed by $|\log(N_2/N_1)|$ -- the \emph{multiplicative}, not additive,
 separation of the two scales. This is why a geometric (constant-ratio) ladder, not an
 arithmetic one, is the natural design for a power-law family, and why DataDecide's own

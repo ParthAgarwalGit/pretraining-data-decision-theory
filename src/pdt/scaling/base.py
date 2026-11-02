@@ -52,8 +52,9 @@ class Extrapolator:
     n_params: int
 
     #: True only for a family whose prediction is LINEAR in its parameters and whose fit,
-    #: when no parameter bound binds, is exactly ordinary least squares (an exactly
-    #: Gaussian / sub-Gaussian linear functional of the noise). `extrapolation_track_and_stop`
+    #: without constraints, is ordinary least squares. Finite parameter bounds make
+    #: the estimator nonlinear across samples even if one realized fit is interior.
+    #: `extrapolation_track_and_stop`
     #: certifies under its default `certification="supported_only"` only for such families
     #: (PR #29's third review).
     linear_in_parameters: bool = False
@@ -78,7 +79,9 @@ class Extrapolator:
         """Whether the fitted parameters lie strictly inside the family's box bounds
         (`_bounds`, if it has any), so the constraint is not binding and a linear family's
         constrained fit coincides with unconstrained least squares. A binding bound makes the
-        estimator a clipped -- non-Gaussian, non-centred -- functional of the noise."""
+        estimator a clipped -- non-Gaussian, non-centred -- functional of the noise.
+        This is a diagnostic for one realization, not a certification condition:
+        an interior result does not establish a linear sampling distribution."""
         if self._theta is None:
             return False
         bounds = getattr(self, "_bounds", None)

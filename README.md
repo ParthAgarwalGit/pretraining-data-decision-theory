@@ -4,6 +4,12 @@
 awaiting human co-author review (GATE-T); see [`STATUS.md`](STATUS.md)
 for the live task ledger.**
 
+## Course self-study hand-in
+
+For the November 4 course report, read [submission scope and corrections](docs/course_submission_scope.md).
+This is an exploratory project; historical experiment artifacts are not a claim of
+validated adaptive guarantees or demonstrated compute savings.
+
 Choosing which pretraining-data recipe to use for a large target-scale LLM,
 based on small cheap training runs plus scaling-law extrapolation, is
 currently a heuristic with no guarantees. AI2's **DataDecide**
@@ -62,8 +68,8 @@ before picking `eta` and `sigma2`.** By default (`certification="supported_only"
 algorithm returns `"certified"` — a bound on `P[certifies AND wrong] <= delta`, not
 "certification is never wrong" and not the conditional error rate — **only where the
 argument is proved**: `sigma2` is the *known* noise variance, `eta` a valid bound on each
-recipe's extrapolation bias, the model linear in its parameters with an unclipped fit
-(`LogLinear`), and the check made before any adaptive pull. Whenever the stopping rule fires
+recipe's extrapolation bias, a genuinely unconstrained linear least-squares estimator
+(the built-in `LogLinear` has finite bounds and does not qualify), and the check made before any adaptive pull. Whenever the stopping rule fires
 otherwise — after adaptive tracking, or with a nonlinear fit such as the default `PowerLawN`
 (as in the quickstart above) — the outcome is `"recommended"`, with
 `result.certificate["unmet_supported_conditions"]` saying which condition failed, and no

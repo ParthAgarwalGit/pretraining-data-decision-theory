@@ -327,6 +327,20 @@ def test_hc0_heuristic_mode_never_reports_certified():
 # ---------------------------------------------------------------------------
 
 
+class _UnconstrainedLogLinear(LogLinear):
+    """Actual unconstrained least squares, for the supported-regime tests."""
+
+    _bounds = None
+
+    def _fit_theta(self, scales, values, weights):
+        design = np.array([[1.0, np.log(s.n)] for s in scales])
+        w = np.ones(len(scales)) if weights is None else np.asarray(weights)
+        theta = np.linalg.lstsq(
+            design * np.sqrt(w)[:, None], np.asarray(values) * np.sqrt(w), rcond=None
+        )[0]
+        return theta, {}
+
+
 class _DeclaredNonlinear(LogLinear):
     """A LogLinear fit that declares itself nonlinear in its parameters (stand-in for the
     power-law fits, whose prediction is not an exactly Gaussian linear functional)."""
@@ -354,7 +368,7 @@ def _run_constant_means(gap, model_factory, certification, *, sigma=0.05, max_ro
 
 
 def test_certified_is_returned_at_a_non_adaptive_check_for_a_linear_unconstrained_fit():
-    res = _run_constant_means(0.9, LogLinear, "supported_only", sigma=0.01)
+    res = _run_constant_means(0.9, _UnconstrainedLogLinear, "supported_only", sigma=0.01)
     assert res.outcome == "certified"
     assert res.recipe == "a"
     assert res.certificate["round"] == 1  # the first check, before any adaptive pull
@@ -398,13 +412,24 @@ def test_unmet_conditions_names_an_active_parameter_bound_and_hc0():
     interior._theta = np.array([0.5, 0.1])
     assert interior.bounds_inactive()
     unmet = _unmet_support_conditions({"a": model, "b": interior}, "known_sigma2", 0)
-    assert len(unmet) == 1 and "bound is active" in unmet[0]
+    assert len(unmet) == 2 and all("finite parameter bounds" in c for c in unmet)
     assert _unmet_support_conditions({"b": interior}, "hc0_heuristic", 0)
 
 
 def test_certification_mode_is_validated():
     with pytest.raises(ValueError, match="certification"):
         _run_constant_means(0.9, LogLinear, "bogus")
+
+
+def test_interior_bounded_fit_is_recommended_at_fixed_design_check():
+    # This formerly certified: bounds are inactive in this realization, but can
+    # bind on other noise draws. Known noise and eta do not fix that gap.
+    res = _run_constant_means(0.9, LogLinear, "supported_only", sigma=0.01)
+    assert res.certificate["round"] == 1
+    assert res.outcome == "recommended"
+    assert any(
+        "finite parameter bounds" in c for c in res.certificate["unmet_supported_conditions"]
+    )
 
 
 def test_variance_mode_is_validated():
@@ -474,7 +499,7 @@ def test_largest_observed_scale_picks_the_largest_common_one():
 # ---------------------------------------------------------------------------
 
 
-def test_ets_certifies_correctly_in_a_comfortably_solvable_instance():
+def test_ets_recommends_correctly_with_a_bounded_model():
     params = {
         "good": {"a": 0.9, "b": 0.05, "bias_at_target": 0.0},
         "bad": {"a": 0.3, "b": 0.03, "bias_at_target": 0.0},
@@ -495,7 +520,7 @@ def test_ets_certifies_correctly_in_a_comfortably_solvable_instance():
         solver_n_restarts=1,
         solver_n_iter=40,
     )
-    assert res.outcome == "certified"
+    assert res.outcome == "recommended"
     assert res.recipe == "good"
     assert res.compute_spent > 0
     assert res.n_pulls > 0

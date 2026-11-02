@@ -20,17 +20,18 @@ returns `"recommended"` (the stopping rule fired, but no error-probability claim
   it also contains finite-sample and clipping bias, which you must cover. The algorithm
   cannot check this -- the whole reason extrapolation is needed is that the true
   target-scale value is never observed.
-- **linear, unclipped model** -- `LogLinear` with no parameter on its bound (checked at run
-  time). A nonlinear fit (the power laws, including the default `PowerLawN`) or a fit that
-  hits a bound is not an exactly Gaussian linear functional of the noise (a clipped mean
-  `clip(mean, 0, 1)` is neither Gaussian nor centred).
+- **genuinely unconstrained linear least squares** -- the estimator must be linear in
+  observations across possible samples. An interior realized fit is insufficient.
+  The built-in `LogLinear` imposes finite bounds and therefore does not qualify,
+  even when the current parameters are far from those bounds.
 - **a non-adaptive design** -- only the first check, right after the fixed warm-up. Once
   tracking adapts scales to earlier noise, no adaptive confidence sequence is implemented,
   so the guarantee is unproved.
 
-Because of the last two, **with the default settings `"certified"` is rare** -- a
-`LogLinear` model that separates the recipes at the first check -- and a stop after adaptive
-tracking, or with `PowerLawN`, is `"recommended"`. That is deliberate. If you *accept* the
+Because of the last two, **the built-in bounded fitters return `"recommended"`
+when the stopping rule fires in supported-only mode**. A custom unconstrained linear
+least-squares estimator can qualify at the first fixed-design check; a stop after
+adaptive tracking remains `"recommended"`. That is deliberate. If you *accept* the
 unproved conditions (**A3** linearization of a nonlinear fit, **A4** adaptive-design
 independence), say so explicitly with `certification="assume_unproved_conditions"`: you then
 get `"certified"` on any round, and `certificate["guarantee"]` starts `assumed_unproved`.

@@ -13,6 +13,26 @@ def test_target_in_span_of_rows():
     assert target_in_row_space(rows, np.array([3.0, -2.0]))
 
 
+@pytest.mark.parametrize("unit", [1e-200, 1e-13, 1.0, 1e100])
+def test_variance_is_invariant_to_parameter_units(unit):
+    rows = np.array([[1.0, 0.0], [1.0, unit], [1.0, 2 * unit]])
+    target = np.array([1.0, 10000 * unit])
+    g = prediction_influence_weights(rows, target)
+    assert target_in_row_space(rows, target)
+    assert g is not None
+    # Closed-form intercept/slope prediction at x=10000 on x=[0,1,2].
+    expected = np.ones(3) / 3 + (10000 - 1) * np.array([-1.0, 0.0, 1.0]) / 2
+    np.testing.assert_allclose(g, expected, rtol=1e-10)
+    assert g @ g == pytest.approx(49990000.83333333)
+
+
+def test_small_unobserved_target_component_is_not_silently_discarded():
+    rows = np.array([[1.0, 0.0], [1.0, 0.0]])
+    target = np.array([1.0, 1e-20])
+    assert not target_in_row_space(rows, target)
+    assert prediction_influence_weights(rows, target) is None
+
+
 def test_target_outside_span_of_rank_deficient_rows():
     rows = np.array([[1.0, 2.0], [2.0, 4.0]])  # rank 1
     assert not target_in_row_space(rows, np.array([1.0, 0.0]))
