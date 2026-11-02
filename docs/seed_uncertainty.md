@@ -1,0 +1,7 @@
+# Stage 4 Seed uncertainty
+
+All one-, two- and three-seed subsets within each size are enumerated. Each subset label is applied across recipes as a descriptive diagnostic, not assumed to pair independent runs or scales. Three-seed agreement with the three-seed reference is mechanically perfect. Nested subsets share observations with the reference; their agreement is optimistic relative to an independent replication.
+
+Individual score intervals use t(2) times the standard error, with independent approximately normal run scores assumed. They are pointwise, unadjusted, unclipped and based on only three runs; no reliable population coverage claim is made. The CV is descriptive on a positive accuracy scale and can be misleading near zero. One-seed uncertainty and resolution are undefined, recorded as null rather than zero. Two-sided Welch comparisons use each recipe's own variance and replicate count. Zero pooled variance is unresolved rather than treated as infinite confidence. The Bonferroni denominator 14 controls comparisons across sizes for a single pair under the assumptions; it does not control all pairwise tests together.
+
+Signal-to-noise bins use the absolute Welch statistic (a standardized mean difference by its SE, not Cohen's d). Associations with target ordering are descriptive and dependent. They cannot separate noise from systematic scale effects causally. The target is a three-seed reference, not truth. Seed labels are not paired across scales. No bootstrap replications are presented as extra training runs.

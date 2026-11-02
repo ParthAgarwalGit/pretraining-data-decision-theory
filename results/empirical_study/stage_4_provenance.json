@@ -1,0 +1,14 @@
+{
+  "stage": 4,
+  "seed": 20261103,
+  "command": "python tools/empirical_study.py --stage 4",
+  "git_commit": "1e87d07f999c0a3decf4c2a625005a0f0e39b357",
+  "script_sha256": "d33dae408ec3e09cb76cdbb814d50a63f0fb2f8584bdcd8b0a124fb8925c0afd",
+  "python": "3.12.14",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.5",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.2"
+  }
+}

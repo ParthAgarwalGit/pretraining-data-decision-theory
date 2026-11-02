@@ -244,7 +244,155 @@ Signal-to-noise bins use the absolute Welch statistic (a standardized mean diffe
 ''')
     print(pd.read_csv(OUT/'seed_subsampling_summary.csv').to_string(index=False))
 
-STAGES={1:stage1,2:stage2,3:stage3,4:stage4}
+def predict_curve(x,y,target,method,alpha_bounds=(.01,3.0)):
+    """All fitting depends only on x,y. Target supplies a covariate, never a score."""
+    x=np.asarray(x,dtype=float)/1e6; z=float(target)/1e6; y=np.asarray(y)
+    if method=='largest_observed': return float(y[-1]),False,[]
+    if method in ('linear','log_linear'):
+        xx=x if method=='linear' else np.log(x); zz=z if method=='linear' else np.log(z)
+        coef=np.linalg.lstsq(np.column_stack([np.ones(len(x)),xx]),y,rcond=None)[0]
+        return float(coef@[1,zz]),False,coef.tolist()
+    # Variable projection: solve E and A exactly at each alpha, then refine all local grid minima.
+    def fit_alpha(alpha):
+        basis=np.column_stack([np.ones(len(x)),x**(-alpha)])
+        coef=np.linalg.lstsq(basis,y,rcond=None)[0]
+        return float(np.sum((basis@coef-y)**2)),coef
+    grid=np.geomspace(*alpha_bounds,60); costs=[fit_alpha(a)[0] for a in grid]
+    candidates=[(costs[0],grid[0]),(costs[-1],grid[-1])]
+    for i in range(1,len(grid)-1):
+        if costs[i]<=costs[i-1] and costs[i]<=costs[i+1]:
+            fit=optimize.minimize_scalar(lambda a:fit_alpha(a)[0],bounds=(grid[i-1],grid[i+1]),method='bounded',options={'xatol':1e-10})
+            if fit.success: candidates.append((fit.fun,fit.x))
+    _,alpha=min(candidates); _,coef=fit_alpha(alpha)
+    boundary=bool(np.isclose(alpha,alpha_bounds[0]) or np.isclose(alpha,alpha_bounds[1]))
+    return float(coef@[1,z**(-alpha)]),boundary,[*coef.tolist(),float(alpha)]
+
+def stage5():
+    m=means(data()); predictions=[]; evaluations=[]; failures=[]
+    for task,g in m.groupby(level='task',sort=True):
+        g=g.droplevel('task'); target=g.index.max(); y=g.loc[target]
+        for cutoff in g.index[3:-1]:
+            train=g[g.index<=cutoff]; assert train.index.max()<target
+            for method in ['largest_observed','linear','log_linear','power_law']:
+                pred=[]; bad=False
+                for recipe in g.columns:
+                    try:
+                        value,bound,coef=predict_curve(train.index,train[recipe],target,method)
+                        if not np.isfinite(value): raise ValueError('Nonfinite prediction')
+                    except (ValueError,np.linalg.LinAlgError) as exc:
+                        failures.append({'task':task,'cutoff':cutoff,'recipe':recipe,'method':method,'reason':str(exc)})
+                        value=np.nan;bound=False;coef=[];bad=True
+                    pred.append(value)
+                    predictions.append({'task':task,'cutoff':cutoff,'target':target,'recipe':recipe,'method':method,
+                        'prediction':value,'observed_target':y[recipe],'alpha_boundary':bound,
+                        'outside_score_range':bool(value<0 or value>1),'coefficients':json.dumps(coef),
+                        'n_training_scales':len(train),'scale_ratio':target/cutoff})
+                if not bad:
+                    evaluations.append({'task':task,'cutoff':cutoff,'target':target,'method':method,
+                       'rmse':float(np.sqrt(np.mean((np.array(pred)-y)**2))),
+                       'mae':float(np.mean(np.abs(np.array(pred)-y))),
+                       'scale_ratio':target/cutoff,**metrics(pred,y,g.columns)})
+    p=csv('extrapolation_predictions.csv',predictions); e=csv('extrapolation_metrics.csv',evaluations)
+    csv('extrapolation_failures.csv',pd.DataFrame(failures,columns=['task','cutoff','recipe','method','reason']))
+    csv('extrapolation_summary.csv',e[e.task!=AGG].groupby('method')[['rmse','mae','spearman','top1','top5_hit','regret']].mean().reset_index())
+    csv('extrapolation_diagnostics.csv',p.groupby('method')[['alpha_boundary','outside_score_range']].agg(['sum','mean']).reset_index())
+    fig,axes=plt.subplots(1,2,figsize=(10,4))
+    for method,g in e[e.task!=AGG].groupby('method'):
+        v=g.groupby('cutoff')[['rmse','regret']].mean()
+        for ax,y in zip(axes,['rmse','regret']): ax.plot(v.index/1e6,v[y],marker='o',label=method);ax.set_xscale('log');ax.set_xlabel('Largest fitted size (M)');ax.set_ylabel(y);ax.grid(alpha=.2)
+    axes[1].legend(fontsize=8);fig.tight_layout();fig.savefig(FIG/'extrapolation_error_comparison.png',dpi=180);plt.close(fig)
+    note('extrapolation_comparison.md','''# Stage 5 Extrapolation specification
+
+Predictions target 1B, using every source cutoff from the fourth available size (10M) to 750M. All 25 recipes, three-seed means, equal scale weights and identical permitted source ranges are used for every method. The largest-observed baseline uses only the final observation within that permitted range. It is intentionally a ranking baseline; using its unchanged score as a numeric prediction may have substantial level bias.
+
+Let x=N/1,000,000. Linear is a+b*x. Log-linear is a+b*ln(x), not a logarithm of the score. Power-law is E+A*x**(-alpha), alpha in [0.01,3], E and A unconstrained. At each alpha the two linear coefficients are solved by least squares. A fixed 60-point log grid plus bounded refinements of local minima and endpoints determines the minimum. This normalized, profiled implementation was selected before examining target results. It shares the existing PowerLawN functional form but intentionally does not inherit its unit-dependent amplitude bounds. Scores are not clipped. Boundary fits and out-of-range predictions are retained and reported. Alpha bounds are a modeling assumption, examined in Stage 6, not tuned against target scores.
+
+Fitting receives source scores and target size only; target scores enter solely after prediction. Full failures are logged and are not silently dropped. Headline summaries average 10 tasks and 10 cutoffs equally; they are descriptive on a fixed, dependent panel. Method performance at each cutoff is also saved. RMSE and correct winner selection answer different questions. A smaller RMSE does not imply smaller selection regret.
+''')
+    print(pd.read_csv(OUT/'extrapolation_summary.csv').to_string(index=False)); print('Failed fits:',len(failures))
+
+def stage6():
+    d=data(); m=means(d); p=pd.read_csv(OUT/'pairwise_effect_sizes.csv',float_precision='round_trip')
+    census=[]; pair_classes=[]
+    for alpha in [.01,.025,.05,.10]:
+        for (task,ra,rb),g in p.groupby(['task','recipe_a','recipe_b'],sort=True):
+            signs=np.sign(g.loc[g.p_value<alpha/len(g),'mean_difference'])
+            label='within_noise' if len(signs)==0 else ('reversing' if signs.min()<0<signs.max() else 'stable')
+            pair_classes.append({'alpha':alpha,'task':task,'recipe_a':ra,'recipe_b':rb,'classification':label,'resolved_sizes':len(signs)})
+    pc=csv('rank_reversal_pairs.csv',pair_classes)
+    for (alpha,task),g in pc.groupby(['alpha','task']):
+        counts=g.classification.value_counts()
+        census.append({'alpha':alpha,'task':task,**{k:int(counts.get(k,0)) for k in ['reversing','stable','within_noise']},'total':len(g)})
+    c=csv('rank_reversal_sensitivity.csv',census)
+    old=json.loads((ROOT/'results/p1_09_rank_reversals.json').read_text())['data']
+    # Locate the calibrated branch by its field name; never conflate uncorrected counts.
+    def get_old(obj,path=''):
+        out=[]
+        if isinstance(obj,dict):
+            if 'pairs' in obj and 'bonferroni' in path:
+                out=[{'task':obj['task'],'recipe_a':r['recipe_a'],'recipe_b':r['recipe_b'],'old':r['classification']} for r in obj['pairs']]
+            for k,v in obj.items(): out+=get_old(v,path+'/'+k)
+        return out
+    oldpairs=pd.DataFrame(get_old(old)); assert len(oldpairs)==3300
+    joined=pc[pc.alpha==.05].merge(oldpairs,on=['task','recipe_a','recipe_b'],validate='one_to_one')
+    assert len(joined)==3300
+    discrepancies=joined[joined.classification!=joined.old]
+    csv('historical_census_discrepancies.csv',discrepancies)
+    save_json('rank_reversal_reproduction.json',{'pairs_compared':len(joined),'classification_discrepancies':len(discrepancies),
+        'fresh_counts':joined.classification.value_counts().to_dict(),'historical_counts':joined.old.value_counts().to_dict(),
+        'correction':'two-sided Welch t; alpha/14 per pair trajectory; no global pair/task correction'})
+    variants=[]
+    for task,g in m.groupby(level='task',sort=True):
+        g=g.droplevel('task')
+        for target in [530_000_000,750_000_000,1_000_000_000]:
+            for n,x in g[g.index<target].iterrows():
+                for rule in ['lexical','average_winners']:
+                    variants.append({'task':task,'target':target,'params_num':n,'tie_rule':rule,**metrics(x,g.loc[target],g.columns,rule)})
+    v=csv('robustness_targets_ties.csv',variants)
+    # Leave-one-recipe-out affects the candidate set; do not call this independent replication.
+    recipe_rows=[]
+    for task,g in m.groupby(level='task',sort=True):
+        g=g.droplevel('task');target=g.index.max()
+        for omitted in g.columns:
+            subset=g.drop(columns=omitted)
+            for n in [4_000_000,530_000_000,750_000_000]:
+                recipe_rows.append({'task':task,'omitted_recipe':omitted,'params_num':n,**metrics(subset.loc[n],subset.loc[target],subset.columns)})
+    csv('robustness_recipe_exclusion.csv',recipe_rows)
+    cross=pd.read_csv(OUT/'cross_scale_predictability.csv');ind=cross[cross.task!=AGG]
+    loo=[]
+    for task in sorted(ind.task.unique()):
+        sub=ind[ind.task!=task]
+        for n,g in sub.groupby('params_num'):
+            loo.append({'omitted_task':task,'params_num':n,**g[['spearman','top1','regret']].mean().to_dict()})
+    csv('robustness_leave_one_task_out.csv',loo)
+    # Fixed alternatives, reported as sensitivity rather than selecting the best bound after seeing targets.
+    alt=[]
+    for task,g in m.groupby(level='task',sort=True):
+        g=g.droplevel('task');target=g.index.max()
+        for cutoff in [20_000_000,150_000_000,750_000_000]:
+            for bounds in [(.001,1.0),(.01,5.0)]:
+                train=g[g.index<=cutoff]
+                pred=[predict_curve(train.index,train[r],target,'power_law',bounds)[0] for r in g.columns]
+                alt.append({'task':task,'cutoff':cutoff,'bounds':str(bounds),**metrics(pred,g.loc[target],g.columns),
+                            'rmse':float(np.sqrt(np.mean((np.array(pred)-g.loc[target])**2)))})
+    csv('robustness_power_bounds.csv',alt)
+    matrix=[
+      {'finding':'Larger source sizes generally improve ranking','status':'evaluate target, recipe and task sensitivity','evidence':'robustness_targets_ties.csv; robustness_recipe_exclusion.csv; robustness_leave_one_task_out.csv'},
+      {'finding':'Reversal prevalence','status':'threshold-sensitive; report all counts','evidence':'rank_reversal_sensitivity.csv'},
+      {'finding':'Power-law advantage','status':'assumption- and metric-dependent','evidence':'extrapolation_metrics.csv; robustness_power_bounds.csv'},
+      {'finding':'General seed requirement','status':'inconclusive with three seeds','evidence':'seed_subsampling.csv'}]
+    csv('robustness_matrix.csv',matrix)
+    save_json('robustness_summary.json',{'census_by_alpha_all_entries':c.groupby('alpha')[['reversing','stable','within_noise']].sum().reset_index().to_dict('records'),
+       'historical_discrepancies':len(discrepancies),'variants':matrix})
+    note('robustness_analysis.md','''# Stage 6 Robustness
+
+The fresh census independently calculates Welch statistics from the seed scores and compares individual classifications against the historical calibrated branch. Thresholds 0.01, 0.025, 0.05 and 0.10 are all reported, with 0.05 retained as primary. Correction is across 14 scales per recipe pair. Stable means no conflicting resolved signs, possibly with only one resolved size; within-noise means no resolved size, not equivalence. Aggregate and individual task counts are separable in the saved CSV.
+
+Ranking sensitivity uses targets 530M, 750M and 1B, lexical versus uniform-over-tied-winners selection, leave-one-recipe-out candidate sets, and leave-one-individual-task-out summaries. The full panel has no missing observations, so stricter complete-case filtering is identical and is not presented as new evidence. The primary power-law bounds are preserved; two predetermined alternatives at three source cutoffs are saved separately. All are descriptive sensitivity analyses on the same dependent observations. No hypothesis was selected solely because it produced a favorable result.
+''')
+    print(c.groupby('alpha')[['reversing','stable','within_noise']].sum().to_string());print('Historical discrepancies:',len(discrepancies))
+
+STAGES={1:stage1,2:stage2,3:stage3,4:stage4,5:stage5,6:stage6}
 
 def main():
     global OUT,FIG
