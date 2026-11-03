@@ -168,8 +168,11 @@ def stage3():
             x,y=m.loc[(a,n)],m.loc[(b,n)]
             rows.append({'params_num':n,'task_a':a,'task_b':b,
                 'spearman':stats.spearmanr(x,y).statistic,
-                'winner_agreement':float(metrics(x,y,x.index)['top1'])})
-    csv('task_recipe_agreement.csv',rows)
+                'winner_agreement':float(x.idxmax()==y.idxmax()),
+                'any_shared_winner':float(bool(set(x.index[x==x.max()])&set(y.index[y==y.max()])))})
+    agreement=csv('task_recipe_agreement.csv',rows)
+    fig,ax=plt.subplots(figsize=(7,4)); z=summary.sort_values('mean_spearman');ax.barh(z.task,z.mean_spearman);ax.set_xlabel('Mean source-to-1B Spearman correlation');fig.tight_layout();fig.savefig(FIG/'task_predictability_comparison.png',dpi=180);plt.close(fig)
+    fig,ax=plt.subplots(figsize=(6,4)); z=agreement.groupby('params_num').winner_agreement.mean();ax.plot(z.index/1e6,z,'o-');ax.set_xscale('log');ax.set_xlabel('Model size (M)');ax.set_ylabel('Fraction of task pairs sharing selected winner');ax.grid(alpha=.2);fig.tight_layout();fig.savefig(FIG/'task_recipe_agreement.png',dpi=180);plt.close(fig)
     heat=d.pivot(index='task',columns='params_num',values='spearman')
     fig,ax=plt.subplots(figsize=(9,5)); im=ax.imshow(heat,aspect='auto',vmin=-1,vmax=1,cmap='RdBu_r')
     ax.set_yticks(range(len(heat)),heat.index); ax.set_xticks(range(len(heat.columns)),[f'{n/1e6:g}' for n in heat.columns],rotation=45)
@@ -303,6 +306,11 @@ def stage5():
         v=g.groupby('cutoff')[['rmse','regret']].mean()
         for ax,y in zip(axes,['rmse','regret']): ax.plot(v.index/1e6,v[y],marker='o',label=method);ax.set_xscale('log');ax.set_xlabel('Largest fitted size (M)');ax.set_ylabel(y);ax.grid(alpha=.2)
     axes[1].legend(fontsize=8);fig.tight_layout();fig.savefig(FIG/'extrapolation_error_comparison.png',dpi=180);plt.close(fig)
+    for x,y,f in [('scale_ratio','rmse','prediction_error_vs_extrapolation_distance.png'),('cutoff','top1','recipe_selection_accuracy_by_method.png')]:
+        fig,ax=plt.subplots(figsize=(6.5,4));
+        for method,g in e[e.task!=AGG].groupby('method'):
+            z=g.groupby(x)[y].mean();ax.plot(z.index/(1e6 if x=='cutoff' else 1),z,'o-',label=method)
+        ax.set_xscale('log');ax.set_xlabel('Largest fitted size (M)' if x=='cutoff' else 'Target / largest fitted size');ax.set_ylabel('Top-1 fraction over 10 tasks' if y=='top1' else 'Mean RMSE');ax.legend(fontsize=8);ax.grid(alpha=.2);fig.tight_layout();fig.savefig(FIG/f,dpi=180);plt.close(fig)
     note('extrapolation_comparison.md','''# Stage 5 Extrapolation specification
 
 Predictions target 1B, using every source cutoff from the fourth available size (10M) to 750M. All 25 recipes, three-seed means, equal scale weights and identical permitted source ranges are used for every method. The largest-observed baseline uses only the final observation within that permitted range. It is intentionally a ranking baseline; using its unchanged score as a numeric prediction may have substantial level bias.
@@ -326,6 +334,7 @@ def stage6():
         counts=g.classification.value_counts()
         census.append({'alpha':alpha,'task':task,**{k:int(counts.get(k,0)) for k in ['reversing','stable','within_noise']},'total':len(g)})
     c=csv('rank_reversal_sensitivity.csv',census)
+    view=c.groupby('alpha')[['reversing','stable','within_noise']].sum();fig,ax=plt.subplots(figsize=(6.5,4));view.plot.bar(stacked=True,ax=ax,color=['#b44a3d','#39778a','#bbc4c7']);ax.set_xlabel('Familywise alpha per trajectory');ax.set_ylabel('Recipe-pair trajectories');ax.legend(fontsize=8);fig.tight_layout();fig.savefig(FIG/'robustness_comparison.png',dpi=180);plt.close(fig)
     old=json.loads((ROOT/'results/p1_09_rank_reversals.json').read_text())['data']
     # Locate the calibrated branch by its field name; never conflate uncorrected counts.
     def get_old(obj,path=''):
@@ -495,7 +504,7 @@ def main():
     STAGES[args.stage]()
     save_json(f'stage_{args.stage}_provenance.json',{'stage':args.stage,'seed':SEED,
       'command':f'python tools/empirical_study.py --stage {args.stage}',
-      'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+      'git_commit':(subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip() if (ROOT/'.git').exists() else json.loads((ROOT/'study_revision.json').read_text())['source_commit']),
       'script_sha256':sha(Path(__file__)),'python':platform.python_version(),
       'packages':{'numpy':np.__version__,'pandas':pd.__version__,'scipy':scipy.__version__,'matplotlib':matplotlib.__version__}})
 

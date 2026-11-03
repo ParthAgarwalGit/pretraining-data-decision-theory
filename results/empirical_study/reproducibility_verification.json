@@ -1,0 +1,158 @@
+{
+  "numeric_csv_comparisons": [
+    {
+      "file": "analysis_observations.csv",
+      "rows": 11550,
+      "status": "pass",
+      "sha256": "a0205684de91718ec1779787b39528cf57e018b20fd2d943702f2f12f8a2bfb1"
+    },
+    {
+      "file": "cross_scale_predictability.csv",
+      "rows": 143,
+      "status": "pass",
+      "sha256": "5858308cf4df5243a8fc6992365072b6662ba073d277d74556eda19829ca622a"
+    },
+    {
+      "file": "data_quality_audit.csv",
+      "rows": 3850,
+      "status": "pass",
+      "sha256": "707f9f3a1a5d86c4a30a235bdd6edfa446ab54ca829ea21b34966095146bdffe"
+    },
+    {
+      "file": "extrapolation_diagnostics.csv",
+      "rows": 4,
+      "status": "pass",
+      "sha256": "a78ae7ac54c29511ca0901d3917f8177342eca376c10d74bad9f3b4c412cf117"
+    },
+    {
+      "file": "extrapolation_failures.csv",
+      "rows": 0,
+      "status": "pass",
+      "sha256": "17295744fc16a13f6cfd300949c8eb8998fea9a7dfde5fad4aa138c44141eac8"
+    },
+    {
+      "file": "extrapolation_metrics.csv",
+      "rows": 440,
+      "status": "pass",
+      "sha256": "07aa3ce5e54f87603c6120b575b3a19b345569223c9c757300a12385041f2dfc"
+    },
+    {
+      "file": "extrapolation_predictions.csv",
+      "rows": 11000,
+      "status": "pass",
+      "sha256": "6c3a56711d98c0e4a83bcaa9178fb49d46c7b7270ef86610ec04c1fdc2584455"
+    },
+    {
+      "file": "extrapolation_summary.csv",
+      "rows": 4,
+      "status": "pass",
+      "sha256": "e1a780587f89dedf90d78505794cd7b4fd56c94ee0aa73033a28fe858039736a"
+    },
+    {
+      "file": "historical_census_discrepancies.csv",
+      "rows": 0,
+      "status": "pass",
+      "sha256": "65e43da1c704b2d621cd013363c47a3fbbfacd36562ec4d94fc285095513c218"
+    },
+    {
+      "file": "pairwise_effect_sizes.csv",
+      "rows": 46200,
+      "status": "pass",
+      "sha256": "42a94274e90ae22798e87462c220af36ec213b96836c3e96a0195cb9fb6871a2"
+    },
+    {
+      "file": "rank_reversal_pairs.csv",
+      "rows": 13200,
+      "status": "pass",
+      "sha256": "f04608f3d1f6996bccb5c0bbac18977bbf002729a502851639c72e3e2f9460ad"
+    },
+    {
+      "file": "rank_reversal_sensitivity.csv",
+      "rows": 44,
+      "status": "pass",
+      "sha256": "7fa9aa7a5c9f70cbf5d990e8c362cd08a5b6a740901a495d0ba53830cda49435"
+    },
+    {
+      "file": "robustness_leave_one_task_out.csv",
+      "rows": 130,
+      "status": "pass",
+      "sha256": "2be2fdbbd32168e518bc6e89eaa72efbcbe37986e3bf8e51d82b5607f0964f0d"
+    },
+    {
+      "file": "robustness_matrix.csv",
+      "rows": 5,
+      "status": "pass",
+      "sha256": "76ceae68d9d682f66d6635d1e9ebe6232fb5c32ea6a7eb806365954bcd0f67d3"
+    },
+    {
+      "file": "robustness_power_bounds.csv",
+      "rows": 66,
+      "status": "pass",
+      "sha256": "8cd305e08d86edf7c923eeebb257a62f03daf991d309529b7af2b85f3dbd2888"
+    },
+    {
+      "file": "robustness_recipe_exclusion.csv",
+      "rows": 825,
+      "status": "pass",
+      "sha256": "c989279f119c80588f3edb0f40a9203f18a2736105118f69e7dc5447d68768a6"
+    },
+    {
+      "file": "robustness_targets_ties.csv",
+      "rows": 792,
+      "status": "pass",
+      "sha256": "ea066fe47a999abf669f0d075e67aac298f3334942c12429c03c03f63c35009e"
+    },
+    {
+      "file": "scale_summary.csv",
+      "rows": 13,
+      "status": "pass",
+      "sha256": "dadf273bc07410ed31626c4d3a34cdc605087069b48e2544c6b6d7a347c35e7c"
+    },
+    {
+      "file": "seed_subsampling.csv",
+      "rows": 1078,
+      "status": "pass",
+      "sha256": "a90ae4d80fcea05b68715efd8e44fa9fd6d13c0ffd2b18ae5826602eed064426"
+    },
+    {
+      "file": "seed_subsampling_summary.csv",
+      "rows": 3,
+      "status": "pass",
+      "sha256": "f02f49d41102fe68b89da1c87086417ebdc2850ee904bc18da94270f783f9934"
+    },
+    {
+      "file": "seed_uncertainty.csv",
+      "rows": 3850,
+      "status": "pass",
+      "sha256": "644f86e34bcbf16cbfd840755627fd6eb179732d7b0de8338c8c0cfff5f89f97"
+    },
+    {
+      "file": "signal_to_noise_summary.csv",
+      "rows": 4,
+      "status": "pass",
+      "sha256": "42c116c388c71ed10b5338299e740087cd3604249b98b19860f41c353e49b6c1"
+    },
+    {
+      "file": "task_heterogeneity.csv",
+      "rows": 11,
+      "status": "pass",
+      "sha256": "4063e2c566f5dd2ce013d030436092c9179195ac92871b0fcb0bf30149ae9065"
+    },
+    {
+      "file": "task_recipe_agreement.csv",
+      "rows": 630,
+      "status": "pass",
+      "sha256": "cc001039cea5dddcbf5db001e5c1dc41aa95746cdb33ec51896e1c3fab5fb06f"
+    },
+    {
+      "file": "training_budgets.csv",
+      "rows": 14,
+      "status": "pass",
+      "sha256": "d3ac11b420fa95a034aa60ad624e0247238ea3810e418305d13cb7f7a7b55306"
+    }
+  ],
+  "stages_1_to_7": "passed",
+  "tests": "6 passed",
+  "input": "pinned macro-average Parquet; no network used during rerun",
+  "tolerance": "relative 1e-10, absolute 1e-12; identical rows and columns required"
+}
