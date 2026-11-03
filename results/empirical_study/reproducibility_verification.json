@@ -142,7 +142,7 @@
       "file": "task_recipe_agreement.csv",
       "rows": 630,
       "status": "pass",
-      "sha256": "cc001039cea5dddcbf5db001e5c1dc41aa95746cdb33ec51896e1c3fab5fb06f"
+      "sha256": "6c792e04b7a1729ac2401a9899845a83be757f70e6da388661c6a9f307a0f87c"
     },
     {
       "file": "training_budgets.csv",
@@ -151,8 +151,34 @@
       "sha256": "d3ac11b420fa95a034aa60ad624e0247238ea3810e418305d13cb7f7a7b55306"
     }
   ],
+  "json_results_matched": [
+    "cross_scale_predictability.json",
+    "data_quality_audit.json",
+    "final_findings_summary.json",
+    "historical_census_recount.json",
+    "rank_reversal_reproduction.json",
+    "robustness_findings.json",
+    "robustness_summary.json"
+  ],
   "stages_1_to_7": "passed",
   "tests": "6 passed",
   "input": "pinned macro-average Parquet; no network used during rerun",
-  "tolerance": "relative 1e-10, absolute 1e-12; identical rows and columns required"
+  "tolerance": "relative 1e-10, absolute 1e-12; identical rows and columns required",
+  "identical_figure_files": [
+    "effect_size_vs_ranking_agreement.png",
+    "extrapolation_error_comparison.png",
+    "kendall_by_scale.png",
+    "prediction_error_vs_extrapolation_distance.png",
+    "recipe_selection_accuracy_by_method.png",
+    "robustness_comparison.png",
+    "seed_subsampling_predictability.png",
+    "seed_variation_by_scale.png",
+    "selection_regret_by_scale.png",
+    "spearman_by_scale.png",
+    "task_predictability_comparison.png",
+    "task_ranking_heatmap.png",
+    "task_recipe_agreement.png",
+    "top1_accuracy_by_scale.png"
+  ],
+  "standalone_archive_test": "Passed in extracted directory without .git"
 }
