@@ -32,7 +32,9 @@ def csv(name, rows):
     return d
 
 def note(name, text):
-    (ROOT/'docs'/name).write_text(text,encoding='utf8')
+    directory = ROOT/'docs' if OUT == ROOT/'results/empirical_study' else OUT/'docs'
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory/name).write_text(text,encoding='utf8')
 
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 
@@ -504,7 +506,7 @@ def main():
     STAGES[args.stage]()
     save_json(f'stage_{args.stage}_provenance.json',{'stage':args.stage,'seed':SEED,
       'command':f'python tools/empirical_study.py --stage {args.stage}',
-      'git_commit':(subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip() if (ROOT/'.git').exists() else json.loads((ROOT/'study_revision.json').read_text())['source_commit']),
+      'git_commit':(subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip() if (ROOT/'.git').exists() else None),
       'script_sha256':sha(Path(__file__)),'python':platform.python_version(),
       'packages':{'numpy':np.__version__,'pandas':pd.__version__,'scipy':scipy.__version__,'matplotlib':matplotlib.__version__}})
 

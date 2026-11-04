@@ -6,6 +6,11 @@ for the live task ledger.**
 
 ## Course self-study hand-in
 
+For the completed empirical study and live demo, start with
+[STUDY_README.md](STUDY_README.md). Run `python tools/study_demo.py` with Python
+3.12 to recompute all 143 ranking comparisons and display the 530M-to-1B results.
+The demo uses the included observations and Python's standard library.
+
 For the November 4 course report, read [submission scope and corrections](docs/course_submission_scope.md).
 This is an exploratory project; historical experiment artifacts are not a claim of
 validated adaptive guarantees or demonstrated compute savings.
