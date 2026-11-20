@@ -1,8 +1,8 @@
 {
   "provenance": {
     "git_sha": "de0340df5c4381cead2a34a75683f7d95ccf1fbd",
-    "git_dirty": true,
-    "utc_timestamp": "2026-11-20T21:12:12.029976+00:00",
+    "git_dirty": false,
+    "utc_timestamp": "2026-11-20T20:57:53.087488+00:00",
     "python_version": "3.12.10",
     "package_versions": {
       "numpy": "2.5.2",
