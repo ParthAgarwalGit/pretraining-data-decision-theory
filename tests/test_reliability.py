@@ -91,11 +91,18 @@ def _stratified_runs(reps: int = 120):
         fresh_three = mu_t[:, None] + rng.normal(0, 1, (r, 3))
         h = rl.stratified_heldout_single(p, t, ids, 0)
         honest.append(np.divide(h["proxy_hit"], h["proxy_n"]))
-        # Oracle: identical bins (seeds 1, 2 untouched), scored against a fresh seed.
-        t2 = t.copy()
-        t2[:, 0] = fresh_seed
-        o = rl.stratified_heldout_single(p, t2, ids, 0)
-        oracle.append(np.divide(o["proxy_hit"], o["proxy_n"]))
+        # Oracle, computed independently of the code under test: bins from seeds 1 and 2
+        # only, proxy scored against a fresh, independent target seed.
+        m12 = t[:, 1:].mean(1)
+        sd12 = np.sqrt(np.mean(np.var(t[:, 1:], axis=1, ddof=1)))
+        z12 = np.abs(m12[i] - m12[j]) / sd12
+        ps3 = np.sign(p.mean(1)[i] - p.mean(1)[j])
+        fs = np.sign(fresh_seed[i] - fresh_seed[j])
+        orow = []
+        for lo, hi in rl.DEFAULT_BINS:
+            ok = (z12 >= lo) & (z12 < hi) & (ps3 != 0) & (fs != 0)
+            orow.append(np.mean(ps3[ok] == fs[ok]))
+        oracle.append(orow)
         same.append(rl.stratified_same_target(p, t, ids)["agreement"])
         tm = t.mean(1)
         z = np.abs(tm[i] - tm[j]) / (rl.pooled_sd(t) * np.sqrt(2.0 / 3.0))
