@@ -1291,3 +1291,39 @@ Source: `results/n7_02_reliability.json` (DataDecide `primary_metric`, final che
 - **Mutation test.** It caught binning with the held-out seed (a shift of 0.077). An earlier version of the test computed its oracle with the code under test and missed the mutation; it was fixed before commit.
 
 **Decided by:** Agent (orchestrator), N7-02.
+
+## 2026-11-21 — N7-03 decomposition estimator validation: shares fail coverage, error components pass
+
+Source: `results/n7_03_simulation.json`. The design covers 4 tasks x {150M, 530M} vs 1B and 3 generators (Gaussian, empirical recipe structure, heteroscedastic Student-t). Each cell uses 100 simulated suites, each with a recipe-cluster bootstrap CI (B=100).
+
+**The pre-stated criteria were fixed before the first run. One of them FAILED.**
+
+### Coverage over cells (nominal 0.95)
+
+| Estimand | Coverage |
+|---|---|
+| `da_latent` (proxy vs noise-free target) | 0.99–1.00 |
+| `reorder` | 0.94–0.99 |
+| `target_noise_err` | 0.91–0.93 |
+| Shares of observed error (`share_target_noise`, `share_reorder`) | 0.82–0.87 (fails the ≥0.90 criterion under G1/G2) |
+
+Bias of the error components is at most 0.005 in absolute value. The shares have RMSE 0.11–0.27: they are ratios with a small, noisy denominator (the observed error).
+
+### Posterior predictive checks
+
+These pass:
+- The observed 1B test-retest falls inside its 95% predictive interval for **11/11** tasks.
+- The held-out-seed stratified agreement falls inside for **95.5%** of 88 (task, size, bin) checks.
+
+So the Gaussian empirical-Bayes noise model reproduces the observed reliability structure.
+
+### Decision
+
+This is not a re-tuning of the estimator; the failure is reported as is.
+
+- The paper's **primary, CI-bearing estimands** are the absolute error components: `da_latent`, `target_noise_err` (equivalently `ceiling`), `reorder` and `proxy_noise_err`. All are in units of the fraction of recipe pairs, with valid coverage.
+- The shares are reported **only as descriptive point summaries without CIs**, labelled as such.
+- N7-05 freezes this choice before any confirmatory data is touched.
+- `target_noise_err` coverage at 0.91–0.93 is slightly below nominal. Its intervals are reported as approximately 95%, and a sensitivity analysis using a wider (99%) interval is part of N7-06.
+
+**Decided by:** Agent (orchestrator), N7-03; flagged to the PI.
