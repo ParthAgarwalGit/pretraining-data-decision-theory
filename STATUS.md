@@ -130,7 +130,7 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 |---|---|---|---|---|
 | N7-00 | Phase 7 plan (target-noise decomposition) | IN PROGRESS | |  |
 | N7-01 | Novelty gate G0 | TODO | | kill/reframe criterion |
-| N7-02 | Reliability core (E1) | TODO | |  |
+| N7-02 | Reliability core (E1) | IN REVIEW | | `results/n7_02_reliability.json`; exploratory |
 | N7-03 | Simulation validation of the decomposition estimator (E2) | TODO | | GATE if PPC fails |
 | N7-04 | Inference harness + local GPU timing (E11 prep) | TODO | |  |
 | N7-05 | Pre-registration commit | TODO | | freezes confirmatory analyses |
