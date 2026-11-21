@@ -1409,3 +1409,12 @@ Source: `results/n7_10_seed_noise.json`.
 - **Reading.** This is descriptive only (different data mix, OLMo-2 vs OLMo-1, different pipeline). It says the seed-noise level is not transferable across setups. It does not say whether DataDecide's own 3-seed estimate is wrong; S2 (PolyPythia, same pipeline) tests that.
 
 **Decided by:** Agent (orchestrator); N7-09 GATE raised to the PI.
+
+## 2026-11-21 — N7-09 GATE resolved by the PI: one recipe dropped (pre-registered deviation)
+
+- **Decision.** The PI chose to run I1–I3 on the **24 recipes** whose 1B instance archives are complete. Dolma1.7 (no math, code) is excluded, because its 1B `large aux 2` archive stops at step 57500 instead of 69369.
+- **Status.** This is a deviation from `docs/preregistration.md` section 4, recorded here before the re-run.
+- **Unchanged.** I0 is still reported as failed (6/475 cells). The hypotheses and criteria are unchanged.
+- **Scope.** The 530M and 750M archive gaps do not affect I1–I3, which use only 1B, plus the 530M frame scores for the between-recipe covariance.
+
+**Decided by:** PI (2026-11-21, GATE answer "Drop 1 recipe").

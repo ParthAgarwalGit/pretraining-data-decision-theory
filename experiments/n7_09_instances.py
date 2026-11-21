@@ -53,6 +53,10 @@ _ALPHA = 0.05
 _PROXY_FOR_CEILING = "530M"
 _TASKS = tuple(sorted(inst.PRIMARY_NORM))
 _CACHE = Path("data/cache/n7_09_parsed")
+# PI decision at the N7-09 I0 GATE (2026-11-21, docs/decisions.md): the released instance
+# archive for this recipe lacks the frame-final 1B checkpoint for one seed, so I1-I3 run on
+# the remaining 24 recipes. I0 itself is still reported as failed.
+_EXCLUDE_RECIPES = ("Dolma1.7 (no math, code)",)
 
 
 def _parsed(slug: str, cell_key: str, rel_file: str) -> dict:
@@ -130,7 +134,7 @@ def _target_items(mapping):
     """Per task: (R, 3, n_items) correctness at 1B in frame seed-label order, weights, blocks."""
     labels = sorted(mapping["1B"].values())
     inv = {lab: d for d, lab in mapping["1B"].items()}
-    recipes = sorted(inst.RECIPE_SLUGS.values())
+    recipes = [r for r in sorted(inst.RECIPE_SLUGS.values()) if r not in _EXCLUDE_RECIPES]
     slug_of = {v: k for k, v in inst.RECIPE_SLUGS.items()}
     out = {}
     for task in _TASKS:
@@ -163,9 +167,18 @@ def main() -> None:
             "failures": [r for r in i0_rows if r["status"] != "ok"],
         },
     }
-    if ok:
-        arr, *_rest, tasks_frame = n702._load()
+    failures = payload["i0"]["failures"]
+    proceed = all(
+        f["cell"].split("/")[0] != "1B" or f["recipe"] in _EXCLUDE_RECIPES for f in failures
+    )
+    payload["excluded_recipes_by_pi_decision"] = list(_EXCLUDE_RECIPES)
+    payload["i1_i3_run"] = proceed
+    if proceed:
+        arr_all, _sizes, _tok, _comp, all_recipes, _tasks = n702._load()
+        keep = [k for k, rec in enumerate(all_recipes) if rec not in _EXCLUDE_RECIPES]
+        arr = {t: {s: m[keep] for s, m in by.items()} for t, by in arr_all.items()}
         recipes, items = _target_items(mapping)
+        assert recipes == [all_recipes[k] for k in keep]
         r = len(recipes)
         pairs = list(itertools.combinations(range(r), 2))
         i1, i3, extra, vmats = {}, {}, {}, {}
@@ -271,9 +284,10 @@ def main() -> None:
             "dataset_revision": dd.cached_revision("macro_avg"),
             "instances_revision": (inst.INSTANCE_DIR / "source_revision.txt").read_text().strip(),
             "preregistration_commit": "ff4b978",
+            "excluded_recipes": list(_EXCLUDE_RECIPES),
         },
     )
-    print("wrote results/n7_09_instances.json; I0 passed:", ok)
+    print("wrote results/n7_09_instances.json; I0 passed:", ok, "; I1-I3 run:", proceed)
 
 
 if __name__ == "__main__":
