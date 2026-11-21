@@ -1440,6 +1440,6 @@ Item sampling contributes a median **0.44** of the variance of a 1B pairwise sco
 
 - **Result.** The paired item-level sign test resolves 0.481 of 1B pairs, against 0.095 for the seed-only Welch test (Bonferroni over 300 pairs, alpha 0.05).
 - **Limit.** The sign test conditions on the trained models: seed-averaged correctness per item, with no seed variance. So it answers "do these trained models differ on this item population?", not "do the recipes differ?".
-- **Consequence for the paper.** It is presented as evidence that **item noise, not item count, is not the bottleneck once models are fixed**, and that seed noise is the binding constraint on recipe-level resolution. It is never presented as more recipe pairs being resolved.
+- **Consequence for the paper.** It is presented as evidence that, **with the trained models held fixed, the benchmark items separate most pairs**, so recipe-level resolution is limited mainly by training-seed noise. It is never presented as more recipe pairs being resolved.
 
 **Decided by:** Agent (orchestrator), N7-09.
