@@ -1374,3 +1374,11 @@ These fill in details that `docs/preregistration.md` section 4 left open. None c
 - **I3: resolved share.** A Welch test with zero variance in both arms (a NaN p-value) counts as unresolved.
 
 **Decided by:** Agent (orchestrator), N7-09, before the run.
+
+## 2026-11-21 — N7-10 S1 implementation choices (recorded before the run)
+
+- **Metric.** The comparison uses `acc_per_char` on both sides. It is the only accuracy metric available in both `signal-and-noise` and the DataDecide frame for all 10 shared OLMES tasks, whereas the frame's `primary_metric` mixes normalisations.
+- **Runs.** Only the 10 initialisation-seed runs (`run_type == "seed"`) are used, scored at each run's final step. The data-order runs and the high-eval-interval rerun are excluded.
+- **Data.** The parquet file is pinned to the dataset revision recorded in the result's provenance.
+
+**Decided by:** Agent (orchestrator), N7-10, before the run.
