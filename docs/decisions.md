@@ -1382,3 +1382,30 @@ These fill in details that `docs/preregistration.md` section 4 left open. None c
 - **Data.** The parquet file is pinned to the dataset revision recorded in the result's provenance.
 
 **Decided by:** Agent (orchestrator), N7-10, before the run.
+
+## 2026-11-21 — Confirmatory outcomes so far: N7-09 I0 GATE, N7-10 S1 not met
+
+### N7-09 I0 failed, so the task is at a GATE per the pre-registration
+
+Source: `results/n7_09_instances.json`.
+
+- **What matched.** 469 of 475 prefetched (recipe, size, seed) archives reproduce the frame's `primary_metric` exactly, under a consistent seed mapping:
+  - `seed-2` = `default`;
+  - `seed-14`/`seed-15` = `small aux 2/3`;
+  - at 1B, `seed-4`/`seed-5` = `large aux 2/3`.
+- **What failed.** 6 cells do not: DCLM-Baseline (QC 20%) at 530M and 750M, one DCLM 75/25 750M seed, and **Dolma1.7 (no math, code) at 1B, seed `large aux 2`**.
+- **Why.** In every one of these the released instance archive simply lacks the frame-final checkpoint. For example, the 1B archive stops at step 57500 rather than 69369.
+- **Status.** I1–I3 were not run. The PI decides.
+
+### N7-10 S1: the pre-registered criterion was not met
+
+Source: `results/n7_10_seed_noise.json`.
+
+- 5 of 8 shared tasks have a DataDecide/Signal-&-Noise 1B seed-SD ratio within [0.5, 2]; the criterion needed 7. The ratios outside the range are:
+  - ARC-Easy 2.68;
+  - CSQA 2.02;
+  - HellaSwag 0.48.
+- BoolQ and OBQA have no `acc_per_char` rows in Signal & Noise.
+- **Reading.** This is descriptive only (different data mix, OLMo-2 vs OLMo-1, different pipeline). It says the seed-noise level is not transferable across setups. It does not say whether DataDecide's own 3-seed estimate is wrong; S2 (PolyPythia, same pipeline) tests that.
+
+**Decided by:** Agent (orchestrator); N7-09 GATE raised to the PI.
