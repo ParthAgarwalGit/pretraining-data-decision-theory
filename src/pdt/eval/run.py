@@ -13,6 +13,8 @@ from __future__ import annotations
 import time
 from collections.abc import Sequence
 
+import numpy as np
+
 from pdt.eval.benchmarks import Item
 from pdt.eval.scoring import item_record
 
@@ -31,7 +33,12 @@ def encode_pair(tok, context: str, continuation: str) -> tuple[list[int], list[i
 
 
 def score_requests(  # pragma: no cover -- needs torch and a model
-    model, tok, pairs: Sequence[tuple[str, str]], max_len: int = 2048, batch_tokens: int = 16384
+    model,
+    tok,
+    pairs: Sequence[tuple[str, str]],
+    max_len: int = 2048,
+    batch_tokens: int = 16384,
+    head_rows: int = 1024,
 ) -> tuple[list[tuple[float, int, bool]], dict]:
     """Sum log-prob, continuation token count and greedy-match flag for each
     (context, continuation) pair, plus timing stats (non-pad input tokens / s)."""
@@ -54,32 +61,47 @@ def score_requests(  # pragma: no cover -- needs torch and a model
             bs = max(1, batch_tokens // width)
             batch = [rows[r] for r in order[pos : pos + bs]]
             pos += len(batch)
-            ids = torch.zeros((len(batch), width), dtype=torch.long, device=device)
-            mask = torch.zeros_like(ids)
+            # Build the padded batch on the host and copy it once (per-row device copies
+            # dominate the runtime for many short sequences, e.g. BLiMP).
+            ids_np = np.zeros((len(batch), width), dtype=np.int64)
+            mask_np = np.zeros((len(batch), width), dtype=np.int64)
             for b, (_, inp, _, _) in enumerate(batch):
-                ids[b, : len(inp)] = torch.tensor(inp, device=device)
-                mask[b, : len(inp)] = 1
-            n_tok += int(mask.sum())
+                ids_np[b, : len(inp)] = inp
+                mask_np[b, : len(inp)] = 1
+            ids = torch.from_numpy(ids_np).to(device)
+            mask = torch.from_numpy(mask_np).to(device)
+            n_tok += int(mask_np.sum())
             hidden = model.base_model(input_ids=ids, attention_mask=mask).last_hidden_state
             sel, tgt, owner = [], [], []
             for b, (_, _inp, cont, start) in enumerate(batch):
                 sel.append(hidden[b, start : start + len(cont)])
                 tgt.extend(cont)
                 owner.extend([b] * len(cont))
-            logits = model.get_output_embeddings()(torch.cat(sel)).float()
-            logp = torch.log_softmax(logits, dim=-1)
+            # Output head + float32 log-softmax in row chunks: bounds peak memory at
+            # head_rows x vocab regardless of how many continuation tokens a batch has.
+            hsel = torch.cat(sel)
             tgt_t = torch.tensor(tgt, device=device)
-            tok_lp = logp.gather(1, tgt_t[:, None])[:, 0]
-            greedy = logits.argmax(-1) == tgt_t
+            head = model.get_output_embeddings()
+            tok_lp = torch.empty(len(tgt), device=device)
+            greedy = torch.empty(len(tgt), dtype=torch.bool, device=device)
+            for a in range(0, len(tgt), head_rows):
+                lg = head(hsel[a : a + head_rows]).float()
+                t_chunk = tgt_t[a : a + head_rows]
+                tok_lp[a : a + head_rows] = torch.log_softmax(lg, dim=-1).gather(
+                    1, t_chunk[:, None]
+                )[:, 0]
+                greedy[a : a + head_rows] = lg.argmax(-1) == t_chunk
+                del lg
             owner_t = torch.tensor(owner, device=device)
             sums = torch.zeros(len(batch), device=device).index_add_(0, owner_t, tok_lp)
             allg = torch.ones(len(batch), dtype=torch.int32, device=device)
             allg.scatter_reduce_(0, owner_t, greedy.to(torch.int32), reduce="amin")
+            sums_l, allg_l = sums.tolist(), allg.tolist()  # one device sync per batch
             for b, (n, _, cont, _) in enumerate(batch):
-                out[n] = (float(sums[b]), len(cont), bool(allg[b]))
+                out[n] = (float(sums_l[b]), len(cont), bool(allg_l[b]))
     if device.type == "cuda":
         torch.cuda.synchronize()
-    secs = time.time() - t0
+    secs = max(time.time() - t0, 1e-9)  # coarse clocks can report 0 for tiny runs
     return out, {"seconds": secs, "input_tokens": n_tok, "tokens_per_second": n_tok / secs}
 
 
