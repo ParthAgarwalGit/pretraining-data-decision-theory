@@ -139,7 +139,7 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 | N7-08 | Alternative targets (E7) | TODO | |  |
 | N7-09 | Instance-level noise (E5) | TODO | |  |
 | N7-10 | Many-seed checks (E4/E4b) | TODO | |  |
-| N7-11 | Confirmatory re-evaluation on new benchmarks (E11) | TODO | |  |
+| N7-11 | Confirmatory re-evaluation on new benchmarks (E11) | IN PROGRESS | | 350-job GPU pipeline ready (`notebooks/n7_11_colab_worker.ipynb`); runs on Colab/Kaggle T4s |
 | N7-12 | Tie-aware abstention rule (E10) | TODO | | stretch |
 | N7-13 | Workshop draft | TODO | |  |
 | **GATE-C7** | **Compute for prospective training (E9)** | TODO | | PI |

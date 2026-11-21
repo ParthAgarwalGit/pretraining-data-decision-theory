@@ -1261,3 +1261,15 @@ An exploratory probe on DataDecide `primary_metric` final checkpoints, not yet a
 ETS/theory PRs #17–#35 stay open for their own review and are not dependencies of Phase 7. No training without GATE-C7 approval; local GPUs (RTX 4060 laptop, Colab/Kaggle T4) are inference-only.
 
 **Decided by:** PI (2026-11-20, "start executing everything in this plan").
+
+## 2026-11-21 — N7-11 GPU pipeline: Colab/Kaggle workers (PI decision); the smoke test touched one checkpoint
+
+- **PI decision.** GPU work runs on Colab/Kaggle T4s. The laptop GPU is occupied by another project's training queue.
+- **Job list.** `configs/n7_11_jobs.json` lists the 300 DataDecide final checkpoints frozen in the pre-registration, plus 50 PolyPythia checkpoints for S2. Every revision was checked to exist on the Hub.
+- **Worker.** `experiments/n7_11_score.py` is sharded and resumable. `notebooks/n7_11_colab_worker.ipynb` runs one shard per notebook.
+- **Smoke test.** It scored one checkpoint (C4, 150M, seed `default`) end to end, taking 206 s on the shared laptop GPU. Its benchmark accuracies were printed to check the pipeline.
+  - This is 1 of 300 confirmatory checkpoints. It carries no information about C1–C5, which are all cross-recipe quantities.
+  - Its output is not used; the Colab run re-scores it.
+- **Scorer fixes found during the smoke test** (commit `e18d340`): host-side batch building, one device sync per batch, and chunking of the output head to bound memory. BLiMP accuracy was identical before and after.
+
+**Decided by:** PI (Colab) and Agent (orchestrator).
