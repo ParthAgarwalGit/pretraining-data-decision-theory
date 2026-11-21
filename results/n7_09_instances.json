@@ -1,0 +1,125 @@
+{
+  "provenance": {
+    "git_sha": "f27e02697f6089c22c446c00ab863a4b5e87c6db",
+    "git_dirty": false,
+    "utc_timestamp": "2026-11-21T04:24:01.057871+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": 20261124,
+    "config": {
+      "task": "N7-09",
+      "seed": 20261124,
+      "dataset_revision": "9919b5a0e61e57a85021263918fa82d6ceaee038",
+      "instances_revision": "23f3b2e186ca6c39026e3efa00e4af397680c075",
+      "preregistration_commit": "ff4b978"
+    }
+  },
+  "data": {
+    "status": "CONFIRMATORY (pre-registered N7-05, docs/preregistration.md section 4)",
+    "i0": {
+      "passed": false,
+      "n_cells": 475,
+      "n_ok": 469,
+      "max_abs_diff": 0.0822629969418961,
+      "seed_mapping": {
+        "150M": {
+          "seed-14": "small aux 2",
+          "seed-15": "small aux 3",
+          "seed-2": "default"
+        },
+        "1B": {
+          "seed-2": "default",
+          "seed-4": "large aux 2",
+          "seed-5": "large aux 3"
+        },
+        "20M": {
+          "seed-2": "default"
+        },
+        "300M": {
+          "seed-14": "small aux 2",
+          "seed-15": "small aux 3",
+          "seed-2": "default"
+        },
+        "4M": {
+          "seed-2": "default"
+        },
+        "530M": {
+          "seed-14": "small aux 2",
+          "seed-15": "small aux 3",
+          "seed-2": "default"
+        },
+        "60M": {
+          "seed-2": "default"
+        },
+        "750M": {
+          "seed-14": "small aux 2",
+          "seed-15": "small aux 3",
+          "seed-2": "default"
+        },
+        "90M": {
+          "seed-2": "default"
+        }
+      },
+      "failures": [
+        {
+          "recipe": "DCLM-Baseline 75% / Dolma 25%",
+          "cell": "750M/seed-14",
+          "label": "small aux 2",
+          "max_abs_diff": 0.04799999999999999,
+          "step_matches_frame_final": false,
+          "status": "MISMATCH"
+        },
+        {
+          "recipe": "DCLM-Baseline (QC 20%)",
+          "cell": "530M/seed-14",
+          "label": "small aux 3",
+          "max_abs_diff": 0.0822629969418961,
+          "step_matches_frame_final": false,
+          "status": "MISMATCH"
+        },
+        {
+          "recipe": "DCLM-Baseline (QC 20%)",
+          "cell": "530M/seed-15",
+          "label": "small aux 3",
+          "max_abs_diff": 0.06572395937064335,
+          "step_matches_frame_final": false,
+          "status": "MISMATCH"
+        },
+        {
+          "recipe": "DCLM-Baseline (QC 20%)",
+          "cell": "750M/seed-14",
+          "label": "default",
+          "max_abs_diff": 0.04176904176904184,
+          "step_matches_frame_final": false,
+          "status": "MISMATCH"
+        },
+        {
+          "recipe": "DCLM-Baseline (QC 20%)",
+          "cell": "750M/seed-15",
+          "label": "small aux 3",
+          "max_abs_diff": 0.037003058103975306,
+          "step_matches_frame_final": false,
+          "status": "MISMATCH"
+        },
+        {
+          "recipe": "Dolma1.7 (no math, code)",
+          "cell": "1B/seed-4",
+          "label": "large aux 2",
+          "max_abs_diff": 0.03999999999999998,
+          "step_matches_frame_final": false,
+          "status": "MISMATCH"
+        }
+      ]
+    }
+  }
+}
