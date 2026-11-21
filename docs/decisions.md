@@ -1353,3 +1353,24 @@ Source: `results/n7_06_decomposition.json`. DataDecide `primary_metric`, 3-seed 
 - **Hypothesis thresholds.** N7-05 uses these numbers to set its thresholds and labels them as derived from exploratory data.
 
 **Decided by:** Agent (orchestrator), N7-06; flagged to the PI as a framing change.
+
+## 2026-11-21 — N7-09 implementation choices (recorded before the confirmatory run)
+
+These fill in details that `docs/preregistration.md` section 4 left open. None changes a hypothesis or a criterion.
+
+- **I0: what decides a match.** It is decided by **scores**: all 10 tasks within 1e-6 of the frame's `primary_metric`, with one seed-name mapping per size.
+  - The archive's checkpoint is the step nearest the frame's final step.
+  - Whether the step label equals the frame's final step is recorded per cell, but does not decide the outcome. Some archives label checkpoints with slightly different step numbers.
+  - The primary normalisation per task is the one that reproduced the C4 1B `default` scores exactly:
+    - `acc_uncond` for ARC-Challenge, CSQA and OBQA;
+    - `acc_per_char` for ARC-Easy, HellaSwag, PIQA and SocialIQA;
+    - `acc_raw` for BoolQ and Winogrande;
+    - for MMLU, the macro average of `acc_raw` over its 57 subjects.
+- **I1: item variance of a pairwise gap.** This is the with-replacement variance of the seed-averaged per-item difference, computed within each MMLU subject block.
+- **I2: population-level ceiling.**
+  - The EB estimator gains an optional `extra_target_noise_var` argument. Its default is 0, which leaves every earlier result unchanged; a test checks this.
+  - It is set to half the mean paired item-gap variance of the task. That is an approximation, because item noise is correlated across recipes that are scored on the same items.
+  - The 530M proxy is used to estimate the between-recipe covariance.
+- **I3: resolved share.** A Welch test with zero variance in both arms (a NaN p-value) counts as unresolved.
+
+**Decided by:** Agent (orchestrator), N7-09, before the run.

@@ -60,10 +60,15 @@ def _agreement_rows(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return np.where(n > 0, hit / np.maximum(n, 1), np.nan)
 
 
-def _posterior(P: np.ndarray, T: np.ndarray) -> dict:
-    """Plug-in Gaussian EB posterior of the latent (mu_P, mu_T) recipe means."""
+def _posterior(P: np.ndarray, T: np.ndarray, extra_target_noise_var: float = 0.0) -> dict:
+    """Plug-in Gaussian EB posterior of the latent (mu_P, mu_T) recipe means.
+
+    ``extra_target_noise_var`` (default 0) adds a known per-recipe noise variance to the
+    target's 3-seed means, e.g. benchmark item-sampling variance (N7-09 I2), so that
+    ``mu_T`` is the recipe mean over the item population instead of the fixed items.
+    """
     s2_p, s2_t = pooled_sd(P) ** 2, pooled_sd(T) ** 2
-    noise = np.diag([s2_p / 3.0, s2_t / 3.0])
+    noise = np.diag([s2_p / 3.0, s2_t / 3.0 + extra_target_noise_var])
     ybar = np.column_stack([P.mean(1), T.mean(1)])
     m = ybar.mean(0)
     s = np.cov(ybar.T, ddof=1)
@@ -107,7 +112,12 @@ def _shares(e_obs: float, err_after_first: float, reorder: float) -> tuple[float
 
 
 def fit_decomposition(
-    P: np.ndarray, T: np.ndarray, ids: Sequence, n_draws: int = 2000, seed: int = 0
+    P: np.ndarray,
+    T: np.ndarray,
+    ids: Sequence,
+    n_draws: int = 2000,
+    seed: int = 0,
+    extra_target_noise_var: float = 0.0,
 ) -> dict:
     """Decompose proxy-vs-target decision error into target noise, proxy noise, reordering.
 
@@ -124,7 +134,7 @@ def fit_decomposition(
     p, t = _check(P, ids), _check(T, ids)
     pairs = pair_index(ids)
     i, j = pairs
-    post = _posterior(p, t)
+    post = _posterior(p, t, extra_target_noise_var)
     mu = _draw_mu(post, n_draws, np.random.default_rng(seed))
     ybar = post["ybar"]
 
