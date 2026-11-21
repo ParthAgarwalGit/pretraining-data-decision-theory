@@ -1248,3 +1248,82 @@ Readings (all from this table and the file, not from theory):
 - Highest per-task bias at 150M: `hellaswag` (~0.055 for PowerLawN and ChinchillaND); the lowest tasks are near zero/negative (`boolq`).
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-11-20 — Open Phase 7: target-noise decomposition replaces ETS as the paper's main line
+
+A hostile internal review (outside the repo, at `../paper_plan/PAPER_PLAN.md`) reached three conclusions:
+- The course report adds little beyond DataDecide.
+- ETS and Theorems 1–4 cannot carry a paper: ETS never certifies on the real replay, the guarantees do not cover the realistic regime, and the plug-in bound is vacuous.
+- The usable insight is that observed decision accuracy mixes proxy noise, target (1B) seed noise and true reordering.
+
+An exploratory probe on DataDecide `primary_metric` final checkpoints, not yet a committed result, motivated the phase. Its specific numbers are deliberately not recorded here (Rule 1); N7-02 regenerates them under provenance. Every RQ1–RQ3 analysis of that exact data is therefore labelled exploratory. Confirmatory claims are limited to data frozen in N7-05 and not touched by the probe.
+
+ETS/theory PRs #17–#35 stay open for their own review and are not dependencies of Phase 7. No training without GATE-C7 approval; local GPUs (RTX 4060 laptop, Colab/Kaggle T4) are inference-only.
+
+**Decided by:** PI (2026-11-20, "start executing everything in this plan").
+
+## 2026-11-21 — N7-02 reliability core: results and estimator decisions
+
+Source: `results/n7_02_reliability.json` (DataDecide `primary_metric`, final checkpoints, target 1B, recipe-cluster bootstrap B=1000). **Exploratory** in the Phase 7 sense.
+
+### Results
+
+- **1B test-retest** (one seed vs the mean of the other two), 10-task mean: 0.843 [0.812, 0.874].
+- **1-seed proxies against the same held-out 2-seed targets:**
+  - 150M: 0.725 [0.700, 0.750]
+  - 300M: 0.785 [0.757, 0.809]
+  - 530M: 0.810 [0.784, 0.832]
+- **Paired gap to test-retest at 530M:** -0.033 [-0.064, -0.002].
+- **Seed-held-out strata (circularity-safe).** On the top bin (|z| >= 3 on two seeds), the 3-seed 530M proxy agrees with the held-out third seed 0.952 [0.885, 0.969]. The target's own two-seed mean agrees with that seed 0.973 [0.911, 0.985].
+- **Seeds vs scale** (10-task mean, paired CIs):
+  - Every pre-listed matched-cost comparison is a near-tie, with a CI covering 0, except 150M x3 vs 300M x1 (-0.033 [-0.063, -0.001]), where scale wins.
+  - 530M x3 (0.64 of a 1B run) vs 1B test-retest: -0.005 [-0.038, 0.028].
+- **Noise model.**
+  - The seed-label ANOVA finds no shared seed effect (median seed-variance share <= 0.02 at every size).
+  - The log-variance dispersion test rejects homoscedasticity in at most 3 of 10 tasks at any size, against an expected 0.5 under the null. So pooled per-(task, size) seed SDs are a reasonable first model, but per-recipe variance heterogeneity must be allowed for in N7-03.
+
+### Estimator decisions
+
+- **Brown-Forsythe** has almost no power with 3 seeds per recipe; a 100x SD contrast was not detected in testing. It is kept only as a secondary diagnostic. The new primary heteroscedasticity check is `log_variance_dispersion`, with an exact Monte-Carlo null.
+- **Pooled SD** is recomputed on each bootstrap resample.
+- **Self-pairs** among duplicated resampled recipes are dropped by recipe id.
+- **Bin and 10-task aggregation.** Held-out strata pool hit/scored counts over the three held-out seeds. The 10-task mean is the mean of per-task values.
+- **Mutation test.** It caught binning with the held-out seed (a shift of 0.077). An earlier version of the test computed its oracle with the code under test and missed the mutation; it was fixed before commit.
+
+**Decided by:** Agent (orchestrator), N7-02.
+
+## 2026-11-21 — N7-03 decomposition estimator validation: shares fail coverage, error components pass
+
+Source: `results/n7_03_simulation.json`. The design covers 4 tasks x {150M, 530M} vs 1B and 3 generators (Gaussian, empirical recipe structure, heteroscedastic Student-t). Each cell uses 100 simulated suites, each with a recipe-cluster bootstrap CI (B=100).
+
+**The pre-stated criteria were fixed before the first run. One of them FAILED.**
+
+### Coverage over cells (nominal 0.95)
+
+| Estimand | Coverage |
+|---|---|
+| `da_latent` (proxy vs noise-free target) | 0.99–1.00 |
+| `reorder` | 0.94–0.99 |
+| `target_noise_err` | 0.91–0.93 |
+| Shares of observed error (`share_target_noise`, `share_reorder`) | 0.82–0.87 (fails the ≥0.90 criterion under G1/G2) |
+
+Bias of the error components is at most 0.005 in absolute value. The shares have RMSE 0.11–0.27: they are ratios with a small, noisy denominator (the observed error).
+
+### Posterior predictive checks
+
+These pass:
+- The observed 1B test-retest falls inside its 95% predictive interval for **11/11** tasks.
+- The held-out-seed stratified agreement falls inside for **95.5%** of 88 (task, size, bin) checks.
+
+So the Gaussian empirical-Bayes noise model reproduces the observed reliability structure.
+
+### Decision
+
+This is not a re-tuning of the estimator; the failure is reported as is.
+
+- The paper's **primary, CI-bearing estimands** are the absolute error components: `da_latent`, `target_noise_err` (equivalently `ceiling`), `reorder` and `proxy_noise_err`. All are in units of the fraction of recipe pairs, with valid coverage.
+- The shares are reported **only as descriptive point summaries without CIs**, labelled as such.
+- N7-05 freezes this choice before any confirmatory data is touched.
+- `target_noise_err` coverage at 0.91–0.93 is slightly below nominal. Its intervals are reported as approximately 95%, and a sensitivity analysis using a wider (99%) interval is part of N7-06.
+
+**Decided by:** Agent (orchestrator), N7-03; flagged to the PI.
