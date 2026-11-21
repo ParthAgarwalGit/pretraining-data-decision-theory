@@ -123,23 +123,28 @@ def main() -> None:
     results = {}
     for size, (repo, step, tar_rel) in _CHECKPOINTS.items():
         free = torch.cuda.mem_get_info()[0] / 1e9
-        t0 = time.time()
-        model, tok, info = convert.load_datadecide(
-            repo,
-            scoring.datadecide_revision(step, "default"),
-            dtype_name=_DTYPE,
-            cache_dir=hf_cache,
-        )
-        info["load_seconds_incl_download"] = time.time() - t0
-        results[size] = {
-            "model": info,
-            "free_vram_gb_before": free,
-            "validation_arc_easy_vs_released": _validate(
-                model, tok, _reference_predictions(tar_rel)
-            ),
-            "timing": _time(model, tok, sets),
-        }
-        del model
+        try:
+            t0 = time.time()
+            model, tok, info = convert.load_datadecide(
+                repo,
+                scoring.datadecide_revision(step, "default"),
+                dtype_name=_DTYPE,
+                cache_dir=hf_cache,
+            )
+            info["load_seconds_incl_download"] = time.time() - t0
+            ref = _reference_predictions(tar_rel)
+            results[size] = {
+                "model": info,
+                "free_vram_gb_before": free,
+                "validation_arc_easy_vs_released": _validate(model, tok, ref),
+                "timing": _time(model, tok, sets),
+            }
+        except torch.cuda.OutOfMemoryError as exc:
+            results[size] = {
+                "skipped": f"CUDA out of memory with {free:.2f} GB free before loading",
+                "error": str(exc).splitlines()[0],
+            }
+        model = None
         torch.cuda.empty_cache()
     t0 = time.time()
     model, tok, info = convert.load_hf(
@@ -182,6 +187,10 @@ def main() -> None:
         "precision_note": (
             "fp16 chosen: on 400 ARC-Easy items at 150M it matched released log-probs within"
             " 0.03 nats with 0 prediction flips; bf16 flipped predictions (pre-run check)."
+        ),
+        "gpu_shared_note": (
+            "Timed while another user process held GPU memory and compute (a fine-tuning"
+            " queue from another project): throughputs are pessimistic for a dedicated GPU."
         ),
         "results": results,
         "full_benchmark_set": {
