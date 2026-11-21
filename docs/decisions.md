@@ -1327,3 +1327,29 @@ This is not a re-tuning of the estimator; the failure is reported as is.
 - `target_noise_err` coverage at 0.91–0.93 is slightly below nominal. Its intervals are reported as approximately 95%, and a sensitivity analysis using a wider (99%) interval is part of N7-06.
 
 **Decided by:** Agent (orchestrator), N7-03; flagged to the PI.
+
+## 2026-11-21 — N7-06 exploratory decomposition: target noise caps decision accuracy near 0.92, but true reordering is real at every proxy scale
+
+Source: `results/n7_06_decomposition.json`. DataDecide `primary_metric`, 3-seed proxies vs the 3-seed 1B target, recipe-cluster bootstrap B=200. **Exploratory.** 19 of 143 cells had their between-recipe covariance clipped to PSD (recorded per cell).
+
+10-task mean with 95% CIs:
+
+| Proxy | da_obs | ceiling (1 - target_noise_err) | reorder | proxy_noise_err |
+|---|---|---|---|---|
+| 150M | 0.758 | 0.915 [0.891, 0.937] | 0.220 [0.125, 0.286] | 0.125 [0.107, 0.152] |
+| 300M | 0.825 | 0.915 [0.894, 0.936] | 0.098 [0.049, 0.128] | 0.114 |
+| 530M | 0.849 [0.823, 0.872] | 0.914 [0.895, 0.938] | 0.078 [0.036, 0.118] | 0.096 [0.079, 0.119] |
+
+### Readings
+
+- **The ceiling.** The 3-seed 1B target itself misorders about 8.5% of recipe pairs relative to its noise-free means. So DataDecide-style decision accuracy cannot be expected to exceed about 0.915 for ANY proxy.
+- **Cross-task spread of the ceiling.** Per task it ranges from 0.78 (BoolQ) and 0.84 (SocialIQA) to 0.98 (HellaSwag, MMLU).
+- **True reordering is real at every scale.** The genuine cross-scale reordering of recipe means falls from 0.22 at 150M to 0.078 at 530M. Its CI excludes 0 at 530M.
+- **Correction to the plan's framing.** The plan's working thesis that most residual error at 300M and above is target noise is **not supported**. On the sequential split, removing target noise fixes only about 13% of the observed error at 530M. Target errors concentrate on near-tied pairs, where the proxy is already close to a coin flip. True reordering (about 52%) and proxy noise (about 35%) account for the rest.
+- **What survives.** The defensible headline is:
+  - the measurable ceiling, of about 0.915;
+  - the three-way decomposition by scale;
+  - high accuracy on pairs the target resolves (N7-02: 0.952 at 530M on the top bin).
+- **Hypothesis thresholds.** N7-05 uses these numbers to set its thresholds and labels them as derived from exploratory data.
+
+**Decided by:** Agent (orchestrator), N7-06; flagged to the PI as a framing change.

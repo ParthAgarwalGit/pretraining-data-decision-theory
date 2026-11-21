@@ -134,7 +134,7 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 | N7-03 | Simulation validation of the decomposition estimator (E2) | IN REVIEW | | PPC passes; share CIs fail coverage, so shares are point-only (decisions 2026-11-21) |
 | N7-04 | Inference harness + local GPU timing (E11 prep) | TODO | |  |
 | N7-05 | Pre-registration commit | TODO | | freezes confirmatory analyses |
-| N7-06 | DataDecide decomposition (E3) | TODO | | exploratory on primary_metric |
+| N7-06 | DataDecide decomposition (E3) | IN REVIEW | | exploratory; ceiling ~0.915, reordering real at 530M (decisions 2026-11-21) |
 | N7-07 | Re-score prior conclusions (E6) | TODO | |  |
 | N7-08 | Alternative targets (E7) | TODO | |  |
 | N7-09 | Instance-level noise (E5) | TODO | |  |
