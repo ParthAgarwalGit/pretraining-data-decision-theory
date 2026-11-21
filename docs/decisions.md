@@ -1418,3 +1418,28 @@ Source: `results/n7_10_seed_noise.json`.
 - **Scope.** The 530M and 750M archive gaps do not affect I1–I3, which use only 1B, plus the 530M frame scores for the between-recipe covariance.
 
 **Decided by:** PI (2026-11-21, GATE answer "Drop 1 recipe").
+
+## 2026-11-21 — N7-09 confirmatory results (24 recipes, 1B target)
+
+Source: `results/n7_09_instances.json`. Two independent runs gave identical payloads.
+
+### I1 (estimation)
+
+Item sampling contributes a median **0.44** of the variance of a 1B pairwise score gap (mean over the 10 tasks of the per-task median over pairs). The rest is 3-seed seed noise.
+
+- **Per task:** it ranges from 0.04 (BoolQ) to 0.69 (MMLU).
+- **Implication.** Benchmark-item noise is about as large as training-seed noise for recipe decisions at 1B. Seed-only analyses, including DataDecide's own, understate target noise relative to the task population.
+
+### I2: criterion met
+
+- **Ceilings.** The population-level ceiling is 0.892, against a fixed-item ceiling of 0.917. The 3-seed 1B ranking is judged against recipe means over the item population (I2) or on the fixed benchmark items (fixed).
+- **Difference.** −0.025 [−0.031, −0.018].
+- **Per task:** the largest drops are OBQA (0.893 → 0.839), WinoGrande (0.909 → 0.851) and PIQA (0.899 → 0.855).
+
+### I3: criterion met, with an interpretation limit
+
+- **Result.** The paired item-level sign test resolves 0.481 of 1B pairs, against 0.095 for the seed-only Welch test (Bonferroni over 300 pairs, alpha 0.05).
+- **Limit.** The sign test conditions on the trained models: seed-averaged correctness per item, with no seed variance. So it answers "do these trained models differ on this item population?", not "do the recipes differ?".
+- **Consequence for the paper.** It is presented as evidence that **item noise, not item count, is not the bottleneck once models are fixed**, and that seed noise is the binding constraint on recipe-level resolution. It is never presented as more recipe pairs being resolved.
+
+**Decided by:** Agent (orchestrator), N7-09.

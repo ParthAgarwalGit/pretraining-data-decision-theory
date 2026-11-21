@@ -137,7 +137,7 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 | N7-06 | DataDecide decomposition (E3) | IN REVIEW | | exploratory; ceiling ~0.915, reordering real at 530M (decisions 2026-11-21) |
 | N7-07 | Re-score prior conclusions (E6) | TODO | |  |
 | N7-08 | Alternative targets (E7) | TODO | |  |
-| N7-09 | Instance-level noise (E5) | IN PROGRESS | | I0 failed (6/475); PI: run I1-I3 on 24 recipes (deviation recorded) |
+| N7-09 | Instance-level noise (E5) | IN REVIEW | | 24 recipes (PI deviation); I2, I3 met; I3 interpretation limited (decisions 2026-11-21) |
 | N7-10 | Many-seed checks (E4/E4b) | IN PROGRESS | | S1 done (criterion not met, 5/8); S2 (PolyPythia) needs GPU |
 | N7-11 | Confirmatory re-evaluation on new benchmarks (E11) | TODO | |  |
 | N7-12 | Tie-aware abstention rule (E10) | TODO | | stretch |
