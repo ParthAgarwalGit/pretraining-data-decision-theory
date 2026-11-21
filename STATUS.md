@@ -124,5 +124,27 @@ States: `TODO` | `IN PROGRESS` | `IN REVIEW` | `DONE` | `BLOCKED` | `DROPPED`
 
 ---
 
+## Phase 7 — Target-noise decomposition (plan/10)
+
+| Task | Title | State | PR | Notes |
+|---|---|---|---|---|
+| N7-00 | Phase 7 plan (target-noise decomposition) | IN PROGRESS | |  |
+| N7-01 | Novelty gate G0 | TODO | | kill/reframe criterion |
+| N7-02 | Reliability core (E1) | IN REVIEW | | `results/n7_02_reliability.json`; exploratory |
+| N7-03 | Simulation validation of the decomposition estimator (E2) | IN REVIEW | | PPC passes; share CIs fail coverage, so shares are point-only (decisions 2026-11-21) |
+| N7-04 | Inference harness + local GPU timing (E11 prep) | TODO | |  |
+| N7-05 | Pre-registration commit | TODO | | freezes confirmatory analyses |
+| N7-06 | DataDecide decomposition (E3) | IN REVIEW | | exploratory; ceiling ~0.915, reordering real at 530M (decisions 2026-11-21) |
+| N7-07 | Re-score prior conclusions (E6) | TODO | |  |
+| N7-08 | Alternative targets (E7) | TODO | |  |
+| N7-09 | Instance-level noise (E5) | TODO | |  |
+| N7-10 | Many-seed checks (E4/E4b) | TODO | |  |
+| N7-11 | Confirmatory re-evaluation on new benchmarks (E11) | TODO | |  |
+| N7-12 | Tie-aware abstention rule (E10) | TODO | | stretch |
+| N7-13 | Workshop draft | TODO | |  |
+| **GATE-C7** | **Compute for prospective training (E9)** | TODO | | PI |
+
+---
+
 ## Decisions log
 See `docs/decisions.md`.
