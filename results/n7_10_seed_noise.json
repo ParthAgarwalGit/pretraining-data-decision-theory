@@ -1,0 +1,99 @@
+{
+  "provenance": {
+    "git_sha": "8a4f3f01fbd08d576ca55a35314024e60bbf5040",
+    "git_dirty": false,
+    "utc_timestamp": "2026-11-21T04:24:56.351220+00:00",
+    "python_version": "3.12.10",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "pandas": "3.0.5",
+      "polars": "1.44.1",
+      "pyarrow": "25.0.1",
+      "huggingface_hub": "1.29.0",
+      "datasets": "5.0.1",
+      "statsmodels": "0.15.0",
+      "matplotlib": "3.11.1"
+    },
+    "seed": null,
+    "config": {
+      "task": "N7-10-S1",
+      "signal_noise_revision": "e8a9789c036cd22131bc2fa2b6cec998f8fe89ec",
+      "dataset_revision": "9919b5a0e61e57a85021263918fa82d6ceaee038",
+      "preregistration_commit": "ff4b978"
+    }
+  },
+  "data": {
+    "status": "CONFIRMATORY check S1 (pre-registered; descriptive comparison)",
+    "metric": "acc_per_char",
+    "per_task": {
+      "arc_challenge": {
+        "n_signal_noise_runs": 10,
+        "signal_noise_sd_10_init_seeds": 0.011117648296307505,
+        "datadecide_pooled_3seed_sd": 0.010781058026330234,
+        "ratio_datadecide_over_signal_noise": 0.969724688080926,
+        "ratio_in_0.5_2": true
+      },
+      "arc_easy": {
+        "n_signal_noise_runs": 10,
+        "signal_noise_sd_10_init_seeds": 0.004359442597956531,
+        "datadecide_pooled_3seed_sd": 0.011701043184510073,
+        "ratio_datadecide_over_signal_noise": 2.684068644462685,
+        "ratio_in_0.5_2": false
+      },
+      "boolq": {
+        "status": "missing",
+        "n_signal_noise_runs": 0
+      },
+      "csqa": {
+        "n_signal_noise_runs": 10,
+        "signal_noise_sd_10_init_seeds": 0.008836111026537417,
+        "datadecide_pooled_3seed_sd": 0.01785496921530621,
+        "ratio_datadecide_over_signal_noise": 2.0206818544586564,
+        "ratio_in_0.5_2": false
+      },
+      "hellaswag": {
+        "n_signal_noise_runs": 10,
+        "signal_noise_sd_10_init_seeds": 0.006096448408485001,
+        "datadecide_pooled_3seed_sd": 0.0029449049184251336,
+        "ratio_datadecide_over_signal_noise": 0.4830525448761991,
+        "ratio_in_0.5_2": false
+      },
+      "mmlu": {
+        "n_signal_noise_runs": 10,
+        "signal_noise_sd_10_init_seeds": 0.0024742584892791936,
+        "datadecide_pooled_3seed_sd": 0.002048339167327328,
+        "ratio_datadecide_over_signal_noise": 0.8278598118194411,
+        "ratio_in_0.5_2": true
+      },
+      "openbookqa": {
+        "status": "missing",
+        "n_signal_noise_runs": 0
+      },
+      "piqa": {
+        "n_signal_noise_runs": 10,
+        "signal_noise_sd_10_init_seeds": 0.00612973564808879,
+        "datadecide_pooled_3seed_sd": 0.004716804527027919,
+        "ratio_datadecide_over_signal_noise": 0.7694955864040544,
+        "ratio_in_0.5_2": true
+      },
+      "socialiqa": {
+        "n_signal_noise_runs": 10,
+        "signal_noise_sd_10_init_seeds": 0.006249301193888703,
+        "datadecide_pooled_3seed_sd": 0.011904803560735895,
+        "ratio_datadecide_over_signal_noise": 1.9049815637591292,
+        "ratio_in_0.5_2": true
+      },
+      "winogrande": {
+        "n_signal_noise_runs": 10,
+        "signal_noise_sd_10_init_seeds": 0.010875772920086357,
+        "datadecide_pooled_3seed_sd": 0.008233119941779575,
+        "ratio_datadecide_over_signal_noise": 0.7570146970036408,
+        "ratio_in_0.5_2": true
+      }
+    },
+    "n_shared_tasks": 8,
+    "n_ratio_in_range": 5,
+    "criterion_ge_7": false
+  }
+}
