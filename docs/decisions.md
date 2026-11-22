@@ -1443,3 +1443,14 @@ Item sampling contributes a median **0.44** of the variance of a 1B pairwise sco
 - **Consequence for the paper.** It is presented as evidence that, **with the trained models held fixed, the benchmark items separate most pairs**, so recipe-level resolution is limited mainly by training-seed noise. It is never presented as more recipe pairs being resolved.
 
 **Decided by:** Agent (orchestrator), N7-09.
+
+## 2026-11-22 — Pre-registration Amendment 1: S2 criterion recalibrated (PI-approved deviation)
+
+- **Problem.** The pre-registered S2 threshold (≤ 0.30) is below what ideal Gaussian noise produces: 0.39 with known σ, and a median of about 0.33 against a 10-seed SD. The check would have failed whatever the data.
+- **Fix.** It is replaced by a one-sided test against the exact Gaussian Monte-Carlo null of the same statistic (`src/pdt/analysis/seed_noise.py`).
+- **Tests** (`tests/test_seed_noise.py`):
+  - The test holds its size under Gaussian noise: at most 7 of 40 rejections, against an expected 2.
+  - It rejects when one seed per cell is an outlier.
+- **Status.** Recorded before any PolyPythia data existed. The analysis script `experiments/n7_10_s2_polypythia.py` is committed now, before the data.
+
+**Decided by:** PI (2026-11-22: "fix this in the best way possible").
