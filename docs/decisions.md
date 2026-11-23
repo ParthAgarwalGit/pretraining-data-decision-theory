@@ -1273,3 +1273,19 @@ ETS/theory PRs #17–#35 stay open for their own review and are not dependencies
 - **Scorer fixes found during the smoke test** (commit `e18d340`): host-side batch building, one device sync per batch, and chunking of the output head to bound memory. BLiMP accuracy was identical before and after.
 
 **Decided by:** PI (Colab) and Agent (orchestrator).
+
+## 2026-11-23 — N7-11 worker hardened after a Colab stall: benchmarks frozen into the repo
+
+- **Problem.** On Colab, shard 0 appeared to loop forever while downloading. At startup each worker downloaded SciQ, LAMBADA and BLiMP from the Hub. BLiMP alone is 67 separate dataset configs, which took 135 s locally and is prone to stalls and throttling with 4 notebooks starting together.
+- **Frozen benchmarks.** Benchmark items are frozen in `configs/n7_11_benchmarks.json.gz` (2.6 MB). The uncompressed JSON's sha256 `21ab05c90d3a5deb8106dd0fafefbfc0504e22b55b18d625bd1a9b933983b552` is recorded in `configs/n7_11_jobs.json` and checked by every worker.
+  - Counts: SciQ 1,000, LAMBADA 5,153, BLiMP 67,000.
+  - The items are exactly what `pdt.eval.benchmarks.load_items` produced, with the same formats as pre-registered.
+  - Reproduce with `experiments/n7_11_freeze_benchmarks.py`.
+- **Other worker changes.**
+  - Hub download timeouts.
+  - 3 attempts per job, then `failed.json`, and the shard continues.
+  - Timestamped stage logs.
+  - The notebook now pulls the latest code when the repo is already cloned in a session.
+- **Outputs.** Nothing scored before this change is affected. Any `done.json` already on Drive was produced by the same scorer and formats, so it remains valid.
+
+**Decided by:** Agent (orchestrator), after the PI reported the Colab stall.

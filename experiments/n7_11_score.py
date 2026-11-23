@@ -1,36 +1,97 @@
 """N7-11 / N7-10-S2 GPU worker: score a shard of configs/n7_11_jobs.json on the
 pre-registered benchmarks and write per-question outputs. Runs in the INFERENCE
-environment (torch + transformers + datasets + pyarrow), e.g. on a Colab/Kaggle T4:
+environment (torch + transformers + pyarrow), e.g. on a Colab/Kaggle T4:
 
     python experiments/n7_11_score.py --shard 0 --nshards 4 --out /content/drive/MyDrive/pdt_n7_11
 
-Resumable: a job is skipped when <out>/<job_id>/done.json exists, so a disconnected
-notebook can simply be re-run. Each finished job leaves one parquet per benchmark
-(per-question records, see pdt.eval.scoring.item_record) and done.json (model info,
-throughput, GPU name, library versions). Downloaded weights are deleted after each job.
-The analysis that consumes these outputs is pre-registered (docs/preregistration.md);
-this worker only scores.
+* Benchmarks come from the frozen, hash-checked configs/n7_11_benchmarks.json.gz: no
+  dataset downloads at run time (the per-subset BLiMP downloads stalled Colab workers).
+* Checkpoint downloads have timeouts and up to 3 attempts; a job that still fails writes
+  failed.json and the shard moves on (re-running the notebook retries it).
+* Resumable: a job is skipped when <out>/<job_id>/done.json exists.
+* Every stage is logged with a timestamp, so a stall is visible.
+Each finished job leaves one parquet per benchmark (per-question records, see
+pdt.eval.scoring.item_record) and done.json (model info, throughput, GPU, versions).
 """
 
 from __future__ import annotations
 
-import argparse
-import json
-import platform
-import shutil
-import tempfile
-import time
-from pathlib import Path
+import os
 
-import pandas as pd
-import torch
-import transformers
+# Must be set before huggingface_hub is imported (it reads them at import time).
+os.environ.setdefault("HF_HUB_DOWNLOAD_TIMEOUT", "60")
+os.environ.setdefault("HF_HUB_ETAG_TIMEOUT", "30")
+os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
 
-from pdt.eval import benchmarks, convert, run
+import argparse  # noqa: E402
+import json  # noqa: E402
+import platform  # noqa: E402
+import shutil  # noqa: E402
+import tempfile  # noqa: E402
+import time  # noqa: E402
+import traceback  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+import pandas as pd  # noqa: E402
+import torch  # noqa: E402
+import transformers  # noqa: E402
+
+from pdt.eval import benchmarks, convert, run  # noqa: E402
+
+_ATTEMPTS = 3
+_T0 = time.time()
 
 
-def _write_parquet(records: list[dict], path: Path) -> None:
-    pd.DataFrame(records).to_parquet(path, index=False)
+def log(msg: str) -> None:
+    print(f"[{time.time() - _T0:8.1f}s] {msg}", flush=True)
+
+
+def _load(job: dict, dtype: str, cache: str):
+    if job["kind"] == "datadecide":
+        return convert.load_datadecide(
+            job["repo_id"], job["revision"], dtype_name=dtype, cache_dir=cache
+        )
+    return convert.load_hf(job["repo_id"], job["revision"], dtype_name=dtype, cache_dir=cache)
+
+
+def _run_job(job: dict, items: dict, dtype: str, out_root: Path, batch_tokens: int) -> None:
+    t0 = time.time()
+    job_dir = out_root / job["job_id"]
+    job_dir.mkdir(parents=True, exist_ok=True)
+    cache = tempfile.mkdtemp(prefix="pdt_hf_")
+    model = None
+    try:
+        log(f"{job['job_id']}: downloading + loading {job['repo_id']}@{job['revision']}")
+        model, tok, info = _load(job, dtype, cache)
+        info["load_seconds"] = time.time() - t0
+        log(f"{job['job_id']}: loaded in {info['load_seconds']:.0f}s")
+        stats = {}
+        for name, its in items.items():
+            recs, st = run.score_items(model, tok, its, batch_tokens=batch_tokens)
+            pd.DataFrame(recs).to_parquet(job_dir / f"{name}.parquet", index=False)
+            stats[name] = st
+            log(
+                f"{job['job_id']}: {name} {st['n_items']} items, "
+                f"{st['tokens_per_second']:.0f} tok/s"
+            )
+        done = {
+            "job": job,
+            "model": info,
+            "stats": stats,
+            "dtype": dtype,
+            "gpu": torch.cuda.get_device_name() if torch.cuda.is_available() else "cpu",
+            "torch": torch.__version__,
+            "transformers": transformers.__version__,
+            "python": platform.python_version(),
+            "seconds": time.time() - t0,
+        }
+        (job_dir / "done.json").write_text(json.dumps(done, indent=1), encoding="utf-8")
+        (job_dir / "failed.json").unlink(missing_ok=True)
+    finally:
+        del model
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        shutil.rmtree(cache, ignore_errors=True)
 
 
 def main() -> None:
@@ -50,49 +111,33 @@ def main() -> None:
     out_root = Path(args.out)
     out_root.mkdir(parents=True, exist_ok=True)
     todo = [j for j in mine if not (out_root / j["job_id"] / "done.json").exists()]
-    print(f"shard {args.shard}/{args.nshards}: {len(mine)} jobs, {len(todo)} to do", flush=True)
+    log(f"shard {args.shard}/{args.nshards}: {len(mine)} jobs, {len(todo)} to do")
     if not todo:
         return
-    items = {b: benchmarks.load_items(b) for b in spec["benchmarks"]}
-    dtype = spec["dtype"]
-    for job in todo:
-        t0 = time.time()
-        cache = tempfile.mkdtemp(prefix="pdt_hf_")
-        try:
-            if job["kind"] == "datadecide":
-                model, tok, info = convert.load_datadecide(
-                    job["repo_id"], job["revision"], dtype_name=dtype, cache_dir=cache
-                )
-            else:
-                model, tok, info = convert.load_hf(
-                    job["repo_id"], job["revision"], dtype_name=dtype, cache_dir=cache
-                )
-            info["load_seconds"] = time.time() - t0
-            job_dir = out_root / job["job_id"]
-            job_dir.mkdir(parents=True, exist_ok=True)
-            stats = {}
-            for name, its in items.items():
-                recs, st = run.score_items(model, tok, its, batch_tokens=args.batch_tokens)
-                _write_parquet(recs, job_dir / f"{name}.parquet")
-                stats[name] = st
-            done = {
-                "job": job,
-                "model": info,
-                "stats": stats,
-                "dtype": dtype,
-                "gpu": torch.cuda.get_device_name() if torch.cuda.is_available() else "cpu",
-                "torch": torch.__version__,
-                "transformers": transformers.__version__,
-                "python": platform.python_version(),
-                "seconds": time.time() - t0,
-            }
-            (job_dir / "done.json").write_text(json.dumps(done, indent=1), encoding="utf-8")
-            print(f"done {job['job_id']} in {done['seconds']:.0f}s", flush=True)
-        finally:
-            model = None
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            shutil.rmtree(cache, ignore_errors=True)
+    log(f"loading frozen benchmarks from {spec['benchmark_file']}")
+    items = {
+        b: benchmarks.load_frozen(spec["benchmark_file"], b, spec["benchmark_sha256"])
+        for b in spec["benchmarks"]
+    }
+    log("benchmarks: " + ", ".join(f"{b}={len(v)}" for b, v in items.items()))
+    failed = []
+    for n, job in enumerate(todo, 1):
+        log(f"job {n}/{len(todo)}: {job['job_id']}")
+        for attempt in range(1, _ATTEMPTS + 1):
+            try:
+                _run_job(job, items, spec["dtype"], out_root, args.batch_tokens)
+                break
+            except Exception as exc:  # network stall, OOM, hub error: retry, then skip
+                log(f"{job['job_id']}: attempt {attempt}/{_ATTEMPTS} failed: {exc!r}")
+                if attempt == _ATTEMPTS:
+                    failed.append(job["job_id"])
+                    (out_root / job["job_id"] / "failed.json").write_text(
+                        json.dumps({"job": job, "error": traceback.format_exc()}, indent=1),
+                        encoding="utf-8",
+                    )
+                else:
+                    time.sleep(30 * attempt)
+    log(f"shard finished; {len(todo) - len(failed)} done, {len(failed)} failed: {failed}")
 
 
 if __name__ == "__main__":

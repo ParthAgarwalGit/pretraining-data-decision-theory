@@ -3110,5 +3110,12 @@
    "size": "410m",
    "seed_label": "seed9"
   }
- ]
+ ],
+ "benchmark_file": "configs/n7_11_benchmarks.json.gz",
+ "benchmark_sha256": "21ab05c90d3a5deb8106dd0fafefbfc0504e22b55b18d625bd1a9b933983b552",
+ "benchmark_counts": {
+  "sciq": 1000,
+  "lambada_openai": 5153,
+  "blimp": 67000
+ }
 }

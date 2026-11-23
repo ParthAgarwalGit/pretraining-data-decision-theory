@@ -9,6 +9,7 @@ Loaders import `datasets` lazily so this module stays importable without it.
 from __future__ import annotations
 
 import gzip
+import hashlib
 import json
 from dataclasses import dataclass, field
 
@@ -91,3 +92,23 @@ def olmes_requests(path: str) -> list[Item]:
             Item(str(doc_id), d["ctx"], conts, int(d["gold"]), meta={"native_id": d["native"]})
         )
     return items
+
+
+def load_frozen(path: str, benchmark: str, sha256: str | None = None) -> list[Item]:
+    """Items of ``benchmark`` from a frozen ``*.json.gz`` written by
+    ``experiments/n7_11_freeze_benchmarks.py``. If ``sha256`` is given it must match the
+    uncompressed JSON, so every worker scores exactly the same items without downloads."""
+    raw = gzip.decompress(open(path, "rb").read())
+    if sha256 is not None and hashlib.sha256(raw).hexdigest() != sha256:
+        raise ValueError(f"{path}: sha256 mismatch, the frozen benchmark file was altered")
+    data = json.loads(raw)[benchmark]
+    return [
+        Item(
+            d["item_id"],
+            d["context"],
+            tuple(d["continuations"]),
+            int(d["gold"]),
+            greedy=bool(d["greedy"]),
+        )
+        for d in data
+    ]
