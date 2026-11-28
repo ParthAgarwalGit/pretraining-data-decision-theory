@@ -105,6 +105,11 @@ def main() -> None:
     ap.add_argument("--kinds", default="datadecide,hf", help="comma list: datadecide,hf")
     ap.add_argument("--batch-tokens", type=int, default=16384)
     ap.add_argument(
+        "--reverse",
+        action="store_true",
+        help="process this shard's jobs last-to-first (to meet another worker in the middle)",
+    )
+    ap.add_argument(
         "--skip-kinds",
         default="",
         help="comma list of kinds to skip AFTER sharding, e.g. 'hf' on a machine whose torch "
@@ -118,6 +123,8 @@ def main() -> None:
     mine = [j for k, j in enumerate(jobs) if k % args.nshards == args.shard]
     skip = {k for k in args.skip_kinds.split(",") if k}
     mine = [j for j in mine if j["kind"] not in skip]
+    if args.reverse:
+        mine = mine[::-1]
     out_root = Path(args.out)
     out_root.mkdir(parents=True, exist_ok=True)
     todo = [j for j in mine if not (out_root / j["job_id"] / "done.json").exists()]
