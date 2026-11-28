@@ -30,6 +30,7 @@ import shutil  # noqa: E402
 import tempfile  # noqa: E402
 import time  # noqa: E402
 import traceback  # noqa: E402
+from concurrent.futures import ThreadPoolExecutor  # noqa: E402
 from pathlib import Path  # noqa: E402
 
 import pandas as pd  # noqa: E402
@@ -54,11 +55,12 @@ def _load(job: dict, dtype: str, cache: str):
     return convert.load_hf(job["repo_id"], job["revision"], dtype_name=dtype, cache_dir=cache)
 
 
-def _run_job(job: dict, items: dict, dtype: str, out_root: Path, batch_tokens: int) -> None:
+def _run_job(
+    job: dict, items: dict, dtype: str, out_root: Path, batch_tokens: int, cache: str
+) -> None:
     t0 = time.time()
     job_dir = out_root / job["job_id"]
     job_dir.mkdir(parents=True, exist_ok=True)
-    cache = tempfile.mkdtemp(prefix="pdt_hf_")
     model = None
     try:
         log(f"{job['job_id']}: downloading + loading {job['repo_id']}@{job['revision']}")
@@ -102,12 +104,20 @@ def main() -> None:
     ap.add_argument("--out", required=True)
     ap.add_argument("--kinds", default="datadecide,hf", help="comma list: datadecide,hf")
     ap.add_argument("--batch-tokens", type=int, default=16384)
+    ap.add_argument(
+        "--skip-kinds",
+        default="",
+        help="comma list of kinds to skip AFTER sharding, e.g. 'hf' on a machine whose torch "
+        "is < 2.6 (keeps shard boundaries identical to workers that run every kind)",
+    )
     args = ap.parse_args()
 
     spec = json.loads(Path(args.jobs).read_text(encoding="utf-8"))
     kinds = set(args.kinds.split(","))
     jobs = [j for j in spec["jobs"] if j["kind"] in kinds]
     mine = [j for k, j in enumerate(jobs) if k % args.nshards == args.shard]
+    skip = {k for k in args.skip_kinds.split(",") if k}
+    mine = [j for j in mine if j["kind"] not in skip]
     out_root = Path(args.out)
     out_root.mkdir(parents=True, exist_ok=True)
     todo = [j for j in mine if not (out_root / j["job_id"] / "done.json").exists()]
@@ -121,11 +131,29 @@ def main() -> None:
     }
     log("benchmarks: " + ", ".join(f"{b}={len(v)}" for b, v in items.items()))
     failed = []
+    caches = [tempfile.mkdtemp(prefix="pdt_hf_") for _ in todo]
+    pool = ThreadPoolExecutor(max_workers=1)
+
+    def prefetch(k: int):
+        # Download the next checkpoint while the current one is scored; any error here is
+        # ignored, because the main loop downloads again (with retries) when it loads.
+        job_k = todo[k]
+        try:
+            from huggingface_hub import snapshot_download
+
+            snapshot_download(job_k["repo_id"], revision=job_k["revision"], cache_dir=caches[k])
+        except Exception as exc:  # noqa: BLE001
+            log(f"{job_k['job_id']}: prefetch failed ({exc!r}); will download in the main loop")
+
+    pending = pool.submit(prefetch, 0)
     for n, job in enumerate(todo, 1):
         log(f"job {n}/{len(todo)}: {job['job_id']}")
+        pending.result()
+        if n < len(todo):
+            pending = pool.submit(prefetch, n)
         for attempt in range(1, _ATTEMPTS + 1):
             try:
-                _run_job(job, items, spec["dtype"], out_root, args.batch_tokens)
+                _run_job(job, items, spec["dtype"], out_root, args.batch_tokens, caches[n - 1])
                 break
             except Exception as exc:  # network stall, OOM, hub error: retry, then skip
                 log(f"{job['job_id']}: attempt {attempt}/{_ATTEMPTS} failed: {exc!r}")
@@ -137,6 +165,7 @@ def main() -> None:
                     )
                 else:
                     time.sleep(30 * attempt)
+    pool.shutdown()
     log(f"shard finished; {len(todo) - len(failed)} done, {len(failed)} failed: {failed}")
 
 
