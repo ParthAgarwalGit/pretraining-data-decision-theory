@@ -1,0 +1,3121 @@
+{
+ "description": "N7-11 (DataDecide re-scoring) and N7-10 S2 (PolyPythia) scoring jobs",
+ "preregistration_commit": "ff4b978",
+ "benchmarks": [
+  "sciq",
+  "lambada_openai",
+  "blimp"
+ ],
+ "dtype": "float16",
+ "n_jobs": 350,
+ "missing": [],
+ "jobs": [
+  {
+   "job_id": "dd__c4__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "C4",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__c4__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "C4",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__c4__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "C4",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "DCLM-Baseline",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "DCLM-Baseline",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "DCLM-Baseline",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Dolma1.6++",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Dolma1.6++",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Dolma1.6++",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Dolma1.7",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Dolma1.7",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Dolma1.7",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Falcon",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Falcon",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Falcon",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Falcon+CC",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Falcon+CC",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Falcon+CC",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__fineweb-edu__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "FineWeb-Edu",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__fineweb-edu__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "FineWeb-Edu",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__fineweb-edu__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "FineWeb-Edu",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__fineweb-pro__150M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-150M",
+   "revision": "step37500-seed-default",
+   "recipe": "FineWeb-Pro",
+   "size": "150M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__fineweb-pro__150M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-150M",
+   "revision": "step37500-seed-small-aux-2",
+   "recipe": "FineWeb-Pro",
+   "size": "150M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__fineweb-pro__150M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-150M",
+   "revision": "step37500-seed-small-aux-3",
+   "recipe": "FineWeb-Pro",
+   "size": "150M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__c4__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "C4",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__c4__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "C4",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__c4__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "C4",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "DCLM-Baseline",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "DCLM-Baseline",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "DCLM-Baseline",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Dolma1.6++",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Dolma1.6++",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Dolma1.6++",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Dolma1.7",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Dolma1.7",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Dolma1.7",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__falcon__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Falcon",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Falcon",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__falcon__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Falcon",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Falcon+CC",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Falcon+CC",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Falcon+CC",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__fineweb-edu__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "FineWeb-Edu",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__fineweb-edu__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "FineWeb-Edu",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__fineweb-edu__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "FineWeb-Edu",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__fineweb-pro__1B__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-1B",
+   "revision": "step69369-seed-default",
+   "recipe": "FineWeb-Pro",
+   "size": "1B",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__fineweb-pro__1B__large-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-1B",
+   "revision": "step69369-seed-large-aux-2",
+   "recipe": "FineWeb-Pro",
+   "size": "1B",
+   "seed_label": "large aux 2"
+  },
+  {
+   "job_id": "dd__fineweb-pro__1B__large-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-1B",
+   "revision": "step69369-seed-large-aux-3",
+   "recipe": "FineWeb-Pro",
+   "size": "1B",
+   "seed_label": "large aux 3"
+  },
+  {
+   "job_id": "dd__c4__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "C4",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__c4__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "C4",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__c4__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "C4",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "DCLM-Baseline",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "DCLM-Baseline",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "DCLM-Baseline",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Dolma1.6++",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Dolma1.6++",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Dolma1.6++",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Dolma1.7",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Dolma1.7",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Dolma1.7",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Falcon",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Falcon",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Falcon",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Falcon+CC",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Falcon+CC",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Falcon+CC",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__fineweb-edu__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "FineWeb-Edu",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__fineweb-edu__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "FineWeb-Edu",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__fineweb-edu__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "FineWeb-Edu",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__fineweb-pro__300M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-300M",
+   "revision": "step45000-seed-default",
+   "recipe": "FineWeb-Pro",
+   "size": "300M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__fineweb-pro__300M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-300M",
+   "revision": "step45000-seed-small-aux-2",
+   "recipe": "FineWeb-Pro",
+   "size": "300M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__fineweb-pro__300M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-300M",
+   "revision": "step45000-seed-small-aux-3",
+   "recipe": "FineWeb-Pro",
+   "size": "300M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__c4__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "C4",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__c4__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "C4",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__c4__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-c4-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "C4",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "DCLM-Baseline",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "DCLM-Baseline",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "DCLM-Baseline",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-10p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-10p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 10%)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-20p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-20p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 20%)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw2__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw2-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 7%, FW2)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-7p-fw3__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-7p-fw3-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC 7%, FW3)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-10p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-10p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC FW 10%)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-qc-fw-3p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-qc-fw-3p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "DCLM-Baseline (QC FW 3%)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-25p-dolma1.7-75p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-25p-dolma1.7-75p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "DCLM-Baseline 25% / Dolma 75%",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-50p-dolma1.7-50p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-50p-dolma1.7-50p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "DCLM-Baseline 50% / Dolma 50%",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dclm-baseline-75p-dolma1.7-25p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dclm-baseline-75p-dolma1.7-25p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "DCLM-Baseline 75% / Dolma 25%",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Dolma1.6++",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Dolma1.6++",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_6plus__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_6plus-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Dolma1.6++",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Dolma1.7",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Dolma1.7",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Dolma1.7",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-flan__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-flan-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no Flan)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-reddit__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-reddit-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no Reddit)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-code__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-code-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no code)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__dolma1_7-no-math-code__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-dolma1_7-no-math-code-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Dolma1.7 (no math, code)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Falcon",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Falcon",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Falcon",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Falcon+CC",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Falcon+CC",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Falcon+CC",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-10p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-10p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC 10%)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-20p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-20p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC 20%)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-orig-10p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-orig-10p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC Orig 10%)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__falcon-and-cc-qc-tulu-10p__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-falcon-and-cc-qc-tulu-10p-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "Falcon+CC (QC Tulu 10%)",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__fineweb-edu__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "FineWeb-Edu",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__fineweb-edu__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "FineWeb-Edu",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__fineweb-edu__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-edu-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "FineWeb-Edu",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "dd__fineweb-pro__530M__default",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-530M",
+   "revision": "step51250-seed-default",
+   "recipe": "FineWeb-Pro",
+   "size": "530M",
+   "seed_label": "default"
+  },
+  {
+   "job_id": "dd__fineweb-pro__530M__small-aux-2",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-530M",
+   "revision": "step51250-seed-small-aux-2",
+   "recipe": "FineWeb-Pro",
+   "size": "530M",
+   "seed_label": "small aux 2"
+  },
+  {
+   "job_id": "dd__fineweb-pro__530M__small-aux-3",
+   "kind": "datadecide",
+   "repo_id": "allenai/DataDecide-fineweb-pro-530M",
+   "revision": "step51250-seed-small-aux-3",
+   "recipe": "FineWeb-Pro",
+   "size": "530M",
+   "seed_label": "small aux 3"
+  },
+  {
+   "job_id": "pythia__14m__seed0",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-14m",
+   "revision": "step143000",
+   "size": "14m",
+   "seed_label": "seed0"
+  },
+  {
+   "job_id": "pythia__14m__seed1",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-14m-seed1",
+   "revision": "step143000",
+   "size": "14m",
+   "seed_label": "seed1"
+  },
+  {
+   "job_id": "pythia__14m__seed2",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-14m-seed2",
+   "revision": "step143000",
+   "size": "14m",
+   "seed_label": "seed2"
+  },
+  {
+   "job_id": "pythia__14m__seed3",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-14m-seed3",
+   "revision": "step143000",
+   "size": "14m",
+   "seed_label": "seed3"
+  },
+  {
+   "job_id": "pythia__14m__seed4",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-14m-seed4",
+   "revision": "step143000",
+   "size": "14m",
+   "seed_label": "seed4"
+  },
+  {
+   "job_id": "pythia__14m__seed5",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-14m-seed5",
+   "revision": "step143000",
+   "size": "14m",
+   "seed_label": "seed5"
+  },
+  {
+   "job_id": "pythia__14m__seed6",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-14m-seed6",
+   "revision": "step143000",
+   "size": "14m",
+   "seed_label": "seed6"
+  },
+  {
+   "job_id": "pythia__14m__seed7",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-14m-seed7",
+   "revision": "step143000",
+   "size": "14m",
+   "seed_label": "seed7"
+  },
+  {
+   "job_id": "pythia__14m__seed8",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-14m-seed8",
+   "revision": "step143000",
+   "size": "14m",
+   "seed_label": "seed8"
+  },
+  {
+   "job_id": "pythia__14m__seed9",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-14m-seed9",
+   "revision": "step143000",
+   "size": "14m",
+   "seed_label": "seed9"
+  },
+  {
+   "job_id": "pythia__31m__seed0",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-31m",
+   "revision": "step143000",
+   "size": "31m",
+   "seed_label": "seed0"
+  },
+  {
+   "job_id": "pythia__31m__seed1",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-31m-seed1",
+   "revision": "step143000",
+   "size": "31m",
+   "seed_label": "seed1"
+  },
+  {
+   "job_id": "pythia__31m__seed2",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-31m-seed2",
+   "revision": "step143000",
+   "size": "31m",
+   "seed_label": "seed2"
+  },
+  {
+   "job_id": "pythia__31m__seed3",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-31m-seed3",
+   "revision": "step143000",
+   "size": "31m",
+   "seed_label": "seed3"
+  },
+  {
+   "job_id": "pythia__31m__seed4",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-31m-seed4",
+   "revision": "step143000",
+   "size": "31m",
+   "seed_label": "seed4"
+  },
+  {
+   "job_id": "pythia__31m__seed5",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-31m-seed5",
+   "revision": "step143000",
+   "size": "31m",
+   "seed_label": "seed5"
+  },
+  {
+   "job_id": "pythia__31m__seed6",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-31m-seed6",
+   "revision": "step143000",
+   "size": "31m",
+   "seed_label": "seed6"
+  },
+  {
+   "job_id": "pythia__31m__seed7",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-31m-seed7",
+   "revision": "step143000",
+   "size": "31m",
+   "seed_label": "seed7"
+  },
+  {
+   "job_id": "pythia__31m__seed8",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-31m-seed8",
+   "revision": "step143000",
+   "size": "31m",
+   "seed_label": "seed8"
+  },
+  {
+   "job_id": "pythia__31m__seed9",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-31m-seed9",
+   "revision": "step143000",
+   "size": "31m",
+   "seed_label": "seed9"
+  },
+  {
+   "job_id": "pythia__70m__seed0",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-70m",
+   "revision": "step143000",
+   "size": "70m",
+   "seed_label": "seed0"
+  },
+  {
+   "job_id": "pythia__70m__seed1",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-70m-seed1",
+   "revision": "step143000",
+   "size": "70m",
+   "seed_label": "seed1"
+  },
+  {
+   "job_id": "pythia__70m__seed2",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-70m-seed2",
+   "revision": "step143000",
+   "size": "70m",
+   "seed_label": "seed2"
+  },
+  {
+   "job_id": "pythia__70m__seed3",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-70m-seed3",
+   "revision": "step143000",
+   "size": "70m",
+   "seed_label": "seed3"
+  },
+  {
+   "job_id": "pythia__70m__seed4",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-70m-seed4",
+   "revision": "step143000",
+   "size": "70m",
+   "seed_label": "seed4"
+  },
+  {
+   "job_id": "pythia__70m__seed5",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-70m-seed5",
+   "revision": "step143000",
+   "size": "70m",
+   "seed_label": "seed5"
+  },
+  {
+   "job_id": "pythia__70m__seed6",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-70m-seed6",
+   "revision": "step143000",
+   "size": "70m",
+   "seed_label": "seed6"
+  },
+  {
+   "job_id": "pythia__70m__seed7",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-70m-seed7",
+   "revision": "step143000",
+   "size": "70m",
+   "seed_label": "seed7"
+  },
+  {
+   "job_id": "pythia__70m__seed8",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-70m-seed8",
+   "revision": "step143000",
+   "size": "70m",
+   "seed_label": "seed8"
+  },
+  {
+   "job_id": "pythia__70m__seed9",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-70m-seed9",
+   "revision": "step143000",
+   "size": "70m",
+   "seed_label": "seed9"
+  },
+  {
+   "job_id": "pythia__160m__seed0",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-160m",
+   "revision": "step143000",
+   "size": "160m",
+   "seed_label": "seed0"
+  },
+  {
+   "job_id": "pythia__160m__seed1",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-160m-seed1",
+   "revision": "step143000",
+   "size": "160m",
+   "seed_label": "seed1"
+  },
+  {
+   "job_id": "pythia__160m__seed2",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-160m-seed2",
+   "revision": "step143000",
+   "size": "160m",
+   "seed_label": "seed2"
+  },
+  {
+   "job_id": "pythia__160m__seed3",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-160m-seed3",
+   "revision": "step143000",
+   "size": "160m",
+   "seed_label": "seed3"
+  },
+  {
+   "job_id": "pythia__160m__seed4",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-160m-seed4",
+   "revision": "step143000",
+   "size": "160m",
+   "seed_label": "seed4"
+  },
+  {
+   "job_id": "pythia__160m__seed5",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-160m-seed5",
+   "revision": "step143000",
+   "size": "160m",
+   "seed_label": "seed5"
+  },
+  {
+   "job_id": "pythia__160m__seed6",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-160m-seed6",
+   "revision": "step143000",
+   "size": "160m",
+   "seed_label": "seed6"
+  },
+  {
+   "job_id": "pythia__160m__seed7",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-160m-seed7",
+   "revision": "step143000",
+   "size": "160m",
+   "seed_label": "seed7"
+  },
+  {
+   "job_id": "pythia__160m__seed8",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-160m-seed8",
+   "revision": "step143000",
+   "size": "160m",
+   "seed_label": "seed8"
+  },
+  {
+   "job_id": "pythia__160m__seed9",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-160m-seed9",
+   "revision": "step143000",
+   "size": "160m",
+   "seed_label": "seed9"
+  },
+  {
+   "job_id": "pythia__410m__seed0",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-410m",
+   "revision": "step143000",
+   "size": "410m",
+   "seed_label": "seed0"
+  },
+  {
+   "job_id": "pythia__410m__seed1",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-410m-seed1",
+   "revision": "step143000",
+   "size": "410m",
+   "seed_label": "seed1"
+  },
+  {
+   "job_id": "pythia__410m__seed2",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-410m-seed2",
+   "revision": "step143000",
+   "size": "410m",
+   "seed_label": "seed2"
+  },
+  {
+   "job_id": "pythia__410m__seed3",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-410m-seed3",
+   "revision": "step143000",
+   "size": "410m",
+   "seed_label": "seed3"
+  },
+  {
+   "job_id": "pythia__410m__seed4",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-410m-seed4",
+   "revision": "step143000",
+   "size": "410m",
+   "seed_label": "seed4"
+  },
+  {
+   "job_id": "pythia__410m__seed5",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-410m-seed5",
+   "revision": "step143000",
+   "size": "410m",
+   "seed_label": "seed5"
+  },
+  {
+   "job_id": "pythia__410m__seed6",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-410m-seed6",
+   "revision": "step143000",
+   "size": "410m",
+   "seed_label": "seed6"
+  },
+  {
+   "job_id": "pythia__410m__seed7",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-410m-seed7",
+   "revision": "step143000",
+   "size": "410m",
+   "seed_label": "seed7"
+  },
+  {
+   "job_id": "pythia__410m__seed8",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-410m-seed8",
+   "revision": "step143000",
+   "size": "410m",
+   "seed_label": "seed8"
+  },
+  {
+   "job_id": "pythia__410m__seed9",
+   "kind": "hf",
+   "repo_id": "EleutherAI/pythia-410m-seed9",
+   "revision": "step143000",
+   "size": "410m",
+   "seed_label": "seed9"
+  }
+ ],
+ "benchmark_file": "configs/n7_11_benchmarks.json.gz",
+ "benchmark_sha256": "21ab05c90d3a5deb8106dd0fafefbfc0504e22b55b18d625bd1a9b933983b552",
+ "benchmark_counts": {
+  "sciq": 1000,
+  "lambada_openai": 5153,
+  "blimp": 67000
+ }
+}

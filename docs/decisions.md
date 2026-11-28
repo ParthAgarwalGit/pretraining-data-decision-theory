@@ -1248,3 +1248,44 @@ Readings (all from this table and the file, not from theory):
 - Highest per-task bias at 150M: `hellaswag` (~0.055 for PowerLawN and ChinchillaND); the lowest tasks are near zero/negative (`boolq`).
 
 **Decided by:** Agent, following the second-round review.
+
+## 2026-11-20 — Open Phase 7: target-noise decomposition replaces ETS as the paper's main line
+
+A hostile internal review (outside the repo, at `../paper_plan/PAPER_PLAN.md`) reached three conclusions:
+- The course report adds little beyond DataDecide.
+- ETS and Theorems 1–4 cannot carry a paper: ETS never certifies on the real replay, the guarantees do not cover the realistic regime, and the plug-in bound is vacuous.
+- The usable insight is that observed decision accuracy mixes proxy noise, target (1B) seed noise and true reordering.
+
+An exploratory probe on DataDecide `primary_metric` final checkpoints, not yet a committed result, motivated the phase. Its specific numbers are deliberately not recorded here (Rule 1); N7-02 regenerates them under provenance. Every RQ1–RQ3 analysis of that exact data is therefore labelled exploratory. Confirmatory claims are limited to data frozen in N7-05 and not touched by the probe.
+
+ETS/theory PRs #17–#35 stay open for their own review and are not dependencies of Phase 7. No training without GATE-C7 approval; local GPUs (RTX 4060 laptop, Colab/Kaggle T4) are inference-only.
+
+**Decided by:** PI (2026-11-20, "start executing everything in this plan").
+
+## 2026-11-21 — N7-11 GPU pipeline: Colab/Kaggle workers (PI decision); the smoke test touched one checkpoint
+
+- **PI decision.** GPU work runs on Colab/Kaggle T4s. The laptop GPU is occupied by another project's training queue.
+- **Job list.** `configs/n7_11_jobs.json` lists the 300 DataDecide final checkpoints frozen in the pre-registration, plus 50 PolyPythia checkpoints for S2. Every revision was checked to exist on the Hub.
+- **Worker.** `experiments/n7_11_score.py` is sharded and resumable. `notebooks/n7_11_colab_worker.ipynb` runs one shard per notebook.
+- **Smoke test.** It scored one checkpoint (C4, 150M, seed `default`) end to end, taking 206 s on the shared laptop GPU. Its benchmark accuracies were printed to check the pipeline.
+  - This is 1 of 300 confirmatory checkpoints. It carries no information about C1–C5, which are all cross-recipe quantities.
+  - Its output is not used; the Colab run re-scores it.
+- **Scorer fixes found during the smoke test** (commit `e18d340`): host-side batch building, one device sync per batch, and chunking of the output head to bound memory. BLiMP accuracy was identical before and after.
+
+**Decided by:** PI (Colab) and Agent (orchestrator).
+
+## 2026-11-23 — N7-11 worker hardened after a Colab stall: benchmarks frozen into the repo
+
+- **Problem.** On Colab, shard 0 appeared to loop forever while downloading. At startup each worker downloaded SciQ, LAMBADA and BLiMP from the Hub. BLiMP alone is 67 separate dataset configs, which took 135 s locally and is prone to stalls and throttling with 4 notebooks starting together.
+- **Frozen benchmarks.** Benchmark items are frozen in `configs/n7_11_benchmarks.json.gz` (2.6 MB). The uncompressed JSON's sha256 `21ab05c90d3a5deb8106dd0fafefbfc0504e22b55b18d625bd1a9b933983b552` is recorded in `configs/n7_11_jobs.json` and checked by every worker.
+  - Counts: SciQ 1,000, LAMBADA 5,153, BLiMP 67,000.
+  - The items are exactly what `pdt.eval.benchmarks.load_items` produced, with the same formats as pre-registered.
+  - Reproduce with `experiments/n7_11_freeze_benchmarks.py`.
+- **Other worker changes.**
+  - Hub download timeouts.
+  - 3 attempts per job, then `failed.json`, and the shard continues.
+  - Timestamped stage logs.
+  - The notebook now pulls the latest code when the repo is already cloned in a session.
+- **Outputs.** Nothing scored before this change is affected. Any `done.json` already on Drive was produced by the same scorer and formats, so it remains valid.
+
+**Decided by:** Agent (orchestrator), after the PI reported the Colab stall.
